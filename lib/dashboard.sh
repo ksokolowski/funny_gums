@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# dashboard.sh - Dashboard drawing functions with progress tracking
+# Source this file for step-based dashboard UI
+# shellcheck disable=SC1091
+
+# Prevent multiple sourcing
+[[ -n "${_DASHBOARD_SH_LOADED:-}" ]] && return 0
+_DASHBOARD_SH_LOADED=1
+
+# Source dependencies
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_LIB_DIR/colors.sh"
+source "$_LIB_DIR/cursor.sh"
+source "$_LIB_DIR/spinner.sh"
+
+# Dashboard state
+declare -a DASHBOARD_STEPS=()       # Step display names
+declare -a DASHBOARD_STATUS=()      # Step status icons
+declare -a DASHBOARD_ENABLED=()     # Step enabled flags
+declare -A DASHBOARD_LINE_OFFSET=() # Line offsets for spinner updates
+DASHBOARD_LINES=0
+DASHBOARD_TITLE=""
+DASHBOARD_COMPLETED=0
+DASHBOARD_RUNNING=-1
+DASHBOARD_HAS_FAILURE=false
+DASHBOARD_PROGRESS_WIDTH=30
+DASHBOARD_QUIET=false
+
+# Initialize dashboard with title
+# Usage: dashboard_init "My Dashboard Title"
+dashboard_init() {
+    DASHBOARD_TITLE="${1:-Dashboard}"
+    DASHBOARD_STEPS=()
+    DASHBOARD_STATUS=()
+    DASHBOARD_ENABLED=()
+    DASHBOARD_LINE_OFFSET=()
+    DASHBOARD_LINES=0
+    DASHBOARD_COMPLETED=0
+    DASHBOARD_RUNNING=-1
+    DASHBOARD_HAS_FAILURE=false
+}
+
+# Add a step to the dashboard
+# Usage: dashboard_add_step "💾 Step description"
+dashboard_add_step() {
+    local idx=${#DASHBOARD_STEPS[@]}
+    DASHBOARD_STEPS+=("$1")
+    DASHBOARD_STATUS+=("⬜")
+    DASHBOARD_ENABLED+=(true)
+}
+
+# Enable/disable a step
+# Usage: dashboard_enable_step 0 true|false
+dashboard_enable_step() {
+    local idx=$1
+    local enabled=${2:-true}
+    DASHBOARD_ENABLED[idx]=$enabled
+}
+
+# Get enabled step count
+dashboard_enabled_count() {
+    local count=0
+    for enabled in "${DASHBOARD_ENABLED[@]}"; do
+        $enabled && ((count++))
+    done
+    echo "$count"
+}
+
+# Draw the dashboard
+dashboard_draw() {
+    $DASHBOARD_QUIET && return
+
+    local enabled_count
+    enabled_count=$(dashboard_enabled_count)
+
+    # Clear previous dashboard
+    if ((DASHBOARD_LINES > 0)); then
+        cursor_up "$DASHBOARD_LINES"
+        clear_to_end
+    fi
+
+    # Build content
+    local content=""
+    content+="${CYAN}🔧 ${DASHBOARD_TITLE}${RESET}\n\n"
+
+    for i in "${!DASHBOARD_STEPS[@]}"; do
+        if ! ${DASHBOARD_ENABLED[$i]}; then
+            content+="${CYAN}⏭️  ${DASHBOARD_STEPS[i]} (skipped)${RESET}\n"
+        elif ((DASHBOARD_RUNNING == i)); then
+            local spinner_char
+            spinner_char=$(spinner_frame)
+            content+="${spinner_char} ${DASHBOARD_STEPS[i]}${RESET}\n"
+        else
+            content+="${CYAN}${DASHBOARD_STATUS[i]} ${DASHBOARD_STEPS[i]}${RESET}\n"
+        fi
+    done
+
+    # Progress bar
+    local pct_denom=$((enabled_count > 0 ? enabled_count : 1))
+    local filled=$((DASHBOARD_COMPLETED * DASHBOARD_PROGRESS_WIDTH / pct_denom))
+    local empty=$((DASHBOARD_PROGRESS_WIDTH - filled))
+    local bar=""
+    for ((j=0; j<filled; j++)); do bar+="█"; done
+    for ((j=0; j<empty; j++)); do bar+="░"; done
+    local percent=$((DASHBOARD_COMPLETED * 100 / pct_denom))
+    content+="\n${CYAN}⏳ Progress [${bar}] ${percent}%${RESET}"
+
+    # Display in gum frame
+    local output
+    output=$(echo -e "$content" | gum style --border rounded --border-foreground 6 --padding "1 2" --align left)
+    printf '%s\n' "$output"
+
+    DASHBOARD_LINES=$(printf '%s\n' "$output" | wc -l)
+
+    # Calculate line offsets
+    local steps_start=5
+    for i in "${!DASHBOARD_STEPS[@]}"; do
+        DASHBOARD_LINE_OFFSET[$i]=$((DASHBOARD_LINES + 1 - steps_start - i))
+    done
+
+    # Save cursor position
+    cursor_save
+}
+
+# Update spinner in place (no full redraw)
+dashboard_update_spinner() {
+    $DASHBOARD_QUIET && return
+    ((DASHBOARD_RUNNING < 0)) && return
+
+    local idx=$DASHBOARD_RUNNING
+    local spinner_char
+    spinner_char=$(spinner_frame)
+    local line_offset="${DASHBOARD_LINE_OFFSET[$idx]}"
+
+    # Restore, move up, print, restore
+    printf '\e8\e[%dA\e[4G%s\e8' "$line_offset" "$spinner_char"
+}
+
+# Mark step as running
+# Usage: dashboard_step_start 0
+dashboard_step_start() {
+    DASHBOARD_RUNNING=$1
+    spinner_reset
+    dashboard_draw
+}
+
+# Mark step as completed
+# Usage: dashboard_step_done 0 [success=true]
+dashboard_step_done() {
+    local idx=$1
+    local success=${2:-true}
+
+    if $success; then
+        DASHBOARD_STATUS[idx]="✅"
+    else
+        DASHBOARD_STATUS[idx]="❌"
+        DASHBOARD_HAS_FAILURE=true
+    fi
+
+    ((DASHBOARD_COMPLETED++))
+    DASHBOARD_RUNNING=-1
+    dashboard_draw
+}
+
+# Mark step as skipped
+# Usage: dashboard_step_skip 0
+dashboard_step_skip() {
+    local idx=$1
+    DASHBOARD_STATUS[idx]="⏭️"
+    DASHBOARD_ENABLED[idx]=false
+}
+
+# Check if any step failed
+dashboard_has_failure() {
+    $DASHBOARD_HAS_FAILURE
+}
