@@ -17,12 +17,12 @@ run_shellcheck() {
     test_file_start "shellcheck"
     ((TESTS_RUN++))
 
-    if shellcheck "$PROJECT_DIR/my_gums.sh" "$PROJECT_DIR/lib/"*.sh "$PROJECT_DIR/examples/"*.sh >/dev/null 2>&1; then
+    if shellcheck --severity=error "$PROJECT_DIR/my_gums.sh" "$PROJECT_DIR/lib/"*.sh "$PROJECT_DIR/examples/"*.sh >/dev/null 2>&1; then
         echo "  ${GREEN}✓${RESET} All scripts pass shellcheck"
         ((TESTS_PASSED++))
     else
         echo "  ${RED}✗${RESET} Shellcheck found issues"
-        shellcheck "$PROJECT_DIR/my_gums.sh" "$PROJECT_DIR/lib/"*.sh "$PROJECT_DIR/examples/"*.sh 2>&1 | head -20
+        shellcheck --severity=error "$PROJECT_DIR/my_gums.sh" "$PROJECT_DIR/lib/"*.sh "$PROJECT_DIR/examples/"*.sh 2>&1 | head -20
         ((TESTS_FAILED++))
         FAILED_TESTS+=("shellcheck: Scripts have linting errors")
     fi

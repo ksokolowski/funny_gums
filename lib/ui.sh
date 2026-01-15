@@ -104,10 +104,29 @@ ui_file() {
 
 # Spinner while command runs
 # Usage: ui_spin "Loading..." command args...
+# Usage: ui_spin "Loading..." --spinner dot -- command args...
 ui_spin() {
     local title="$1"
     shift
     gum spin --title "$title" -- "$@"
+}
+
+# Spinner with type selection
+# Types: line, dot, minidot, jump, pulse, points, globe, moon, monkey, meter, hamburger
+# Usage: ui_spin_type dot "Loading..." command args...
+ui_spin_type() {
+    local spinner_type="$1"
+    local title="$2"
+    shift 2
+    gum spin --spinner "$spinner_type" --title "$title" -- "$@"
+}
+
+# Spinner showing command output
+# Usage: ui_spin_output "Building..." make build
+ui_spin_output() {
+    local title="$1"
+    shift
+    gum spin --show-output --title "$title" -- "$@"
 }
 
 # Join text horizontally
@@ -136,4 +155,183 @@ ui_join_v() {
         fi
     done
     echo "$result"
+}
+
+#######################################
+# Format functions (markdown, code, emoji)
+#######################################
+
+# Format/render markdown text
+# Usage: echo "# Title" | ui_format
+# Usage: ui_format "# Hello\n- Item 1\n- Item 2"
+ui_format() {
+    if [[ $# -gt 0 ]]; then
+        echo -e "$*" | gum format
+    else
+        gum format
+    fi
+}
+
+# Format code with syntax highlighting
+# Usage: cat script.sh | ui_format_code
+# Usage: ui_format_code "func main() { }"
+ui_format_code() {
+    if [[ $# -gt 0 ]]; then
+        echo -e "$*" | gum format --type code
+    else
+        gum format --type code
+    fi
+}
+
+# Format text with emoji parsing (:emoji: -> 🎉)
+# Usage: echo "I :heart: bash" | ui_format_emoji
+# Usage: ui_format_emoji "Hello :wave:"
+ui_format_emoji() {
+    if [[ $# -gt 0 ]]; then
+        echo -e "$*" | gum format --type emoji
+    else
+        gum format --type emoji
+    fi
+}
+
+# Format with template (Go template syntax)
+# Usage: echo '{{ Bold "Hello" }}' | ui_format_template
+ui_format_template() {
+    if [[ $# -gt 0 ]]; then
+        echo -e "$*" | gum format --type template
+    else
+        gum format --type template
+    fi
+}
+
+#######################################
+# Table functions
+#######################################
+
+# Display interactive table from CSV/TSV data
+# Usage: cat data.csv | ui_table
+# Usage: ui_table --separator "," --columns "Name,Age,City" < data.csv
+# Usage: ui_table --border rounded --file data.csv
+ui_table() {
+    gum table "$@"
+}
+
+# Display table from file
+# Usage: ui_table_file data.csv
+# Usage: ui_table_file data.csv --separator ","
+ui_table_file() {
+    local file="$1"
+    shift
+    gum table --file "$file" "$@"
+}
+
+# Display table with custom columns
+# Usage: ui_table_columns "Name,Age" < data.csv
+ui_table_columns() {
+    local columns="$1"
+    shift
+    gum table --columns "$columns" "$@"
+}
+
+#######################################
+# Pager functions
+#######################################
+
+# Scrollable text viewer
+# Usage: cat README.md | ui_pager
+# Usage: ui_pager < longfile.txt
+ui_pager() {
+    gum pager "$@"
+}
+
+# Pager with line numbers
+# Usage: cat script.sh | ui_pager_numbered
+ui_pager_numbered() {
+    gum pager --show-line-numbers "$@"
+}
+
+# Pager with soft wrap
+# Usage: cat longlines.txt | ui_pager_wrap
+ui_pager_wrap() {
+    gum pager --soft-wrap "$@"
+}
+
+#######################################
+# Enhanced input functions
+#######################################
+
+# Advanced text input with all options
+# Usage: ui_input_ext --placeholder "Name" --value "default" --width 40 --header "Enter name:"
+ui_input_ext() {
+    gum input "$@"
+}
+
+# Input with header
+# Usage: result=$(ui_input_header "Enter your name:" "John Doe")
+ui_input_header() {
+    local header="$1"
+    local placeholder="${2:-Enter text...}"
+    gum input --header "$header" --placeholder "$placeholder"
+}
+
+# Input with default value
+# Usage: result=$(ui_input_value "default text" "Enter value")
+ui_input_value() {
+    local value="$1"
+    local placeholder="${2:-Enter text...}"
+    gum input --value "$value" --placeholder "$placeholder"
+}
+
+# Write with header and dimensions
+# Usage: ui_write_ext --header "Description" --width 80 --height 10
+ui_write_ext() {
+    gum write "$@"
+}
+
+#######################################
+# Enhanced choose functions
+#######################################
+
+# Choose with specific limit
+# Usage: result=$(ui_choose_limit 2 "opt1" "opt2" "opt3" "opt4")
+ui_choose_limit() {
+    local limit=$1
+    shift
+    printf '%s\n' "$@" | gum choose --limit "$limit"
+}
+
+# Choose with pre-selected items (comma-separated)
+# Usage: result=$(ui_choose_selected "opt2,opt3" "opt1" "opt2" "opt3" "opt4")
+ui_choose_selected() {
+    local selected="$1"
+    shift
+    printf '%s\n' "$@" | gum choose --selected "$selected"
+}
+
+# Choose with height limit
+# Usage: result=$(ui_choose_height 5 "opt1" "opt2" ... "opt20")
+ui_choose_height() {
+    local height=$1
+    shift
+    printf '%s\n' "$@" | gum choose --height "$height"
+}
+
+# Filter with header
+# Usage: result=$(echo -e "item1\nitem2" | ui_filter_header "Search items:")
+ui_filter_header() {
+    local header="$1"
+    shift
+    gum filter --header "$header" "$@"
+}
+
+# File picker for directories only
+# Usage: result=$(ui_dir "/path")
+ui_dir() {
+    gum file --directory "${1:-.}"
+}
+
+# File picker showing hidden files
+# Usage: result=$(ui_file_all "/path")
+ui_file_all() {
+    gum file --all "${1:-.}"
 }
