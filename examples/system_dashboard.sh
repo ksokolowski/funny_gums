@@ -233,36 +233,53 @@ build_nav_panel() {
         ((i++))
     done
     
+    # Pad to fill height
+    lines+="\n\n\n\n\n\n"
+    
     echo -e "$lines" | gum style --border rounded --border-foreground 240 \
-        --width 20 --height 14 --padding "0 1"
+        --width 20 --height 22 --padding "0 1"
 }
 
 build_overview_panels() {
-    local content_width=$(( (TERM_COLS - 30) / 2 ))
-    [[ $content_width -lt 30 ]] && content_width=30
+    # Calculate panel width for 2-column layout
+    local total_width=$((TERM_COLS - 26))  # Account for nav panel + margins
+    local panel_width=$((total_width / 2 - 2))
+    [[ $panel_width -lt 35 ]] && panel_width=35
     
+    local panels=()
     local i=0
-    local all_panels=""
     
     for cat_def in "${CATEGORIES[@]}"; do
         local cat_name cat_icon
         IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
         
-        # Get summary data
+        # Get one-line summary
         local summary
-        summary=$(get_category_summary "$i" 2>/dev/null | tail -n +2 | head -2 | \
-            awk -F',' '{if(NF>=2) printf "  %s: %s\n", $1, substr($0, index($0,$2))}')
-        [[ -z "$summary" ]] && summary="  Loading..."
+        summary=$(get_category_summary "$i" 2>/dev/null | tail -n +2 | head -1 | \
+            awk -F',' '{if(NF>=2) print substr($0, index($0,$2))}' | cut -c1-$((panel_width - 4)))
+        [[ -z "$summary" ]] && summary="Loading..."
         
         local border_color=240
         [[ $i -eq $CURRENT_CATEGORY ]] && border_color=39
         
-        all_panels+="$cat_icon $cat_name\n$summary\n\n"
+        # Create compact panel (3 lines: title + summary)
+        local panel
+        panel=$(printf "%s %s\n%s" "$cat_icon" "$cat_name" "$summary" | \
+            gum style --border rounded --border-foreground "$border_color" \
+                --width "$panel_width" --height 4 --padding "0 1")
+        
+        panels+=("$panel")
         ((i++))
     done
     
-    echo -e "$all_panels" | gum style --border rounded --border-foreground 39 \
-        --width $((TERM_COLS - 28)) --padding "1"
+    # Build 4 rows of 2 panels each
+    local row1 row2 row3 row4
+    row1=$(gum join --horizontal "${panels[0]}" "${panels[1]}")
+    row2=$(gum join --horizontal "${panels[2]}" "${panels[3]}")
+    row3=$(gum join --horizontal "${panels[4]}" "${panels[5]}")
+    row4=$(gum join --horizontal "${panels[6]}" "${panels[7]}")
+    
+    gum join --vertical "$row1" "$row2" "$row3" "$row4"
 }
 
 build_detail_view() {
@@ -289,12 +306,8 @@ build_sensor_bar() {
     sensor_data=$(get_sensor_data)
     LAST_SENSOR_UPDATE=$(date '+%H:%M:%S')
     
-    local bar_width=$((TERM_COLS - 4))
-    local refresh_info="Auto-refresh: ${REFRESH_INTERVAL}s │ Updated: $LAST_SENSOR_UPDATE"
-    local padding=$((bar_width - ${#sensor_data} - ${#refresh_info} - 4))
-    
-    gum style --foreground 245 --background 236 --width "$bar_width" --padding "0 1" \
-        "🌡️ $sensor_data$(printf '%*s' "$padding" '')$refresh_info"
+    # Single line sensor bar
+    printf "\e[48;5;236m\e[38;5;245m 🌡️  %s  │  Updated: %s \e[0m" "$sensor_data" "$LAST_SENSOR_UPDATE"
 }
 
 build_footer() {
@@ -442,12 +455,12 @@ main_loop() {
                     ;;
             esac
         else
-            # Timeout - refresh sensor bar only
+            # Timeout - refresh sensor bar in place
             current_time=$(date +%s)
             if [[ $((current_time - last_refresh_time)) -ge $REFRESH_INTERVAL ]]; then
-                # Update sensor bar in place
                 cursor_save
                 cursor_goto $((TERM_ROWS - 2)) 1
+                clear_line
                 build_sensor_bar
                 cursor_restore
                 last_refresh_time=$current_time
