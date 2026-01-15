@@ -25,6 +25,9 @@ DASHBOARD_RUNNING=-1
 DASHBOARD_HAS_FAILURE=false
 DASHBOARD_PROGRESS_WIDTH=30
 DASHBOARD_QUIET=false
+DASHBOARD_SPINNER="DOTS"
+DASHBOARD_BORDER_COLOR="6"
+DASHBOARD_PROGRESS_COLOR="${CYAN}"
 
 # Initialize dashboard with title
 # Usage: dashboard_init "My Dashboard Title"
@@ -38,6 +41,9 @@ dashboard_init() {
     DASHBOARD_COMPLETED=0
     DASHBOARD_RUNNING=-1
     DASHBOARD_HAS_FAILURE=false
+    spinner_set "$DASHBOARD_SPINNER"
+    DASHBOARD_BORDER_COLOR="${DASHBOARD_BORDER_COLOR:-6}"
+    DASHBOARD_PROGRESS_COLOR="${DASHBOARD_PROGRESS_COLOR:-${CYAN}}"
 }
 
 # Add a step to the dashboard
@@ -103,11 +109,11 @@ dashboard_draw() {
     for ((j=0; j<filled; j++)); do bar+="█"; done
     for ((j=0; j<empty; j++)); do bar+="░"; done
     local percent=$((DASHBOARD_COMPLETED * 100 / pct_denom))
-    content+="\n${CYAN}⏳ Progress [${bar}] ${percent}%${RESET}"
+    content+="\n${DASHBOARD_PROGRESS_COLOR}⏳ Progress [${bar}] ${percent}%${RESET}"
 
     # Display in gum frame
     local output
-    output=$(echo -e "$content" | gum style --border rounded --border-foreground 6 --padding "1 2" --align left)
+    output=$(echo -e "$content" | gum style --no-strip-ansi --border rounded --border-foreground "$DASHBOARD_BORDER_COLOR" --padding "1 2" --align left)
     printf '%s\n' "$output"
 
     DASHBOARD_LINES=$(printf '%s\n' "$output" | wc -l)

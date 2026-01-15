@@ -54,6 +54,26 @@ assert_eq() {
     fi
 }
 
+# Assert that a string contains another string
+# Usage: assert_contains "substring" "string" "message"
+assert_contains() {
+    local expected="$1"
+    local actual="$2"
+    local message="${3:-String should contain '$expected'}"
+    ((TESTS_RUN++))
+
+    if [[ "$actual" == *"$expected"* ]]; then
+        echo "  ${GREEN}✓${RESET} $message"
+        ((TESTS_PASSED++))
+    else
+        echo "  ${RED}✗${RESET} $message"
+        echo "    String does not contain: '$expected'"
+        echo "    Actual: '$actual'"
+        ((TESTS_FAILED++))
+        FAILED_TESTS+=("$CURRENT_TEST_FILE: $message")
+    fi
+}
+
 # Assert that a value is not empty
 # Usage: assert_not_empty "value" "message"
 assert_not_empty() {

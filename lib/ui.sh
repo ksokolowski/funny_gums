@@ -9,31 +9,31 @@ _UI_SH_LOADED=1
 # Show styled box with title and content
 # Usage: ui_box "Title" "line1" "line2" ...
 ui_box() {
-    gum style --border rounded --border-foreground 6 --padding "1 2" "$@"
+    gum style --no-strip-ansi --border rounded --border-foreground 6 --padding "1 2" "$@"
 }
 
 # Show styled box with double border
 # Usage: ui_box_double "Title" "line1" "line2" ...
 ui_box_double() {
-    gum style --border double --border-foreground 6 --padding "1 2" "$@"
+    gum style --no-strip-ansi --border double --border-foreground 6 --padding "1 2" "$@"
 }
 
 # Show success message
 # Usage: ui_success "Message"
 ui_success() {
-    gum style --border rounded --border-foreground 2 --padding "1 4" --align center "$@"
+    gum style --no-strip-ansi --border rounded --border-foreground 2 --padding "1 4" --align center "$@"
 }
 
 # Show error message
 # Usage: ui_error "Message"
 ui_error() {
-    gum style --border rounded --border-foreground 1 --padding "1 4" --align center "$@"
+    gum style --no-strip-ansi --border rounded --border-foreground 1 --padding "1 4" --align center "$@"
 }
 
 # Show warning message
 # Usage: ui_warn "Message"
 ui_warn() {
-    gum style --border rounded --border-foreground 3 --padding "1 4" --align center "$@"
+    gum style --no-strip-ansi --border rounded --border-foreground 3 --padding "1 4" --align center "$@"
 }
 
 # Show info message (no border)
@@ -52,13 +52,13 @@ ui_confirm() {
 # Single choice selection
 # Usage: result=$(ui_choose "Option1" "Option2" "Option3")
 ui_choose() {
-    printf '%s\n' "$@" | gum choose
+    gum choose "$@"
 }
 
 # Multi-choice selection
 # Usage: result=$(ui_choose_multi "Option1" "Option2" "Option3")
 ui_choose_multi() {
-    printf '%s\n' "$@" | gum choose --no-limit
+    gum choose --no-limit "$@"
 }
 
 # Choice with header
@@ -66,28 +66,31 @@ ui_choose_multi() {
 ui_choose_with_header() {
     local header="$1"
     shift
-    printf '%s\n' "$@" | gum choose --header "$header"
+    gum choose --header "$header" "$@"
 }
 
 # Text input
 # Usage: result=$(ui_input "Enter your name")
 ui_input() {
     local placeholder="${1:-Enter text...}"
-    gum input --placeholder "$placeholder"
+    shift || true
+    gum input --placeholder "$placeholder" "$@"
 }
 
 # Password input
 # Usage: result=$(ui_password "Enter password")
 ui_password() {
     local placeholder="${1:-Enter password...}"
-    gum input --password --placeholder "$placeholder"
+    shift || true
+    gum input --password --placeholder "$placeholder" "$@"
 }
 
 # Multi-line text input
 # Usage: result=$(ui_write "Enter description")
 ui_write() {
     local placeholder="${1:-Enter text...}"
-    gum write --placeholder "$placeholder"
+    shift || true
+    gum write --placeholder "$placeholder" "$@"
 }
 
 # Filter/search from list
@@ -99,7 +102,9 @@ ui_filter() {
 # File picker
 # Usage: result=$(ui_file "/path/to/dir")
 ui_file() {
-    gum file "${1:-.}"
+    local path="${1:-.}"
+    shift || true
+    gum file "$path" "$@"
 }
 
 # Spinner while command runs
@@ -197,11 +202,17 @@ ui_format_emoji() {
 # Format with template (Go template syntax)
 # Usage: echo '{{ Bold "Hello" }}' | ui_format_template
 ui_format_template() {
-    if [[ $# -gt 0 ]]; then
+    if [[ $# -gt 0 && "$1" != -* ]]; then
         echo -e "$*" | gum format --type template
     else
-        gum format --type template
+        gum format --type template "$@"
     fi
+}
+
+# Version check
+# Usage: ui_version_check ">= 0.17.0"
+ui_version_check() {
+    gum version-check "$@"
 }
 
 #######################################
@@ -271,7 +282,8 @@ ui_input_ext() {
 ui_input_header() {
     local header="$1"
     local placeholder="${2:-Enter text...}"
-    gum input --header "$header" --placeholder "$placeholder"
+    shift 2 || shift || true
+    gum input --header "$header" --placeholder "$placeholder" "$@"
 }
 
 # Input with default value
@@ -279,7 +291,8 @@ ui_input_header() {
 ui_input_value() {
     local value="$1"
     local placeholder="${2:-Enter text...}"
-    gum input --value "$value" --placeholder "$placeholder"
+    shift 2 || shift || true
+    gum input --value "$value" --placeholder "$placeholder" "$@"
 }
 
 # Write with header and dimensions
@@ -297,7 +310,7 @@ ui_write_ext() {
 ui_choose_limit() {
     local limit=$1
     shift
-    printf '%s\n' "$@" | gum choose --limit "$limit"
+    gum choose --limit "$limit" "$@"
 }
 
 # Choose with pre-selected items (comma-separated)
@@ -305,7 +318,7 @@ ui_choose_limit() {
 ui_choose_selected() {
     local selected="$1"
     shift
-    printf '%s\n' "$@" | gum choose --selected "$selected"
+    gum choose --selected "$selected" "$@"
 }
 
 # Choose with height limit
@@ -313,7 +326,7 @@ ui_choose_selected() {
 ui_choose_height() {
     local height=$1
     shift
-    printf '%s\n' "$@" | gum choose --height "$height"
+    gum choose --height "$height" "$@"
 }
 
 # Filter with header
@@ -327,11 +340,15 @@ ui_filter_header() {
 # File picker for directories only
 # Usage: result=$(ui_dir "/path")
 ui_dir() {
-    gum file --directory "${1:-.}"
+    local path="${1:-.}"
+    shift || true
+    gum file --directory "$path" "$@"
 }
 
 # File picker showing hidden files
 # Usage: result=$(ui_file_all "/path")
 ui_file_all() {
-    gum file --all "${1:-.}"
+    local path="${1:-.}"
+    shift || true
+    gum file --all "$path" "$@"
 }

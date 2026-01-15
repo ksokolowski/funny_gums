@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
-# system_dashboard.sh - System information dashboard
-# Demonstrates: ui_table, ui_box, ui_join, ui_spin, ui_spin_type, log_structured
-# shellcheck disable=SC1091
+# system_dashboard.sh - AIDA64/HWiNFO-style system information dashboard
+# Demonstrates: multi-pane layout, cursor control, auto-refresh sensors,
+#               ui_table, ui_box, ui_join, ui_spin_type, log_structured
+# shellcheck disable=SC1091,SC2034
 set -u
 
-############################
-# SCRIPT CONFIGURATION
-############################
+################################################################################
+# CONFIGURATION - Tune these for your preferences
+################################################################################
+REFRESH_INTERVAL=5           # Sensor refresh interval in seconds
+MIN_COLS=80                  # Minimum terminal width required
+NAV_PANEL_WIDTH=20           # Width of left navigation panel
+HEADER_HEIGHT=3              # Height of header area
+FOOTER_HEIGHT=2              # Height of footer/sensor bar
+INXI_GITHUB="https://github.com/smxi/inxi"
+
+################################################################################
+# PATH RESOLUTION (supports symlinks)
+################################################################################
 SCRIPT_PATH="${BASH_SOURCE[0]}"
 while [[ -L "$SCRIPT_PATH" ]]; do
     SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
@@ -16,169 +27,490 @@ done
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
-# Source library
+################################################################################
+# SOURCE LIBRARIES
+################################################################################
 source "$LIB_DIR/colors.sh"
+source "$LIB_DIR/cursor.sh"
 source "$LIB_DIR/ui.sh"
 source "$LIB_DIR/logging.sh"
+source "$LIB_DIR/inxi_helper.sh"
 
-# Initialize logging
-LOG_FILE="/tmp/system_dashboard.log"
-log_init "$LOG_FILE"
+################################################################################
+# STATE VARIABLES
+################################################################################
+CURRENT_CATEGORY=0           # Currently selected category index
+VIEW_MODE="overview"         # "overview" or "detail"
+SENSOR_PID=""                # Background sensor refresh process
+INXI_CACHE=""                # Cached inxi output
+TERM_COLS=0                  # Terminal columns
+TERM_ROWS=0                  # Terminal rows
+LAST_SENSOR_UPDATE=""        # Timestamp of last sensor update
 
-############################
-# DATA COLLECTION FUNCTIONS
-############################
-get_system_info() {
-    local hostname kernel uptime
-    hostname=$(hostname)
-    kernel=$(uname -r)
-    uptime=$(uptime -p 2>/dev/null || uptime | awk -F'up ' '{print $2}' | awk -F',' '{print $1}')
-    
-    echo "Hostname,$hostname"
-    echo "Kernel,$kernel"
-    echo "Uptime,$uptime"
-    echo "OS,$(grep PRETTY_NAME /etc/os-release 2>/dev/null | cut -d'"' -f2 || uname -s)"
-}
+# Category definitions: name, icon, inxi_section
+declare -a CATEGORIES=(
+    "System|📋|System"
+    "CPU|🧠|CPU"
+    "Memory|💾|Memory"
+    "Storage|💿|Drives"
+    "Graphics|🎮|Graphics"
+    "Audio|🔊|Audio"
+    "Network|🌐|Network"
+    "Sensors|🌡️|Sensors"
+)
 
-get_cpu_info() {
-    local model cores load
-    model=$(grep "model name" /proc/cpuinfo 2>/dev/null | head -1 | cut -d':' -f2 | xargs || sysctl -n machdep.cpu.brand_string 2>/dev/null || echo "Unknown")
-    cores=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo "?")
-    load=$(awk '{print $1" "$2" "$3}' /proc/loadavg 2>/dev/null || uptime | awk -F'load average:' '{print $2}' | xargs)
-    
-    echo "Model,$model"
-    echo "Cores,$cores"
-    echo "Load (1/5/15m),$load"
-}
+################################################################################
+# DEPENDENCY CHECKS
+################################################################################
+check_dependencies() {
+    # Check for inxi
+    if ! command -v inxi &>/dev/null; then
+        echo ""
+        gum style --foreground 196 --bold "ERROR: inxi is required but not installed"
+        echo ""
+        gum style --foreground 245 "Install inxi from your package manager or visit:"
+        gum style --foreground 39 --underline "$INXI_GITHUB"
+        echo ""
+        gum style --foreground 245 "Example installation:"
+        gum style --foreground 255 "  Ubuntu/Debian: sudo apt install inxi"
+        gum style --foreground 255 "  Fedora:        sudo dnf install inxi"
+        gum style --foreground 255 "  Arch:          sudo pacman -S inxi"
+        echo ""
+        exit 1
+    fi
 
-get_memory_info() {
-    if command -v free >/dev/null 2>&1; then
-        free -h | awk 'NR==2{printf "Total,%s\nUsed,%s\nFree,%s\nUsage,%.1f%%\n", $2, $3, $4, $3/$2*100}'
-    else
-        # macOS fallback
-        local total
-        total=$(sysctl -n hw.memsize 2>/dev/null | awk '{print $1/1024/1024/1024 " GB"}')
-        echo "Total,$total"
-        echo "Used,N/A"
-        echo "Free,N/A"
+    # Check for gum
+    if ! command -v gum &>/dev/null; then
+        echo "ERROR: gum is required but not installed"
+        echo "Visit: https://github.com/charmbracelet/gum"
+        exit 1
     fi
 }
 
-get_disk_info() {
-    df -h / | awk 'NR==2{printf "Total,%s\nUsed,%s\nFree,%s\nUsage,%s\n", $2, $3, $4, $5}'
+check_terminal_size() {
+    TERM_COLS=$(tput cols)
+    TERM_ROWS=$(tput lines)
+
+    if [[ $TERM_COLS -lt $MIN_COLS ]]; then
+        echo ""
+        gum style --foreground 214 --bold "Terminal too narrow: ${TERM_COLS} columns"
+        echo ""
+        gum style --foreground 245 "This dashboard requires at least ${MIN_COLS} columns."
+        gum style --foreground 245 "Please resize your terminal or use inxi directly:"
+        echo ""
+        gum style --foreground 39 "  inxi -Fxxxz"
+        echo ""
+        exit 1
+    fi
 }
 
-get_network_info() {
-    local ip_addr gateway
-    ip_addr=$(hostname -I 2>/dev/null | awk '{print $1}' || ipconfig getifaddr en0 2>/dev/null || echo "Unknown")
-    gateway=$(ip route 2>/dev/null | grep default | awk '{print $3}' | head -1 || route -n get default 2>/dev/null | grep gateway | awk '{print $2}' || echo "Unknown")
-    
-    echo "IP Address,$ip_addr"
-    echo "Gateway,$gateway"
-    echo "Hostname,$(hostname)"
+################################################################################
+# INXI DATA FUNCTIONS
+################################################################################
+refresh_inxi_data() {
+    INXI_CACHE=$(inxi -Fxz -c0 2>/dev/null)
 }
 
-get_top_processes() {
-    ps aux --sort=-%cpu 2>/dev/null | head -6 | awk 'NR>1{printf "%s,%.1f%%,%.1f%%\n", $11, $3, $4}' | head -5
+get_sensor_data() {
+    # Quick sensor reading for status bar
+    local sensors_raw
+    sensors_raw=$(inxi -s -c0 2>/dev/null | grep -E "Temp|Fan|Power" | head -1)
+    
+    # Extract key metrics
+    local cpu_temp gpu_temp fan_speed
+    cpu_temp=$(echo "$sensors_raw" | grep -oP "cpu:\s*\K[0-9.]+\s*C" | head -1)
+    gpu_temp=$(echo "$sensors_raw" | grep -oP "gpu:\s*\K[0-9.]+\s*C" | head -1)
+    fan_speed=$(echo "$sensors_raw" | grep -oP "Fan:\s*\K[0-9]+" | head -1)
+    
+    # Build sensor string
+    local sensor_str=""
+    [[ -n "$cpu_temp" ]] && sensor_str+="CPU: ${cpu_temp}"
+    [[ -n "$gpu_temp" ]] && sensor_str+=" │ GPU: ${gpu_temp}"
+    [[ -n "$fan_speed" ]] && sensor_str+=" │ Fan: ${fan_speed} RPM"
+    
+    # Fallback if no sensors detected
+    [[ -z "$sensor_str" ]] && sensor_str="Sensors: N/A"
+    
+    echo "$sensor_str"
 }
 
-############################
-# DISPLAY FUNCTIONS
-############################
-show_section() {
-    local title="$1"
-    local data="$2"
+get_category_content() {
+    local cat_idx="$1"
+    local cat_def="${CATEGORIES[$cat_idx]}"
+    local cat_name cat_icon cat_section
+    IFS='|' read -r cat_name cat_icon cat_section <<< "$cat_def"
     
-    echo ""
-    ui_info "$title"
-    echo "$data" | gum table --separator ","
-}
-
-show_dashboard() {
-    clear
-    
-    echo ""
-    ui_box_double "🖥️  System Dashboard" \
-        "" \
-        "Real-time system information" \
-        "Last updated: $(date '+%Y-%m-%d %H:%M:%S')"
-    
-    # Collect data with spinners
-    echo ""
-    system_data=$(ui_spin_type dot "Gathering system info..." bash -c "$(declare -f get_system_info); get_system_info")
-    cpu_data=$(ui_spin_type dot "Gathering CPU info..." bash -c "$(declare -f get_cpu_info); get_cpu_info")
-    mem_data=$(ui_spin_type dot "Gathering memory info..." bash -c "$(declare -f get_memory_info); get_memory_info")
-    disk_data=$(ui_spin_type dot "Gathering disk info..." bash -c "$(declare -f get_disk_info); get_disk_info")
-    net_data=$(ui_spin_type dot "Gathering network info..." bash -c "$(declare -f get_network_info); get_network_info")
-    
-    # Log the collection
-    log_structured info "Dashboard refreshed" timestamp "$(date -Iseconds)"
-    
-    # Display sections
-    show_section "📋 System" "$system_data"
-    show_section "🧠 CPU" "$cpu_data"
-    show_section "💾 Memory" "$mem_data"
-    show_section "💿 Disk (/)" "$disk_data"
-    show_section "🌐 Network" "$net_data"
-    
-    # Top processes
-    echo ""
-    ui_info "🔝 Top Processes (by CPU)"
-    {
-        echo "Command,CPU,Memory"
-        get_top_processes
-    } | gum table --separator ","
-}
-
-############################
-# MAIN
-############################
-echo ""
-ui_box "🖥️  System Dashboard" \
-    "" \
-    "This tool displays real-time system information" \
-    "including CPU, memory, disk, and network stats."
-
-echo ""
-if ! ui_confirm "Show system dashboard?"; then
-    ui_info "Goodbye!"
-    exit 0
-fi
-
-while true; do
-    show_dashboard
-    
-    echo ""
-    action=$(ui_choose_with_header "Options:" \
-        "🔄 Refresh" \
-        "📊 View detailed processes" \
-        "📝 View log" \
-        "❌ Exit")
-    
-    case "$action" in
-        "🔄 Refresh")
-            continue
+    case "$cat_section" in
+        "System")
+            inxi_parse_system_csv
             ;;
-        
-        "📊 View detailed processes")
+        "CPU")
+            inxi_parse_cpu_csv
+            ;;
+        "Memory")
+            inxi_parse_memory_csv
+            ;;
+        "Drives")
+            echo "Item,Value"
+            inxi_get_section "Drives" | sed '1d' | sed 's/^[[:space:]]*//' | while read -r line; do
+                if [[ -n "$line" ]]; then
+                    echo "$line" | sed 's/: /,/' | head -1
+                fi
+            done
             echo ""
-            ui_info "Top 20 processes by CPU usage:"
-            {
-                echo "USER,PID,CPU%,MEM%,COMMAND"
-                ps aux --sort=-%cpu 2>/dev/null | head -21 | awk 'NR>1{printf "%s,%s,%.1f,%.1f,%s\n", $1, $2, $3, $4, $11}'
-            } | gum table --separator ","
-            echo ""
-            read -r -p "Press Enter to continue..."
+            echo "Partitions:"
+            inxi_parse_partition_csv
             ;;
-        
-        "📝 View log")
-            log_show
+        "Graphics")
+            inxi_parse_graphics_csv
             ;;
-        
-        "❌ Exit"|"")
-            ui_info "Goodbye!"
-            log_structured info "Dashboard closed" session_duration "$(ps -o etime= -p $$)"
-            exit 0
+        "Audio")
+            inxi_parse_audio_csv
+            ;;
+        "Network")
+            inxi_parse_network_csv
+            ;;
+        "Sensors")
+            inxi_parse_sensors_csv
+            ;;
+        *)
+            echo "Item,Value"
+            echo "Info,No data available"
             ;;
     esac
-done
+}
+
+get_category_summary() {
+    local cat_idx="$1"
+    local cat_def="${CATEGORIES[$cat_idx]}"
+    local cat_name cat_icon cat_section
+    IFS='|' read -r cat_name cat_icon cat_section <<< "$cat_def"
+    
+    # Get first few lines as summary
+    local content
+    content=$(get_category_content "$cat_idx" | head -5)
+    echo "$content"
+}
+
+################################################################################
+# UI BUILDING FUNCTIONS
+################################################################################
+build_header() {
+    local title="🖥️  System Dashboard"
+    local timestamp="$(date '+%H:%M:%S')"
+    local mode_indicator
+    
+    if [[ "$VIEW_MODE" == "overview" ]]; then
+        mode_indicator="[Overview Mode]"
+    else
+        local cat_def="${CATEGORIES[$CURRENT_CATEGORY]}"
+        local cat_name cat_icon
+        IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
+        mode_indicator="[$cat_icon $cat_name Detail]"
+    fi
+    
+    # Header with title, mode, and time
+    local header_width=$((TERM_COLS - 4))
+    local left_part="$title  $mode_indicator"
+    local right_part="$timestamp"
+    local padding=$((header_width - ${#left_part} - ${#right_part}))
+    
+    gum style --border double --border-foreground 39 --width "$header_width" \
+        --align left --padding "0 1" \
+        "$left_part$(printf '%*s' "$padding" '')$right_part"
+}
+
+build_nav_panel() {
+    local panel_lines=()
+    local i=0
+    
+    panel_lines+=("┌──────────────────┐")
+    panel_lines+=("│   Categories     │")
+    panel_lines+=("├──────────────────┤")
+    
+    for cat_def in "${CATEGORIES[@]}"; do
+        local cat_name cat_icon
+        IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
+        
+        local indicator=" "
+        local line_fmt
+        
+        if [[ $i -eq $CURRENT_CATEGORY ]]; then
+            indicator="▶"
+            line_fmt=$(printf "│ %s %s %-10s │" "$indicator" "$cat_icon" "$cat_name")
+            # Highlight selected (bold)
+            line_fmt=$(gum style --bold --foreground 39 "$line_fmt")
+        else
+            line_fmt=$(printf "│ %s %s %-10s │" "$indicator" "$cat_icon" "$cat_name")
+        fi
+        
+        panel_lines+=("$line_fmt")
+        ((i++))
+    done
+    
+    panel_lines+=("└──────────────────┘")
+    
+    printf '%s\n' "${panel_lines[@]}"
+}
+
+build_overview_panels() {
+    # Build 2x4 grid of summary panels
+    local content_width=$(( (TERM_COLS - NAV_PANEL_WIDTH - 10) / 2 ))
+    [[ $content_width -lt 25 ]] && content_width=25
+    
+    local panels=()
+    local i=0
+    
+    for cat_def in "${CATEGORIES[@]}"; do
+        local cat_name cat_icon
+        IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
+        
+        # Get summary data (first 3 data lines)
+        local summary_data
+        summary_data=$(get_category_summary "$i" | tail -n +2 | head -3 | \
+            awk -F',' '{printf "  %s: %s\n", $1, $2}')
+        
+        local border_color=240
+        [[ $i -eq $CURRENT_CATEGORY ]] && border_color=39
+        
+        local panel
+        panel=$(gum style --border rounded --border-foreground "$border_color" \
+            --width "$content_width" --height 5 --padding "0 1" \
+            "$cat_icon $cat_name" "" "$summary_data")
+        
+        panels+=("$panel")
+        ((i++))
+    done
+    
+    # Join panels in 2-column layout
+    local row1 row2 row3 row4
+    
+    row1=$(gum join --horizontal "${panels[0]}" "  " "${panels[1]}")
+    row2=$(gum join --horizontal "${panels[2]}" "  " "${panels[3]}")
+    row3=$(gum join --horizontal "${panels[4]}" "  " "${panels[5]}")
+    row4=$(gum join --horizontal "${panels[6]}" "  " "${panels[7]}")
+    
+    gum join --vertical "$row1" "$row2" "$row3" "$row4"
+}
+
+build_detail_view() {
+    local cat_idx="$1"
+    local content_width=$((TERM_COLS - NAV_PANEL_WIDTH - 8))
+    
+    local cat_def="${CATEGORIES[$cat_idx]}"
+    local cat_name cat_icon
+    IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
+    
+    # Get full content
+    local content_csv
+    content_csv=$(get_category_content "$cat_idx")
+    
+    # Build a styled table
+    local table_output
+    table_output=$(echo "$content_csv" | gum table --separator "," --print 2>/dev/null || echo "$content_csv")
+    
+    gum style --border rounded --border-foreground 39 \
+        --width "$content_width" --padding "1" \
+        "$cat_icon $cat_name - Detailed Information" "" "$table_output"
+}
+
+build_sensor_bar() {
+    local sensor_data
+    sensor_data=$(get_sensor_data)
+    LAST_SENSOR_UPDATE=$(date '+%H:%M:%S')
+    
+    local bar_width=$((TERM_COLS - 4))
+    local refresh_info="Auto-refresh: ${REFRESH_INTERVAL}s │ Updated: $LAST_SENSOR_UPDATE"
+    local padding=$((bar_width - ${#sensor_data} - ${#refresh_info} - 4))
+    
+    gum style --foreground 245 --background 236 --width "$bar_width" --padding "0 1" \
+        "🌡️ $sensor_data$(printf '%*s' "$padding" '')$refresh_info"
+}
+
+build_footer() {
+    local help_text
+    if [[ "$VIEW_MODE" == "overview" ]]; then
+        help_text="↑↓ Navigate │ Enter: Detail View │ R: Refresh │ L: Log │ Q: Quit"
+    else
+        help_text="↑↓ Navigate │ B/Esc: Back to Overview │ R: Refresh │ L: Log │ Q: Quit"
+    fi
+    
+    local footer_width=$((TERM_COLS - 4))
+    gum style --foreground 245 --width "$footer_width" --align center "$help_text"
+}
+
+################################################################################
+# LAYOUT COMPOSER
+################################################################################
+compose_layout() {
+    clear
+    
+    # Header
+    build_header
+    echo ""
+    
+    # Main content area
+    local nav_panel content_panel
+    nav_panel=$(build_nav_panel)
+    
+    if [[ "$VIEW_MODE" == "overview" ]]; then
+        content_panel=$(build_overview_panels)
+    else
+        content_panel=$(build_detail_view "$CURRENT_CATEGORY")
+    fi
+    
+    # Join nav and content horizontally
+    gum join --horizontal "$nav_panel" "  " "$content_panel"
+    
+    echo ""
+    
+    # Sensor bar
+    build_sensor_bar
+    
+    # Footer
+    build_footer
+}
+
+################################################################################
+# NAVIGATION
+################################################################################
+nav_up() {
+    ((CURRENT_CATEGORY--))
+    [[ $CURRENT_CATEGORY -lt 0 ]] && CURRENT_CATEGORY=$((${#CATEGORIES[@]} - 1))
+}
+
+nav_down() {
+    ((CURRENT_CATEGORY++))
+    [[ $CURRENT_CATEGORY -ge ${#CATEGORIES[@]} ]] && CURRENT_CATEGORY=0
+}
+
+enter_detail() {
+    VIEW_MODE="detail"
+}
+
+back_to_overview() {
+    VIEW_MODE="overview"
+}
+
+################################################################################
+# SENSOR REFRESH BACKGROUND PROCESS
+################################################################################
+start_sensor_refresh() {
+    # This runs sensor bar updates in background
+    # For simplicity, we'll handle this in the main loop with timeouts
+    :
+}
+
+stop_sensor_refresh() {
+    [[ -n "$SENSOR_PID" ]] && kill "$SENSOR_PID" 2>/dev/null
+    SENSOR_PID=""
+}
+
+################################################################################
+# MAIN LOOP
+################################################################################
+main_loop() {
+    local key last_refresh_time current_time
+    last_refresh_time=$(date +%s)
+    
+    cursor_hide
+    trap 'cursor_show; exit 0' EXIT INT TERM
+    
+    compose_layout
+    
+    while true; do
+        # Non-blocking read with timeout for sensor refresh
+        if read -rsn1 -t "$REFRESH_INTERVAL" key; then
+            case "$key" in
+                $'\x1b')  # Escape sequence
+                    read -rsn2 -t 0.1 key2
+                    case "$key2" in
+                        '[A')  # Up arrow
+                            nav_up
+                            compose_layout
+                            ;;
+                        '[B')  # Down arrow
+                            nav_down
+                            compose_layout
+                            ;;
+                    esac
+                    # Plain Escape - back to overview
+                    [[ -z "$key2" ]] && { back_to_overview; compose_layout; }
+                    ;;
+                '')  # Enter key
+                    if [[ "$VIEW_MODE" == "overview" ]]; then
+                        enter_detail
+                    fi
+                    compose_layout
+                    ;;
+                'b'|'B')
+                    back_to_overview
+                    compose_layout
+                    ;;
+                'r'|'R')
+                    cursor_show
+                    clear
+                    gum spin --spinner dot --title "Refreshing system data..." -- \
+                        bash -c 'sleep 0.5'
+                    refresh_inxi_data
+                    log_structured info "Manual refresh" timestamp "$(date -Iseconds)"
+                    cursor_hide
+                    compose_layout
+                    ;;
+                'l'|'L')
+                    cursor_show
+                    log_show 2>/dev/null || gum style --foreground 245 "No log entries yet"
+                    read -rsn1 -p "Press any key to continue..."
+                    cursor_hide
+                    compose_layout
+                    ;;
+                'q'|'Q')
+                    cursor_show
+                    log_structured info "Dashboard closed" session_duration "$(ps -o etime= -p $$)"
+                    gum style --foreground 39 "Goodbye!"
+                    exit 0
+                    ;;
+            esac
+        else
+            # Timeout - refresh sensor bar only
+            current_time=$(date +%s)
+            if [[ $((current_time - last_refresh_time)) -ge $REFRESH_INTERVAL ]]; then
+                # Update sensor bar in place
+                cursor_save
+                cursor_goto $((TERM_ROWS - 2)) 1
+                build_sensor_bar
+                cursor_restore
+                last_refresh_time=$current_time
+            fi
+        fi
+    done
+}
+
+################################################################################
+# INITIALIZATION
+################################################################################
+init_dashboard() {
+    # Initialize logging
+    LOG_FILE="/tmp/system_dashboard.log"
+    log_init "$LOG_FILE"
+    
+    # Check dependencies
+    check_dependencies
+    check_terminal_size
+    
+    # Initial data collection with spinner
+    echo ""
+    gum style --foreground 39 --bold "🖥️  System Dashboard"
+    echo ""
+    INXI_CACHE=$(gum spin --spinner dot --title "Collecting system information..." -- \
+        bash -c 'inxi -Fxz -c0 2>/dev/null' && cat)
+    refresh_inxi_data
+    
+    log_structured info "Dashboard started" terminal "${TERM_COLS}x${TERM_ROWS}"
+}
+
+################################################################################
+# ENTRY POINT
+################################################################################
+init_dashboard
+main_loop

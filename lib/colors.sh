@@ -50,6 +50,22 @@ STRIKETHROUGH=$'\e[9m'
 # Reset
 RESET=$'\e[0m'
 
+# Cyberpunk Neon Palette (using 256-color ANSI)
+NEON_PINK=$'\e[38;5;201m'
+NEON_CYAN=$'\e[38;5;51m'
+NEON_PURPLE=$'\e[38;5;135m'
+NEON_YELLOW=$'\e[38;5;226m'
+NEON_GREEN=$'\e[38;5;118m'
+NEON_BLUE=$'\e[38;5;33m'
+NEON_ORANGE=$'\e[38;5;214m'
+NEON_RED=$'\e[38;5;196m'
+
+# Neon Border Colors (for gum style)
+NEON_PINK_NUM="201"
+NEON_CYAN_NUM="51"
+NEON_PURPLE_NUM="135"
+NEON_GREEN_NUM="118"
+
 # Helper function to colorize text
 colorize() {
     local color="$1"
