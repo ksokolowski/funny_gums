@@ -201,117 +201,87 @@ build_header() {
     local mode_indicator
     
     if [[ "$VIEW_MODE" == "overview" ]]; then
-        mode_indicator="[Overview Mode]"
+        mode_indicator="Overview"
     else
         local cat_def="${CATEGORIES[$CURRENT_CATEGORY]}"
         local cat_name cat_icon
         IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
-        mode_indicator="[$cat_icon $cat_name Detail]"
+        mode_indicator="$cat_icon $cat_name"
     fi
     
-    # Header with title, mode, and time
-    local header_width=$((TERM_COLS - 4))
-    local left_part="$title  $mode_indicator"
-    local right_part="$timestamp"
-    local padding=$((header_width - ${#left_part} - ${#right_part}))
-    
-    gum style --border double --border-foreground 39 --width "$header_width" \
-        --align left --padding "0 1" \
-        "$left_part$(printf '%*s' "$padding" '')$right_part"
+    gum style --border double --border-foreground 39 --width $((TERM_COLS - 4)) \
+        --padding "0 1" \
+        "$title │ $mode_indicator │ $timestamp"
 }
 
 build_nav_panel() {
-    local panel_lines=()
+    local lines=""
     local i=0
     
-    panel_lines+=("┌──────────────────┐")
-    panel_lines+=("│   Categories     │")
-    panel_lines+=("├──────────────────┤")
+    lines+="  Categories\n"
+    lines+="  ──────────────\n"
     
     for cat_def in "${CATEGORIES[@]}"; do
         local cat_name cat_icon
         IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
         
-        local indicator=" "
-        local line_fmt
-        
         if [[ $i -eq $CURRENT_CATEGORY ]]; then
-            indicator="▶"
-            line_fmt=$(printf "│ %s %s %-10s │" "$indicator" "$cat_icon" "$cat_name")
-            # Highlight selected (bold)
-            line_fmt=$(gum style --bold --foreground 39 "$line_fmt")
+            lines+="  ▶ $cat_icon $cat_name\n"
         else
-            line_fmt=$(printf "│ %s %s %-10s │" "$indicator" "$cat_icon" "$cat_name")
+            lines+="    $cat_icon $cat_name\n"
         fi
-        
-        panel_lines+=("$line_fmt")
         ((i++))
     done
     
-    panel_lines+=("└──────────────────┘")
-    
-    printf '%s\n' "${panel_lines[@]}"
+    echo -e "$lines" | gum style --border rounded --border-foreground 240 \
+        --width 20 --height 14 --padding "0 1"
 }
 
 build_overview_panels() {
-    # Build 2x4 grid of summary panels
-    local content_width=$(( (TERM_COLS - NAV_PANEL_WIDTH - 10) / 2 ))
-    [[ $content_width -lt 25 ]] && content_width=25
+    local content_width=$(( (TERM_COLS - 30) / 2 ))
+    [[ $content_width -lt 30 ]] && content_width=30
     
-    local panels=()
     local i=0
+    local all_panels=""
     
     for cat_def in "${CATEGORIES[@]}"; do
         local cat_name cat_icon
         IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
         
-        # Get summary data (first 3 data lines)
-        local summary_data
-        summary_data=$(get_category_summary "$i" | tail -n +2 | head -3 | \
-            awk -F',' '{printf "  %s: %s\n", $1, $2}')
+        # Get summary data
+        local summary
+        summary=$(get_category_summary "$i" 2>/dev/null | tail -n +2 | head -2 | \
+            awk -F',' '{if(NF>=2) printf "  %s: %s\n", $1, substr($0, index($0,$2))}')
+        [[ -z "$summary" ]] && summary="  Loading..."
         
         local border_color=240
         [[ $i -eq $CURRENT_CATEGORY ]] && border_color=39
         
-        local panel
-        panel=$(gum style --border rounded --border-foreground "$border_color" \
-            --width "$content_width" --height 5 --padding "0 1" \
-            "$cat_icon $cat_name" "" "$summary_data")
-        
-        panels+=("$panel")
+        all_panels+="$cat_icon $cat_name\n$summary\n\n"
         ((i++))
     done
     
-    # Join panels in 2-column layout
-    local row1 row2 row3 row4
-    
-    row1=$(gum join --horizontal "${panels[0]}" "  " "${panels[1]}")
-    row2=$(gum join --horizontal "${panels[2]}" "  " "${panels[3]}")
-    row3=$(gum join --horizontal "${panels[4]}" "  " "${panels[5]}")
-    row4=$(gum join --horizontal "${panels[6]}" "  " "${panels[7]}")
-    
-    gum join --vertical "$row1" "$row2" "$row3" "$row4"
+    echo -e "$all_panels" | gum style --border rounded --border-foreground 39 \
+        --width $((TERM_COLS - 28)) --padding "1"
 }
 
 build_detail_view() {
     local cat_idx="$1"
-    local content_width=$((TERM_COLS - NAV_PANEL_WIDTH - 8))
+    local content_width=$((TERM_COLS - 28))
     
     local cat_def="${CATEGORIES[$cat_idx]}"
     local cat_name cat_icon
     IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
     
-    # Get full content
-    local content_csv
-    content_csv=$(get_category_content "$cat_idx")
+    # Get full content and format it
+    local content
+    content=$(get_category_content "$cat_idx" 2>/dev/null | tail -n +2 | \
+        awk -F',' '{if(NF>=2) printf "  %-20s %s\n", $1":", substr($0, index($0,$2))}')
+    [[ -z "$content" ]] && content="  No data available"
     
-    # Build a styled table
-    local table_output
-    table_output=$(echo "$content_csv" | gum table --separator "," --print 2>/dev/null || echo "$content_csv")
-    
-    gum style --border rounded --border-foreground 39 \
-        --width "$content_width" --padding "1" \
-        "$cat_icon $cat_name - Detailed Information" "" "$table_output"
+    echo -e "$cat_icon $cat_name\n──────────────────────────────\n$content" | \
+        gum style --border rounded --border-foreground 39 \
+            --width "$content_width" --padding "1"
 }
 
 build_sensor_bar() {
@@ -330,13 +300,12 @@ build_sensor_bar() {
 build_footer() {
     local help_text
     if [[ "$VIEW_MODE" == "overview" ]]; then
-        help_text="↑↓ Navigate │ Enter: Detail View │ R: Refresh │ L: Log │ Q: Quit"
+        help_text="↑↓ Navigate │ Enter: Detail │ R: Refresh │ L: Log │ Q: Quit"
     else
-        help_text="↑↓ Navigate │ B/Esc: Back to Overview │ R: Refresh │ L: Log │ Q: Quit"
+        help_text="↑↓ Navigate │ B: Back │ R: Refresh │ L: Log │ Q: Quit"
     fi
     
-    local footer_width=$((TERM_COLS - 4))
-    gum style --foreground 245 --width "$footer_width" --align center "$help_text"
+    gum style --foreground 245 --align center "$help_text"
 }
 
 ################################################################################
@@ -349,7 +318,7 @@ compose_layout() {
     build_header
     echo ""
     
-    # Main content area
+    # Main content area - side by side
     local nav_panel content_panel
     nav_panel=$(build_nav_panel)
     
@@ -360,12 +329,13 @@ compose_layout() {
     fi
     
     # Join nav and content horizontally
-    gum join --horizontal "$nav_panel" "  " "$content_panel"
+    gum join --horizontal "$nav_panel" " " "$content_panel"
     
     echo ""
     
     # Sensor bar
     build_sensor_bar
+    echo ""
     
     # Footer
     build_footer
@@ -498,12 +468,10 @@ init_dashboard() {
     check_dependencies
     check_terminal_size
     
-    # Initial data collection with spinner
+    # Initial data collection
     echo ""
     gum style --foreground 39 --bold "🖥️  System Dashboard"
-    echo ""
-    INXI_CACHE=$(gum spin --spinner dot --title "Collecting system information..." -- \
-        bash -c 'inxi -Fxz -c0 2>/dev/null' && cat)
+    gum style --foreground 245 "Loading system information..."
     refresh_inxi_data
     
     log_structured info "Dashboard started" terminal "${TERM_COLS}x${TERM_ROWS}"
