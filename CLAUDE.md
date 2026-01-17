@@ -14,7 +14,7 @@ shellcheck --severity=error lib/**/*.sh  # Lint all scripts
 
 This is a modular Bash library providing terminal UI components powered by [gum](https://github.com/charmbracelet/gum).
 
-**Entry point:** `my_gums.sh` sources all modules in dependency order.
+**Entry point:** `funny_gums.sh` sources all modules in dependency order.
 
 **Directory structure:**
 ```
@@ -118,7 +118,7 @@ assert_function_exists "function_name"
 1. Create `lib/audio/` directory
 2. Create `lib/audio/audio.sh` loader
 3. Create submodules with guard patterns
-4. Add source line to `my_gums.sh`
+4. Add source line to `funny_gums.sh`
 5. Create tests
 
 ## Extensibility

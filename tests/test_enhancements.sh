@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# test_enhancements.sh - Test suite for new my_gums features
+# test_enhancements.sh - Test suite for new Funny Gums features
 # shellcheck disable=SC1091
 
 # Source test framework
 source "$(dirname "$0")/framework.sh"
 
 # Source library
-source "$(dirname "$0")/../my_gums.sh"
+source "$(dirname "$0")/../funny_gums.sh"
 
 test_file_start "enhancements.sh"
 

@@ -1,4 +1,4 @@
-# my_gums - Copilot Instructions
+# Funny Gums - Copilot Instructions
 
 A modular Bash library providing terminal UI components powered by [gum](https://github.com/charmbracelet/gum).
 
@@ -8,17 +8,27 @@ The library uses a **sourceable module pattern**—each file in `lib/` is an ind
 - Guard pattern to prevent multiple sourcing: `[[ -n "${_MODULE_SH_LOADED:-}" ]] && return 0`
 - Self-contained dependencies via `_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"`
 
-**Entry point:** [my_gums.sh](my_gums.sh) sources all modules in dependency order.
+**Entry point:** [funny_gums.sh](funny_gums.sh) sources all modules in dependency order.
 
-**Core modules:**
-- [colors.sh](lib/colors.sh) - ANSI color variables and `colorize()` helper
-- [cursor.sh](lib/cursor.sh) - Terminal cursor control (save/restore, movement, clearing)
-- [spinner.sh](lib/spinner.sh) - Custom spinner presets for dashboard integration
-- [logging.sh](lib/logging.sh) - Structured logging via `gum log` with file output
-- [ui.sh](lib/ui.sh) - High-level UI wrappers (boxes, inputs, tables, pagers, spinners)
-- [dashboard.sh](lib/dashboard.sh) - Multi-step progress dashboard with in-place updates
-- [runner.sh](lib/runner.sh) - Command execution with spinner/dashboard integration
-- [sudo.sh](lib/sudo.sh) - Sudo credential management with keepalive
+**Directory structure:**
+```
+lib/
+├── core/           # Foundation modules (no dependencies)
+│   ├── colors.sh   # ANSI color variables and colorize() helper
+│   ├── cursor.sh   # Terminal cursor control
+│   ├── spinner.sh  # Spinner animation presets
+│   ├── logging.sh  # Structured logging via gum log
+│   └── sudo.sh     # Sudo credential management
+├── ui/             # UI component modules
+│   ├── ui.sh       # Loader (sources all ui/*.sh)
+│   └── ...
+├── system/         # Hardware/system query modules
+│   ├── system.sh   # Loader (sources all system/*.sh)
+│   └── ...
+└── dashboard/      # Orchestration modules
+    ├── dashboard.sh
+    └── runner.sh
+```
 
 **Dependency chain:** `runner.sh` → `dashboard.sh` → `spinner.sh`, `cursor.sh`, `colors.sh`
 
@@ -79,7 +89,7 @@ Run tests from project root:
 **Test file structure:**
 ```bash
 test_file_start "module_name.sh"
-source "$PROJECT_DIR/lib/module_name.sh"
+source "$PROJECT_DIR/lib/core/module_name.sh"
 assert_function_exists "function_name"
 # ... assertions
 ```
@@ -88,10 +98,11 @@ CI runs `shellcheck --severity=error` on all scripts and executes the test suite
 
 ## Adding New Modules
 
-1. Create `lib/newmodule.sh` with guard pattern
+1. Create `lib/domain/newmodule.sh` with guard pattern
 2. Add functions with `newmodule_` prefix
-3. Create `tests/test_newmodule.sh` following existing patterns
-4. Add to [my_gums.sh](my_gums.sh) in correct dependency order
+3. Add source line to domain loader (e.g., `lib/ui/ui.sh`)
+4. Create `tests/test_newmodule.sh` following existing patterns
+5. If new domain, add to [funny_gums.sh](funny_gums.sh)
 
 ## Example Scripts
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# my_gums.sh - Entry point for my_gums library
+# funny_gums.sh - Entry point for Funny Gums library
 # Source this file to load all modules at once
 #
 # Usage:
-#   source /path/to/my_gums.sh
+#   source /path/to/funny_gums.sh
 #
 # Or source individual modules from lib/ as needed:
 #   source /path/to/lib/core/colors.sh      # ANSI colors
@@ -14,28 +14,28 @@
 # shellcheck disable=SC1091
 
 # Prevent multiple sourcing
-[[ -n "${_MY_GUMS_LOADED:-}" ]] && return 0
-_MY_GUMS_LOADED=1
+[[ -n "${_FUNNY_GUMS_LOADED:-}" ]] && return 0
+_FUNNY_GUMS_LOADED=1
 
 # Get library directory
-_MY_GUMS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-_MY_GUMS_LIB="$_MY_GUMS_DIR/lib"
+_FUNNY_GUMS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_FUNNY_GUMS_LIB="$_FUNNY_GUMS_DIR/lib"
 
 # Source all modules in dependency order
 
 # Core modules (no dependencies)
-source "$_MY_GUMS_LIB/core/colors.sh"
-source "$_MY_GUMS_LIB/core/cursor.sh"
-source "$_MY_GUMS_LIB/core/spinner.sh"
-source "$_MY_GUMS_LIB/core/logging.sh"
-source "$_MY_GUMS_LIB/core/sudo.sh"
+source "$_FUNNY_GUMS_LIB/core/colors.sh"
+source "$_FUNNY_GUMS_LIB/core/cursor.sh"
+source "$_FUNNY_GUMS_LIB/core/spinner.sh"
+source "$_FUNNY_GUMS_LIB/core/logging.sh"
+source "$_FUNNY_GUMS_LIB/core/sudo.sh"
 
 # UI modules (depends on core/colors)
-source "$_MY_GUMS_LIB/ui/ui.sh"
+source "$_FUNNY_GUMS_LIB/ui/ui.sh"
 
 # Dashboard modules (depends on core/colors, cursor, spinner)
-source "$_MY_GUMS_LIB/dashboard/dashboard.sh"
-source "$_MY_GUMS_LIB/dashboard/runner.sh"
+source "$_FUNNY_GUMS_LIB/dashboard/dashboard.sh"
+source "$_FUNNY_GUMS_LIB/dashboard/runner.sh"
 
 # System modules (optional - for hardware monitoring)
-source "$_MY_GUMS_LIB/system/system.sh"
+source "$_FUNNY_GUMS_LIB/system/system.sh"

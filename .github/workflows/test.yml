@@ -25,7 +25,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y gum
 
       - name: Run shellcheck (errors only)
-        run: shellcheck --severity=error my_gums.sh lib/*.sh examples/*.sh tests/*.sh
+        run: shellcheck --severity=error funny_gums.sh lib/**/*.sh examples/*.sh tests/*.sh
 
       - name: Run tests
         run: ./tests/run_tests.sh

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# framework.sh - Test assertion framework for my_gums
+# framework.sh - Test assertion framework for Funny Gums
 # This file is sourced by run_tests.sh and provides assertion functions
 # shellcheck disable=SC2034
 

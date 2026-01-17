@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# run_tests.sh - Test runner for my_gums library
+# run_tests.sh - Test runner for Funny Gums library
 # Usage: ./tests/run_tests.sh [test_file...]
 set -uo pipefail
 # Note: We don't use -e because test assertions may "fail" intentionally
@@ -21,12 +21,12 @@ run_shellcheck() {
     local lib_scripts
     lib_scripts=$(find "$PROJECT_DIR/lib" -name "*.sh" -type f 2>/dev/null)
 
-    if shellcheck --severity=error "$PROJECT_DIR/my_gums.sh" $lib_scripts "$PROJECT_DIR/examples/"*.sh >/dev/null 2>&1; then
+    if shellcheck --severity=error "$PROJECT_DIR/funny_gums.sh" $lib_scripts "$PROJECT_DIR/examples/"*.sh >/dev/null 2>&1; then
         echo "  ${GREEN}✓${RESET} All scripts pass shellcheck"
         ((TESTS_PASSED++))
     else
         echo "  ${RED}✗${RESET} Shellcheck found issues"
-        shellcheck --severity=error "$PROJECT_DIR/my_gums.sh" $lib_scripts "$PROJECT_DIR/examples/"*.sh 2>&1 | head -20
+        shellcheck --severity=error "$PROJECT_DIR/funny_gums.sh" $lib_scripts "$PROJECT_DIR/examples/"*.sh 2>&1 | head -20
         ((TESTS_FAILED++))
         FAILED_TESTS+=("shellcheck: Scripts have linting errors")
     fi
@@ -37,7 +37,7 @@ run_shellcheck() {
 #######################################
 
 echo "${CYAN}╔═══════════════════════════════════════╗${RESET}"
-echo "${CYAN}║     my_gums Test Suite                ║${RESET}"
+echo "${CYAN}║     Funny Gums Test Suite             ║${RESET}"
 echo "${CYAN}╚═══════════════════════════════════════╝${RESET}"
 
 # Run shellcheck first

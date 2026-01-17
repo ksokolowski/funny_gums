@@ -1,4 +1,4 @@
-# my_gums
+# Funny Gums
 
 A modular Bash library providing terminal UI components powered by [gum](https://github.com/charmbracelet/gum).
 
@@ -34,20 +34,20 @@ sudo apt update && sudo apt install gum
 
 Clone the repository:
 ```bash
-git clone https://github.com/yourusername/my_gums.git
+git clone https://github.com/ksokolowski/funny_gums.git
 ```
 
 ## Usage
 
 ### Source all modules at once
 ```bash
-source /path/to/my_gums/my_gums.sh
+source /path/to/funny_gums/funny_gums.sh
 ```
 
 ### Source individual modules
 ```bash
-source /path/to/my_gums/lib/colors.sh
-source /path/to/my_gums/lib/ui.sh
+source /path/to/funny_gums/lib/core/colors.sh
+source /path/to/funny_gums/lib/ui/ui.sh
 ```
 
 ### Quick examples
@@ -127,27 +127,31 @@ log_structured info "Processing" file "data.csv" rows 100
 ## Project Structure
 
 ```
-my_gums/
-├── my_gums.sh          # Entry point - sources all modules
-├── lib/                # Library modules
-│   ├── colors.sh       # ANSI color variables
-│   ├── cursor.sh       # Cursor control functions
-│   ├── spinner.sh      # Spinner animation presets
-│   ├── logging.sh      # Structured logging
-│   ├── ui.sh           # High-level gum wrappers
-│   ├── dashboard.sh    # Progress dashboard
-│   ├── runner.sh       # Command execution
-│   └── sudo.sh         # Sudo management
+funny_gums/
+├── funny_gums.sh       # Entry point - sources all modules
+├── lib/
+│   ├── core/           # Foundation modules
+│   │   ├── colors.sh   # ANSI color variables
+│   │   ├── cursor.sh   # Cursor control functions
+│   │   ├── spinner.sh  # Spinner animation presets
+│   │   ├── logging.sh  # Structured logging
+│   │   └── sudo.sh     # Sudo management
+│   ├── ui/             # UI component modules
+│   │   ├── ui.sh       # Loader for all UI modules
+│   │   ├── base.sh     # Box, success, error, warn, info
+│   │   ├── input.sh    # Input, choose, confirm
+│   │   ├── gauge.sh    # Progress bars, minibars
+│   │   └── ...
+│   ├── system/         # System monitoring modules
+│   │   ├── system.sh   # Loader for all system modules
+│   │   ├── cpu.sh      # CPU metrics
+│   │   ├── memory.sh   # Memory metrics
+│   │   └── ...
+│   └── dashboard/      # Dashboard modules
+│       ├── dashboard.sh
+│       └── runner.sh
 ├── examples/           # Example scripts
-│   ├── openrgb_fix.sh
-│   ├── git_commit.sh
-│   ├── csv_viewer.sh
-│   ├── markdown_preview.sh
-│   └── system_dashboard.sh
 └── tests/              # Test suite
-    ├── framework.sh    # Test assertion functions
-    ├── run_tests.sh    # Test runner
-    └── test_*.sh       # Module tests
 ```
 
 ## Testing
