@@ -4,7 +4,7 @@
 test_file_start "ui.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/ui.sh"
+source "$PROJECT_DIR/lib/ui/ui.sh"
 
 # Test that UI functions exist
 assert_function_exists "ui_box"

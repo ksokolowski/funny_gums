@@ -8,10 +8,10 @@
 _RUNNER_SH_LOADED=1
 
 # Source dependencies
-_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$_LIB_DIR/spinner.sh"
-source "$_LIB_DIR/dashboard.sh"
-source "$_LIB_DIR/logging.sh"
+_RUNNER_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_RUNNER_DIR/../core/spinner.sh"
+source "$_RUNNER_DIR/dashboard.sh"
+source "$_RUNNER_DIR/../core/logging.sh"
 
 # Current command PID for cleanup
 RUNNER_CMD_PID=""

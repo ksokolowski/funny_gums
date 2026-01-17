@@ -5,7 +5,12 @@
 # Usage:
 #   source /path/to/my_gums.sh
 #
-# Or source individual modules from lib/ as needed
+# Or source individual modules from lib/ as needed:
+#   source /path/to/lib/core/colors.sh      # ANSI colors
+#   source /path/to/lib/ui/ui.sh            # All UI components
+#   source /path/to/lib/system/system.sh    # All system monitoring
+#   source /path/to/lib/dashboard/dashboard.sh
+#
 # shellcheck disable=SC1091
 
 # Prevent multiple sourcing
@@ -17,16 +22,20 @@ _MY_GUMS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 _MY_GUMS_LIB="$_MY_GUMS_DIR/lib"
 
 # Source all modules in dependency order
-# Level 0: No dependencies
-source "$_MY_GUMS_LIB/colors.sh"
-source "$_MY_GUMS_LIB/cursor.sh"
-source "$_MY_GUMS_LIB/spinner.sh"
-source "$_MY_GUMS_LIB/logging.sh"
-source "$_MY_GUMS_LIB/sudo.sh"
-source "$_MY_GUMS_LIB/ui.sh"
 
-# Level 1: Depends on colors, cursor, spinner
-source "$_MY_GUMS_LIB/dashboard.sh"
+# Core modules (no dependencies)
+source "$_MY_GUMS_LIB/core/colors.sh"
+source "$_MY_GUMS_LIB/core/cursor.sh"
+source "$_MY_GUMS_LIB/core/spinner.sh"
+source "$_MY_GUMS_LIB/core/logging.sh"
+source "$_MY_GUMS_LIB/core/sudo.sh"
 
-# Level 2: Depends on dashboard, spinner, logging
-source "$_MY_GUMS_LIB/runner.sh"
+# UI modules (depends on core/colors)
+source "$_MY_GUMS_LIB/ui/ui.sh"
+
+# Dashboard modules (depends on core/colors, cursor, spinner)
+source "$_MY_GUMS_LIB/dashboard/dashboard.sh"
+source "$_MY_GUMS_LIB/dashboard/runner.sh"
+
+# System modules (optional - for hardware monitoring)
+source "$_MY_GUMS_LIB/system/system.sh"

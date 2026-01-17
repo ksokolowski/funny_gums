@@ -17,8 +17,8 @@ SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
 # Source library
-source "$LIB_DIR/colors.sh"
-source "$LIB_DIR/ui.sh"
+source "$LIB_DIR/core/colors.sh"
+source "$LIB_DIR/ui/ui.sh"
 
 ############################
 # COMMIT TYPES

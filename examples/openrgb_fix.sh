@@ -16,14 +16,14 @@ SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
 # Source shared functions
-source "$LIB_DIR/colors.sh"
-source "$LIB_DIR/cursor.sh"
-source "$LIB_DIR/logging.sh"
-source "$LIB_DIR/spinner.sh"
-source "$LIB_DIR/ui.sh"
-source "$LIB_DIR/sudo.sh"
-source "$LIB_DIR/dashboard.sh"
-source "$LIB_DIR/runner.sh"
+source "$LIB_DIR/core/colors.sh"
+source "$LIB_DIR/core/cursor.sh"
+source "$LIB_DIR/core/logging.sh"
+source "$LIB_DIR/core/spinner.sh"
+source "$LIB_DIR/core/sudo.sh"
+source "$LIB_DIR/ui/ui.sh"
+source "$LIB_DIR/dashboard/dashboard.sh"
+source "$LIB_DIR/dashboard/runner.sh"
 
 # Ensure gum version requirement is met
 ui_version_check ">=0.17.0" || exit 1

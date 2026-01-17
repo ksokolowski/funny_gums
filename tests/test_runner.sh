@@ -5,7 +5,7 @@ test_file_start "runner.sh"
 
 # Source the module (requires LOG_FILE)
 LOG_FILE="/tmp/test_runner_$$.log"
-source "$PROJECT_DIR/lib/runner.sh"
+source "$PROJECT_DIR/lib/dashboard/runner.sh"
 
 # Test that runner functions exist
 assert_function_exists "runner_cleanup"

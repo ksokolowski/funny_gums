@@ -8,10 +8,10 @@
 _DASHBOARD_SH_LOADED=1
 
 # Source dependencies
-_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$_LIB_DIR/colors.sh"
-source "$_LIB_DIR/cursor.sh"
-source "$_LIB_DIR/spinner.sh"
+_DASHBOARD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_DASHBOARD_DIR/../core/colors.sh"
+source "$_DASHBOARD_DIR/../core/cursor.sh"
+source "$_DASHBOARD_DIR/../core/spinner.sh"
 
 # Dashboard state
 declare -a DASHBOARD_STEPS=()       # Step display names
