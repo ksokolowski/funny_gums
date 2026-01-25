@@ -64,26 +64,17 @@ GEAR_VS16="${GEAR_BASE}${VS16}"
 PLAY_VS16="${PLAY_BASE}${VS16}"
 NEXT_VS16="${NEXT_BASE}${VS16}"
 
-# Debug output for CI - specifically check gear (e29a99)
-echo "DEBUG: VS16 length=${#VS16}"
-printf "DEBUG: GEAR_VS16 hex: " && printf '%s' "$GEAR_VS16" | xxd
-# Directly test the hex decoding
-hex="e29a99"
-decoded=$(printf "\\x${hex:0:2}\\x${hex:2:2}\\x${hex:4:2}")
-printf "DEBUG: Decoded gear hex: " && printf '%s' "$decoded" | xxd
-echo "DEBUG: Decoded gear is: $decoded"
-# Check if the decoded gear matches our GEAR_BASE
-echo "DEBUG: GEAR_BASE='$GEAR_BASE' decoded='$decoded'"
-if [[ "$GEAR_BASE" == "$decoded" ]]; then
-    echo "DEBUG: GEAR_BASE matches decoded"
-else
-    echo "DEBUG: GEAR_BASE DOES NOT match decoded!"
-fi
-# Check array lookup directly
-decoded_vs16="${decoded}${VS16}"
-printf "DEBUG: decoded_vs16 hex: " && printf '%s' "$decoded_vs16" | xxd
-echo "DEBUG: EMOJI_WIDTH[\$decoded_vs16]=${EMOJI_WIDTH[$decoded_vs16]:-NOT_FOUND}"
-echo "DEBUG: EMOJI_WIDTH[\$GEAR_VS16]=${EMOJI_WIDTH[$GEAR_VS16]:-NOT_FOUND}"
+# Debug output for CI - check PLAY_VS16 which is failing
+printf "DEBUG: PLAY_BASE hex: " && printf '%s' "$PLAY_BASE" | xxd
+printf "DEBUG: PLAY_VS16 hex: " && printf '%s' "$PLAY_VS16" | xxd
+# Also check what the array key should be
+play_decoded=$(printf "\\xe2\\x96\\xb6")
+printf "DEBUG: play_decoded hex: " && printf '%s' "$play_decoded" | xxd
+play_decoded_vs16="${play_decoded}${VS16}"
+printf "DEBUG: play_decoded_vs16 hex: " && printf '%s' "$play_decoded_vs16" | xxd
+echo "DEBUG: EMOJI_WIDTH[\$play_decoded_vs16]=${EMOJI_WIDTH[$play_decoded_vs16]:-NOT_FOUND}"
+echo "DEBUG: EMOJI_WIDTH[\$PLAY_VS16]=${EMOJI_WIDTH[$PLAY_VS16]:-NOT_FOUND}"
+echo "DEBUG: emoji_width function result: $(emoji_width "$PLAY_VS16")"
 
 assert_eq "2" "$(emoji_width "$PLAY_VS16")" "Play symbol (with VS16) should have width 2"
 assert_eq "2" "$(emoji_width "$GEAR_VS16")" "Gear with VS16 should have width 2"
