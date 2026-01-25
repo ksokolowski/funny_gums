@@ -72,7 +72,8 @@ runner_exec() {
 runner_exec_all() {
     local idx=0
     for cmd in "$@"; do
-        eval "runner_exec $idx $cmd"
+        # Use bash -c to execute the command string safely without eval
+        runner_exec "$idx" bash -c "$cmd"
         ((idx++))
     done
 }

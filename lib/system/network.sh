@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # network.sh - Network interface monitoring functions
-# shellcheck disable=SC2034
+# shellcheck disable=SC2034,SC1091
 
 [[ -n "${_SYSTEM_NETWORK_LOADED:-}" ]] && return 0
 _SYSTEM_NETWORK_LOADED=1
+
+# Source lspci module for PCI device queries
+_SYSTEM_NETWORK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_SYSTEM_NETWORK_DIR/lspci.sh"
 
 # Get physical network interfaces with status
 # Usage: get_network_interfaces
@@ -67,14 +71,14 @@ get_network_interfaces() {
         fi
         [[ -z "$driver" ]] && driver="-"
 
-        # Try to get model from lspci
+        # Try to get model from lspci via lspci module
         local pci_path
         pci_path=$(readlink -f "/sys/class/net/$iface/device" 2>/dev/null)
         if [[ -n "$pci_path" ]] && [[ -f "$pci_path/vendor" ]]; then
             local pci_id
             pci_id=$(basename "$pci_path" 2>/dev/null)
-            if [[ "$pci_id" =~ ^[0-9a-f]{4}: ]]; then
-                model=$(lspci -s "$pci_id" 2>/dev/null | sed 's/.*: //' | head -1)
+            if [[ "$pci_id" =~ ^[0-9a-f]{4}: ]] && lspci_available; then
+                model=$(lspci_get_device_name "$pci_id")
             fi
         fi
         # Fallback: use driver name as model

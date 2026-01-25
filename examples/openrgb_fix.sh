@@ -35,8 +35,11 @@ DISK_DEV="/dev/sda"
 RGB_DEV=2
 RGB_EFFECT="rainbow"
 export VERBOSE=false
-LOG_FILE="/tmp/openrgb_fix.log"
+LOG_FILE="/tmp/openrgb_fix_$(date +%Y-%m-%d_%H-%M-%S).log"
 log_init "$LOG_FILE"
+
+# UI Layout - unified frame width for visual consistency
+FRAME_WIDTH=60
 
 # Dashboard styling
 DASHBOARD_SPINNER="RGB"
@@ -89,8 +92,7 @@ trap cleanup EXIT
 # STARTUP CONFIRMATION
 ############################
 echo ""
-echo ""
-ui_box_double --padding "1 5" --border-foreground "$NEON_PINK_NUM" \
+ui_box_double --width "$FRAME_WIDTH" --padding "1 3" --border-foreground "$NEON_PINK_NUM" \
     "${NEON_CYAN}${BOLD}🔧 OpenRGB / OpenLinkHub Fix Script ${NEON_PINK}v2.0${RESET}" \
     "" \
     "This script will:" \
@@ -108,7 +110,8 @@ fi
 
 # Initialize dashboard
 DASHBOARD_BORDER_COLOR="$NEON_CYAN_NUM"
-DASHBOARD_PROGRESS_COLOR="$NEON_PINK"
+DASHBOARD_PROGRESS_COLOR="$NEON_CYAN"
+DASHBOARD_WIDTH="$FRAME_WIDTH"
 dashboard_init "$(ui_format_template "{{ Bold \"${NEON_CYAN}OpenRGB${RESET} / ${NEON_PINK}OpenLinkHub${RESET} Dashboard\" }}")"
 
 # Add steps to dashboard
@@ -157,17 +160,14 @@ fi
 ############################
 # SUDO AUTHENTICATION
 ############################
-echo ""
-log_info "Authenticating sudo credentials..."
-
+SUDO_FRAME_WIDTH="$FRAME_WIDTH"
 # shellcheck disable=SC2119
-if ! sudo_setup; then
+if ! sudo_setup_styled; then
     ui_error --padding "1 5" "Failed to authenticate sudo."
     exit 1
 fi
 
-log_info "Sudo authenticated. Starting tasks..." user "$USER"
-sleep 1
+log_silent "Sudo authenticated. Starting tasks..." user "$USER"
 
 ############################
 # MAIN EXECUTION
@@ -187,13 +187,33 @@ cursor_show
 # FINAL SUMMARY
 ############################
 echo ""
+has_failure=false
 if dashboard_has_failure; then
-    ui_error --padding "1 5" --border-foreground "$NEON_RED_NUM" "❌ Some steps failed"
-    echo ""
-    log_warn "Opening error log in pager..."
-    sleep 1
-    ui_pager --header "Error Log: $LOG_FILE" --show-line-numbers < "$LOG_FILE"
+    has_failure=true
+    ui_error --width "$FRAME_WIDTH" --padding "1 3" --border-foreground "$NEON_RED_NUM" \
+        "❌ Some steps failed" \
+        "" \
+        "${DIM}Log file: ${LOG_FILE}${RESET}"
 else
-    ui_success --padding "1 5" --border-foreground "$NEON_GREEN_NUM" "✨ $(ui_format_template "{{ Bold \"${NEON_GREEN}Done.${RESET} System & ${NEON_CYAN}RGB${RESET} state are clean ✨\" }}")"
-    log_info "All tasks completed successfully"
+    ui_success --width "$FRAME_WIDTH" --padding "1 3" --border-foreground "$NEON_GREEN_NUM" \
+        "✨ $(ui_format_template "{{ Bold \"${NEON_GREEN}Done.${RESET} System & ${NEON_CYAN}RGB${RESET} state are clean ✨\" }}")"
+    log_silent "All tasks completed successfully"
+fi
+
+# Offer to view log (default=yes on error, default=no on success)
+echo ""
+if $has_failure; then
+    if ui_confirm "View log file?" --affirmative "Yes" --negative "No"; then
+        echo ""
+        ui_box --width "$FRAME_WIDTH" --padding "0 2" "📋 Log: $LOG_FILE"
+        echo ""
+        ui_pager_numbered < "$LOG_FILE"
+    fi
+else
+    if ui_confirm "View log file?" --affirmative "Yes" --negative "No" --default=false; then
+        echo ""
+        ui_box --width "$FRAME_WIDTH" --padding "0 2" "📋 Log: $LOG_FILE"
+        echo ""
+        ui_pager_numbered < "$LOG_FILE"
+    fi
 fi

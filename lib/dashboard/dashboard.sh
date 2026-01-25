@@ -12,6 +12,7 @@ _DASHBOARD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$_DASHBOARD_DIR/../core/colors.sh"
 source "$_DASHBOARD_DIR/../core/cursor.sh"
 source "$_DASHBOARD_DIR/../core/spinner.sh"
+source "$_DASHBOARD_DIR/../core/gum_wrapper.sh"
 
 # Dashboard state
 declare -a DASHBOARD_STEPS=()       # Step display names
@@ -28,6 +29,7 @@ DASHBOARD_QUIET=false
 DASHBOARD_SPINNER="DOTS"
 DASHBOARD_BORDER_COLOR="6"
 DASHBOARD_PROGRESS_COLOR="${CYAN}"
+DASHBOARD_WIDTH=""                  # Frame width (empty = auto)
 
 # Initialize dashboard with title
 # Usage: dashboard_init "My Dashboard Title"
@@ -91,7 +93,8 @@ dashboard_draw() {
 
     for i in "${!DASHBOARD_STEPS[@]}"; do
         if ! ${DASHBOARD_ENABLED[$i]}; then
-            content+="${CYAN}⏭️  ${DASHBOARD_STEPS[i]} (skipped)${RESET}\n"
+            # Skipped: dim text with skip icon
+            content+="${DIM}⏩ ${DASHBOARD_STEPS[i]}${RESET}\n"
         elif ((DASHBOARD_RUNNING == i)); then
             local spinner_char
             spinner_char=$(spinner_frame)
@@ -112,8 +115,10 @@ dashboard_draw() {
     content+="\n${DASHBOARD_PROGRESS_COLOR}⏳ Progress [${bar}] ${percent}%${RESET}"
 
     # Display in gum frame
-    local output
-    output=$(echo -e "$content" | gum style --no-strip-ansi --border rounded --border-foreground "$DASHBOARD_BORDER_COLOR" --padding "1 2" --align left)
+    local output width_arg=""
+    [[ -n "$DASHBOARD_WIDTH" ]] && width_arg="--width $DASHBOARD_WIDTH"
+    # shellcheck disable=SC2086
+    output=$(echo -e "$content" | gum_exec_style --no-strip-ansi --border rounded --border-foreground "$DASHBOARD_BORDER_COLOR" --padding "1 2" --align left $width_arg)
     printf '%s\n' "$output"
 
     DASHBOARD_LINES=$(printf '%s\n' "$output" | wc -l)
@@ -172,7 +177,7 @@ dashboard_step_done() {
 # Usage: dashboard_step_skip 0
 dashboard_step_skip() {
     local idx=$1
-    DASHBOARD_STATUS[idx]="⏭️"
+    DASHBOARD_STATUS[idx]="⏩"
     DASHBOARD_ENABLED[idx]=false
 }
 

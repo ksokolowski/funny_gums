@@ -6,7 +6,7 @@
 source "$(dirname "$0")/framework.sh"
 
 # Source library
-source "$(dirname "$0")/../lib/inxi_helper.sh"
+source "$(dirname "$0")/../lib/system/inxi.sh"
 
 test_file_start "inxi_helper.sh"
 

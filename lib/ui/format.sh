@@ -2,6 +2,9 @@
 # format.sh - Text formatting and rendering functions using gum
 # shellcheck disable=SC2034
 
+_UI_FORMAT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_UI_FORMAT_DIR/../core/gum_wrapper.sh"
+
 [[ -n "${_UI_FORMAT_LOADED:-}" ]] && return 0
 _UI_FORMAT_LOADED=1
 
@@ -12,7 +15,7 @@ ui_format() {
     if [[ $# -gt 0 ]]; then
         echo -e "$*" | gum format
     else
-        gum format
+        gum_exec format
     fi
 }
 
@@ -23,7 +26,7 @@ ui_format_code() {
     if [[ $# -gt 0 ]]; then
         echo -e "$*" | gum format --type code
     else
-        gum format --type code
+        gum_exec format --type code
     fi
 }
 
@@ -34,7 +37,7 @@ ui_format_emoji() {
     if [[ $# -gt 0 ]]; then
         echo -e "$*" | gum format --type emoji
     else
-        gum format --type emoji
+        gum_exec format --type emoji
     fi
 }
 
@@ -44,12 +47,12 @@ ui_format_template() {
     if [[ $# -gt 0 && "$1" != -* ]]; then
         echo -e "$*" | gum format --type template
     else
-        gum format --type template "$@"
+        gum_exec format --type template "$@"
     fi
 }
 
 # Version check
 # Usage: ui_version_check ">= 0.17.0"
 ui_version_check() {
-    gum version-check "$@"
+    gum_exec version-check "$@"
 }

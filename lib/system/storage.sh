@@ -5,9 +5,10 @@
 [[ -n "${_SYSTEM_STORAGE_LOADED:-}" ]] && return 0
 _SYSTEM_STORAGE_LOADED=1
 
-# Source colors for ANSI functions
+# Source dependencies
 _SYSTEM_STORAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$_SYSTEM_STORAGE_DIR/../core/colors.sh"
+source "$_SYSTEM_STORAGE_DIR/smartctl.sh"
 
 # Get disk usage for all mounted filesystems
 # Usage: get_disk_usage_live
@@ -86,26 +87,12 @@ get_drive_partitions() {
     done
 }
 
-# Get drive health/temperature if available (via smartctl or sensors)
+# Get drive health/temperature if available (via smartctl module)
 # Usage: get_drive_temp "sda"
 # Returns: Temperature in Celsius or empty
 get_drive_temp() {
     local drive="$1"
-    local temp=""
-
-    # Try smartctl if available
-    if command -v smartctl &>/dev/null; then
-        temp=$(sudo smartctl -A "/dev/$drive" 2>/dev/null | \
-            grep -E "Temperature" | head -1 | awk '{print $10}')
-    fi
-
-    # Try nvme-cli for NVMe drives
-    if [[ -z "$temp" ]] && [[ "$drive" == nvme* ]] && command -v nvme &>/dev/null; then
-        temp=$(sudo nvme smart-log "/dev/$drive" 2>/dev/null | \
-            grep -i "temperature" | head -1 | awk '{print $3}')
-    fi
-
-    echo "$temp"
+    smartctl_get_drive_temp "$drive"
 }
 
 # Filesystem type to color mapping (gum color number)

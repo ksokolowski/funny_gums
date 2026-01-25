@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
 # cpu.sh - CPU metrics and monitoring functions
-# shellcheck disable=SC2034
+# shellcheck disable=SC2034,SC1091
 
 [[ -n "${_SYSTEM_CPU_LOADED:-}" ]] && return 0
 _SYSTEM_CPU_LOADED=1
+
+# Source sensors module for lm-sensors queries
+_SYSTEM_CPU_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_SYSTEM_CPU_DIR/sensors.sh"
 
 # Get CPU usage percentage (requires two samples)
 # Usage: cpu_percent=$(get_cpu_usage_live)
@@ -48,9 +52,9 @@ get_cpu_usage_live() {
 get_cpu_temp_live() {
     local temp
 
-    # Try lm-sensors first
-    if command -v sensors &>/dev/null; then
-        temp=$(sensors 2>/dev/null | grep -E "(Core 0|Tctl|CPU|Package)" | head -1 | grep -oP '\+\K[0-9]+(?=\.[0-9]*°C)')
+    # Try lm-sensors first via sensors module
+    if sensors_available; then
+        temp=$(sensors_get_cpu_temp)
         [[ -n "$temp" ]] && { echo "$temp"; return; }
     fi
 

@@ -2,6 +2,9 @@
 # progress.sh - Spinner and layout composition functions using gum
 # shellcheck disable=SC2034
 
+_UI_PROGRESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_UI_PROGRESS_DIR/../core/gum_wrapper.sh"
+
 [[ -n "${_UI_PROGRESS_LOADED:-}" ]] && return 0
 _UI_PROGRESS_LOADED=1
 
@@ -11,7 +14,7 @@ _UI_PROGRESS_LOADED=1
 ui_spin() {
     local title="$1"
     shift
-    gum spin --title "$title" -- "$@"
+    gum_exec spin --title "$title" -- "$@"
 }
 
 # Spinner with type selection
@@ -21,7 +24,7 @@ ui_spin_type() {
     local spinner_type="$1"
     local title="$2"
     shift 2
-    gum spin --spinner "$spinner_type" --title "$title" -- "$@"
+    gum_exec spin --spinner "$spinner_type" --title "$title" -- "$@"
 }
 
 # Spinner showing command output
@@ -29,7 +32,7 @@ ui_spin_type() {
 ui_spin_output() {
     local title="$1"
     shift
-    gum spin --show-output --title "$title" -- "$@"
+    gum_exec spin --show-output --title "$title" -- "$@"
 }
 
 # Join text horizontally
@@ -40,7 +43,7 @@ ui_join_h() {
         if [[ -z "$result" ]]; then
             result="$text"
         else
-            result=$(gum join --horizontal "$result" "$text")
+            result=$(gum_exec join --horizontal "$result" "$text")
         fi
     done
     echo "$result"
@@ -54,7 +57,7 @@ ui_join_v() {
         if [[ -z "$result" ]]; then
             result="$text"
         else
-            result=$(gum join --vertical "$result" "$text")
+            result=$(gum_exec join --vertical "$result" "$text")
         fi
     done
     echo "$result"
