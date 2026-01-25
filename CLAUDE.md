@@ -2,6 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Licensing & Ownership (CRITICAL)
+
+**NEVER add AI attribution to commits:**
+- No "Generated with Claude", "Co-Authored-By: Claude", or similar
+- No AI tool mentions in commit messages, comments, or documentation
+- Current regulations treat AI as an advanced tool (like a compiler), not an author
+
+**NEVER modify licensing:**
+- Project uses Apache 2.0 license (defined in project files)
+- Do not add, modify, or create LICENSE files
+- Do not add licensing statements to code or documentation
+
+**Why this matters:**
+- Only humans can legally be authors of code or creative work
+- Code with uncertain authorship may be treated as public domain
+- AI attribution can affect legal status and may require project deletion
+
 ## Build and Test Commands
 
 ```bash
