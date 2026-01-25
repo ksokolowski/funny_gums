@@ -22,10 +22,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build and Test Commands
 
 ```bash
+make check                        # Run lint + tests (mirrors CI)
+make test                         # Run all tests
+make test-ui                      # Run specific test file (test_ui.sh)
+make lint                         # Run shellcheck only
+```
+
+Or directly:
+```bash
 ./tests/run_tests.sh              # Run all tests (includes shellcheck)
 ./tests/run_tests.sh test_ui.sh   # Run specific test file
 shellcheck --severity=error lib/**/*.sh  # Lint all scripts
 ```
+
+## Local CI Setup
+
+Pre-commit hooks catch issues before pushing:
+```bash
+pip install pre-commit            # Install pre-commit tool
+make install-hooks                # Install hooks for this repo
+```
+
+After installation, `shellcheck` and tests run automatically on every commit.
+
+**Always run `make check` before pushing** to avoid CI failures.
 
 ## Architecture
 
