@@ -69,6 +69,14 @@ echo "DEBUG: VS16 length=${#VS16}"
 printf "DEBUG: GEAR_VS16 hex: " && printf '%s' "$GEAR_VS16" | xxd
 echo "DEBUG: emoji_width result: $(emoji_width "$GEAR_VS16")"
 echo "DEBUG: Array has ${#EMOJI_WIDTH[@]} keys"
+# Show all keys that contain VS16 (efb88f)
+echo "DEBUG: Searching for keys with VS16..."
+for key in "${!EMOJI_WIDTH[@]}"; do
+    keyhex=$(printf '%s' "$key" | xxd -p | tr -d '\n')
+    if [[ "$keyhex" == *"efb88f"* ]]; then
+        echo "DEBUG: Found VS16 key: $keyhex = ${EMOJI_WIDTH[$key]}"
+    fi
+done | head -5
 
 assert_eq "2" "$(emoji_width "$PLAY_VS16")" "Play symbol (with VS16) should have width 2"
 assert_eq "2" "$(emoji_width "$GEAR_VS16")" "Gear with VS16 should have width 2"
