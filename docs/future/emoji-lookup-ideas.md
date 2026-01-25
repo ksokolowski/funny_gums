@@ -292,3 +292,24 @@ This gives best speed for common cases while handling unknown emojis gracefully.
 - [Unicode Emoji Data](https://unicode.org/Public/emoji/latest/)
 - [East Asian Width](https://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt)
 - [wcwidth implementation](https://github.com/jquast/wcwidth)
+
+---
+
+## Benchmark Results
+
+Tested on real system (100 lookups of "Hello✅World"):
+
+| Approach | Time | Per lookup | Notes |
+|----------|------|------------|-------|
+| Direct array | ~0ms | <0.01ms | Single emoji only |
+| **Hybrid** | 4ms | 0.04ms | Full strings, unknown emojis |
+| visual_width | 230ms | 2.3ms | Current implementation |
+| Awk server | N/A | Complex | Unicode handling issues |
+
+**Conclusion**: Hybrid approach (Idea 8) is the winner:
+- 57x faster than current implementation
+- Pure bash, no external dependencies
+- Handles unknown emojis via Unicode ranges
+- Self-improving cache
+
+The awk/server approaches add complexity without meaningful benefit.
