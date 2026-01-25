@@ -64,6 +64,12 @@ GEAR_VS16="${GEAR_BASE}${VS16}"
 PLAY_VS16="${PLAY_BASE}${VS16}"
 NEXT_VS16="${NEXT_BASE}${VS16}"
 
+# Debug output for CI
+echo "DEBUG: VS16 length=${#VS16}"
+printf "DEBUG: GEAR_VS16 hex: " && printf '%s' "$GEAR_VS16" | xxd
+echo "DEBUG: emoji_width result: $(emoji_width "$GEAR_VS16")"
+echo "DEBUG: Array has ${#EMOJI_WIDTH[@]} keys"
+
 assert_eq "2" "$(emoji_width "$PLAY_VS16")" "Play symbol (with VS16) should have width 2"
 assert_eq "2" "$(emoji_width "$GEAR_VS16")" "Gear with VS16 should have width 2"
 
