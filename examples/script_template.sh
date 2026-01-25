@@ -22,9 +22,15 @@ source "$LIB_DIR/core/colors.sh"
 source "$LIB_DIR/core/cursor.sh"
 source "$LIB_DIR/core/logging.sh"
 source "$LIB_DIR/core/spinner.sh"
+source "$LIB_DIR/core/terminal.sh"
+source "$LIB_DIR/core/text.sh"
+source "$LIB_DIR/core/emojis.sh"
 source "$LIB_DIR/ui/ui.sh"
 source "$LIB_DIR/dashboard/dashboard.sh"
 source "$LIB_DIR/dashboard/runner.sh"
+
+# Detect terminal mode for VS16 emoji support
+detect_terminal_mode
 
 ############################
 # CUSTOMIZATION - Edit these!
@@ -56,8 +62,9 @@ DASHBOARD_SPINNER="dots"  # Options: dots, line, minidots, jump, pulse, points, 
 # Define your steps here!
 ############################
 # Icons for categories (customize as needed)
+# VS16 emojis are now supported with proper width handling
 declare -A CATEGORY_ICON=(
-    [setup]="🔧"
+    [setup]="⚙️"
     [process]="🔄"
     [network]="🌐"
     [files]="📁"

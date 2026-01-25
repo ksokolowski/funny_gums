@@ -71,9 +71,16 @@ LIB_DIR="$SCRIPT_DIR/../lib"
 source "$LIB_DIR/core/colors.sh"
 source "$LIB_DIR/core/cursor.sh"
 source "$LIB_DIR/core/logging.sh"
+source "$LIB_DIR/core/terminal.sh"
+source "$LIB_DIR/core/emoji_data.sh"
+source "$LIB_DIR/core/text.sh"
+source "$LIB_DIR/core/emojis.sh"
 source "$LIB_DIR/ui/ui.sh"
 source "$LIB_DIR/system/system.sh"
 source "$LIB_DIR/core/gum_wrapper.sh"
+
+# Detect terminal mode for proper emoji width handling
+detect_terminal_mode
 
 ################################################################################
 # STATE VARIABLES
@@ -155,9 +162,10 @@ declare -A LIVE_DRIVE_SMART=()
 PANEL_WIDTH=0
 
 # Category definitions: name, icon, inxi_section
+# Using VS16 emojis where appropriate (requires text.sh for width handling)
 declare -a CATEGORIES=(
-    "System|📋|System"
-    "Motherboard|🔧|Motherboard"
+    "System|🖥️|System"
+    "Motherboard|⚙️|Motherboard"
     "CPU|🧠|CPU"
     "Memory|💾|Memory"
     "Storage|💿|Drives"
@@ -500,7 +508,7 @@ build_nav_panel() {
 build_system_panel() {
     local content=""
 
-    content+="${CLR_HEADER}📋 System Information${RESET}\n"
+    content+="${CLR_HEADER}🖥️ System Information${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n\n"
 
     # Get system info
@@ -519,7 +527,7 @@ build_system_panel() {
 
     # Hardware info from dmidecode (if available)
     if [[ -n "$DMI_BOARD_NAME" || -n "$DMI_SYSTEM_NAME" ]]; then
-        content+="\n${CLR_SUBHEADER}🔧 Hardware${RESET}\n"
+        content+="\n${CLR_SUBHEADER}⚙️ Hardware${RESET}\n"
         content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
         [[ -n "$DMI_BOARD_VENDOR" && -n "$DMI_BOARD_NAME" ]] && content+="  ${CLR_LABEL}Board:${RESET}     ${CLR_VALUE}$DMI_BOARD_VENDOR ${CLR_HIGHLIGHT}$DMI_BOARD_NAME${RESET}\n"
         [[ -n "$DMI_CHASSIS_TYPE" ]] && content+="  ${CLR_LABEL}Chassis:${RESET}   ${CLR_VALUE}$DMI_CHASSIS_TYPE${RESET}\n"
@@ -990,7 +998,7 @@ build_network_panel() {
 build_motherboard_panel() {
     local content=""
 
-    content+="${CLR_HEADER}🔧 Motherboard & BIOS Information${RESET}\n"
+    content+="${CLR_HEADER}⚙️ Motherboard & BIOS Information${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n\n"
 
     if dmidecode_available; then

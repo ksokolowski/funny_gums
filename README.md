@@ -1,6 +1,9 @@
 # Funny Gums
 
-A modular Bash library providing terminal UI components powered by [gum](https://github.com/charmbracelet/gum).
+[![Tests](https://github.com/ksokolowski/funny_gums/actions/workflows/test.yml/badge.svg)](https://github.com/ksokolowski/funny_gums/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A modular Bash library providing terminal UI components powered by [gum](https://github.com/charmbracelet/gum) from [Charm](https://charm.sh).
 
 ## Features
 
@@ -12,6 +15,8 @@ A modular Bash library providing terminal UI components powered by [gum](https:/
 - 📊 **Dashboard** - Multi-step progress dashboard with in-place updates
 - 🏃 **Runner** - Command execution with spinner/dashboard integration
 - 🔐 **Sudo** - Credential management with keepalive
+- ⚙️ **VS16 Emoji Support** - Proper width handling for VS16/ZWJ emoji sequences
+- 🖥️ **System Monitoring** - CPU, memory, storage, GPU, and network metrics
 
 ## Requirements
 
@@ -160,6 +165,28 @@ funny_gums/
 ./tests/run_tests.sh              # Run all tests
 ./tests/run_tests.sh test_ui.sh   # Run specific test
 ```
+
+## VS16 Emoji Support
+
+Funny Gums includes proper handling for VS16 (Variation Selector 16) emojis like ⚙️, ▶️, and ZWJ sequences like 👨‍💻. The library automatically detects modern terminals and calculates correct visual widths for emoji-aware text processing.
+
+```bash
+source lib/core/text.sh
+detect_terminal_mode          # Detects "modern" or "legacy"
+visual_width "Hello ⚙️"       # Returns: 9 (5 + 1 + 2 + VS16)
+pad_visual "✅ Done" 15       # Pads to visual width 15
+```
+
+Modern terminals supported: Kitty, WezTerm, iTerm, Alacritty, Ghostty, GNOME Terminal 6003+
+
+## Built on Charm
+
+This library is powered by [gum](https://github.com/charmbracelet/gum), part of the excellent [Charm](https://charm.sh) ecosystem of Go-based terminal tools:
+
+- **[gum](https://github.com/charmbracelet/gum)** - A tool for glamorous shell scripts
+- **[bubbletea](https://github.com/charmbracelet/bubbletea)** - TUI framework for Go
+- **[lipgloss](https://github.com/charmbracelet/lipgloss)** - Style definitions for terminal apps
+- **[bubbles](https://github.com/charmbracelet/bubbles)** - TUI components for bubbletea
 
 ## License
 

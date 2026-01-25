@@ -18,10 +18,17 @@ LIB_DIR="$SCRIPT_DIR/../lib"
 
 # Source library
 source "$LIB_DIR/core/colors.sh"
+source "$LIB_DIR/core/terminal.sh"
+source "$LIB_DIR/core/text.sh"
+source "$LIB_DIR/core/emojis.sh"
 source "$LIB_DIR/ui/ui.sh"
+
+# Detect terminal mode for VS16 emoji support
+detect_terminal_mode
 
 ############################
 # COMMIT TYPES
+# VS16 emojis (♻️, ⚙️) are now supported with proper width handling
 ############################
 COMMIT_TYPES=(
     "feat     ✨ A new feature"
@@ -33,7 +40,7 @@ COMMIT_TYPES=(
     "test     🧪 Adding or updating tests"
     "build    📦 Build system or dependencies"
     "ci       🤖 CI/CD configuration"
-    "chore    🔧 Other changes (maintenance)"
+    "chore    ⚙️ Other changes (maintenance)"
     "revert   ⏪ Revert a previous commit"
 )
 

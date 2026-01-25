@@ -295,33 +295,59 @@ EMOJI_HUNDRED="💯"        # 100/perfect
 # Severity: 💡 🟡 🟠 🔴 🚨
 
 ################################################################################
-# UNSAFE EMOJIS - DO NOT USE (break gum frame alignment)
+# VS16 EMOJIS (safe with visual_width support from text.sh!)
+# These require sourcing lib/core/text.sh for proper width handling in gum frames.
+# Use gum_exec_style_visual() from gum_wrapper.sh for automatic compensation.
 ################################################################################
-# ⚙️  - Gear (has VS16)
-# ⏭️  - Next track (has VS16) - use ⏭ instead
-# ⏮️  - Previous track (has VS16) - use ⏮ instead
-# ⏯️  - Play/pause (has VS16)
-# ▶️  - Play (has VS16) - use ▶ instead
-# ⏸️  - Pause (has VS16)
-# ⏺️  - Record (has VS16)
-# ⏏️  - Eject (has VS16)
-# ⚠️  - Warning (has VS16) - use 🟡 instead
-# ❤️  - Red heart (has VS16) - use ❤ instead
-# ☀️  - Sun (has VS16) - use ☀ instead
-# ❄️  - Snowflake (has VS16) - use ❄ instead
-# ☁️  - Cloud (has VS16) - use ☁ instead
-# 🗑️  - Wastebasket (has VS16) - use 🗑 instead
-# 🖥️  - Desktop (has VS16) - use 🖥 instead
-# 🖨️  - Printer (has VS16) - use 🖨 instead
-# 🏷️  - Label (has VS16) - use 🏷 instead
-# ⌨️  - Keyboard (has VS16)
-# 🖱️  - Mouse (has VS16)
-# 🕹️  - Joystick (has VS16)
-# 🗄️  - File cabinet (has VS16) - use 🗄 instead
-# 👨‍💻 - Man technologist (ZWJ sequence)
-# 👩‍💻 - Woman technologist (ZWJ sequence)
-# Any skin-toned emojis (modifier sequences)
-# Any flag emojis (regional indicator sequences)
+EMOJI_GEAR_VS="⚙️"         # Gear (VS16) - settings/config
+EMOJI_PLAY_VS="▶️"         # Play button (VS16)
+EMOJI_PAUSE_VS="⏸️"        # Pause (VS16)
+EMOJI_STOP_VS="⏹️"         # Stop (VS16)
+EMOJI_RECORD_VS="⏺️"       # Record (VS16)
+EMOJI_EJECT_VS="⏏️"        # Eject (VS16)
+EMOJI_NEXT_VS="⏭️"         # Next track (VS16)
+EMOJI_PREV_VS="⏮️"         # Previous track (VS16)
+EMOJI_WARNING_VS="⚠️"      # Warning (VS16)
+EMOJI_HEART_VS="❤️"        # Red heart (VS16)
+EMOJI_SUN_VS="☀️"          # Sun (VS16)
+EMOJI_SNOW_VS="❄️"         # Snowflake (VS16)
+EMOJI_CLOUD_VS="☁️"        # Cloud (VS16)
+EMOJI_TRASH_VS="🗑️"        # Wastebasket (VS16)
+EMOJI_DESKTOP_VS="🖥️"      # Desktop computer (VS16)
+EMOJI_PRINTER_VS="🖨️"      # Printer (VS16)
+EMOJI_LABEL_VS="🏷️"        # Label/tag (VS16)
+EMOJI_CABINET_VS="🗄️"      # File cabinet (VS16)
+EMOJI_KEYBOARD_VS="⌨️"     # Keyboard (VS16)
+EMOJI_MOUSE_VS="🖱️"        # Mouse (VS16)
+EMOJI_JOYSTICK_VS="🕹️"     # Joystick (VS16)
+EMOJI_THERMOMETER_VS="🌡️"  # Thermometer (VS16)
+EMOJI_SCISSORS_VS="✂️"     # Scissors (VS16)
+EMOJI_UMBRELLA_VS="☂️"     # Umbrella (VS16)
+EMOJI_SHIELD_VS="🛡️"       # Shield (VS16)
+EMOJI_SWORDS_VS="⚔️"       # Crossed swords (VS16)
+EMOJI_ALEMBIC_VS="⚗️"      # Alembic/chemistry (VS16)
+EMOJI_RECYCLE_VS="♻️"      # Recycle (VS16)
+
+################################################################################
+# ZWJ SEQUENCES (safe with visual_width support from text.sh!)
+# These require sourcing lib/core/text.sh for proper width handling.
+# Note: May display as separate emojis in legacy terminals.
+################################################################################
+EMOJI_MAN_TECHNOLOGIST="👨‍💻"     # Man at computer (ZWJ)
+EMOJI_WOMAN_TECHNOLOGIST="👩‍💻"   # Woman at computer (ZWJ)
+EMOJI_RAINBOW_FLAG="🏳️‍🌈"        # Rainbow flag (ZWJ)
+EMOJI_FAMILY="👨‍👩‍👧"              # Family (ZWJ)
+
+################################################################################
+# LEGACY NOTES - Emojis requiring text.sh for proper alignment
+################################################################################
+# The VS16 and ZWJ emojis above are NOW SAFE when using:
+#   source lib/core/text.sh
+#   gum_exec_style_visual "Text with ⚙️" 60
+#
+# Without text.sh, these emojis may still cause alignment issues in gum frames.
+# For maximum compatibility without text.sh, use the non-VS16 variants defined
+# earlier in this file (e.g., EMOJI_START="▶" instead of EMOJI_PLAY_VS="▶️")
 
 ################################################################################
 # USAGE EXAMPLES

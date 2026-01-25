@@ -29,6 +29,12 @@ source "$_FUNNY_GUMS_LIB/core/cursor.sh"
 source "$_FUNNY_GUMS_LIB/core/spinner.sh"
 source "$_FUNNY_GUMS_LIB/core/logging.sh"
 source "$_FUNNY_GUMS_LIB/core/sudo.sh"
+source "$_FUNNY_GUMS_LIB/core/terminal.sh"
+source "$_FUNNY_GUMS_LIB/core/emoji_data.sh"
+source "$_FUNNY_GUMS_LIB/core/text.sh"
+
+# Detect terminal mode at startup for emoji width handling
+detect_terminal_mode
 
 # UI modules (depends on core/colors)
 source "$_FUNNY_GUMS_LIB/ui/ui.sh"

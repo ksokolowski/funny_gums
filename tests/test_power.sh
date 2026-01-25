@@ -86,7 +86,6 @@ if power_available; then
     # Test thermal zones
     result=$(power_get_thermal_zones)
     if [[ -n "$result" ]]; then
-        local zone_count
         zone_count=$(echo "$result" | wc -l)
         echo "  ${GREEN}✓${RESET} power_get_thermal_zones found $zone_count thermal zone(s)"
     else

@@ -18,7 +18,13 @@ LIB_DIR="$SCRIPT_DIR/../lib"
 
 # Source library
 source "$LIB_DIR/core/colors.sh"
+source "$LIB_DIR/core/terminal.sh"
+source "$LIB_DIR/core/text.sh"
+source "$LIB_DIR/core/emojis.sh"
 source "$LIB_DIR/ui/ui.sh"
+
+# Detect terminal mode for VS16 emoji support
+detect_terminal_mode
 
 ############################
 # FUNCTIONS

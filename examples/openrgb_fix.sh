@@ -21,9 +21,15 @@ source "$LIB_DIR/core/cursor.sh"
 source "$LIB_DIR/core/logging.sh"
 source "$LIB_DIR/core/spinner.sh"
 source "$LIB_DIR/core/sudo.sh"
+source "$LIB_DIR/core/terminal.sh"
+source "$LIB_DIR/core/text.sh"
+source "$LIB_DIR/core/emojis.sh"
 source "$LIB_DIR/ui/ui.sh"
 source "$LIB_DIR/dashboard/dashboard.sh"
 source "$LIB_DIR/dashboard/runner.sh"
+
+# Detect terminal mode for VS16 emoji support
+detect_terminal_mode
 
 # Ensure gum version requirement is met
 ui_version_check ">=0.17.0" || exit 1
@@ -47,9 +53,10 @@ DASHBOARD_SPINNER="RGB"
 ############################
 # STEP DEFINITIONS
 ############################
+# VS16 emojis are now supported with proper width handling
 declare -A CATEGORY_ICON=(
     [disk]="💾"
-    [service]="⚡"
+    [service]="⚙️"
     [rgb]="🌈"
     [package]="📦"
 )
