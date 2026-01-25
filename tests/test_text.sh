@@ -65,16 +65,10 @@ PLAY_VS16="${PLAY_BASE}${VS16}"
 NEXT_VS16="${NEXT_BASE}${VS16}"
 
 # Debug output for CI - check PLAY_VS16 which is failing
-printf "DEBUG: PLAY_BASE hex: " && printf '%s' "$PLAY_BASE" | xxd
 printf "DEBUG: PLAY_VS16 hex: " && printf '%s' "$PLAY_VS16" | xxd
-# Also check what the array key should be
-play_decoded=$(printf "\\xe2\\x96\\xb6")
-printf "DEBUG: play_decoded hex: " && printf '%s' "$play_decoded" | xxd
-play_decoded_vs16="${play_decoded}${VS16}"
-printf "DEBUG: play_decoded_vs16 hex: " && printf '%s' "$play_decoded_vs16" | xxd
-echo "DEBUG: EMOJI_WIDTH[\$play_decoded_vs16]=${EMOJI_WIDTH[$play_decoded_vs16]:-NOT_FOUND}"
 echo "DEBUG: EMOJI_WIDTH[\$PLAY_VS16]=${EMOJI_WIDTH[$PLAY_VS16]:-NOT_FOUND}"
-echo "DEBUG: emoji_width function result: $(emoji_width "$PLAY_VS16")"
+# Enable function debug and call emoji_width
+EMOJI_WIDTH_DEBUG=1 emoji_width "$PLAY_VS16"
 
 assert_eq "2" "$(emoji_width "$PLAY_VS16")" "Play symbol (with VS16) should have width 2"
 assert_eq "2" "$(emoji_width "$GEAR_VS16")" "Gear with VS16 should have width 2"

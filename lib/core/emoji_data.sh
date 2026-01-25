@@ -184,6 +184,13 @@ emoji_width() {
     local emoji="$1"
     local mode="${2:-${TERMINAL_MODE:-modern}}"
 
+    # DEBUG: Show what the function receives
+    if [[ -n "${EMOJI_WIDTH_DEBUG:-}" ]]; then
+        printf "FUNC_DEBUG: emoji hex: " >&2
+        printf '%s' "$emoji" | xxd >&2
+        echo "FUNC_DEBUG: array lookup: ${EMOJI_WIDTH[$emoji]:-NOT_FOUND}" >&2
+    fi
+
     # Check legacy table first if in legacy mode
     if [[ "$mode" == "legacy" ]] && [[ -n "${EMOJI_WIDTH_LEGACY[$emoji]:-}" ]]; then
         echo "${EMOJI_WIDTH_LEGACY[$emoji]}"
