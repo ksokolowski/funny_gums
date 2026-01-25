@@ -12,10 +12,13 @@
 [[ -n "${_EMOJI_DATA_SH_LOADED:-}" ]] && return 0
 _EMOJI_DATA_SH_LOADED=1
 
-# Unicode constants for reference
-readonly VS16=$'\ufe0f'      # Variation Selector 16 (emoji presentation)
-readonly VS15=$'\ufe0e'      # Variation Selector 15 (text presentation)
-readonly ZWJ=$'\u200d'       # Zero Width Joiner
+# Unicode constants for reference (using printf for portability)
+# shellcheck disable=SC2155
+readonly VS16=$(printf '\xef\xb8\x8f')  # U+FE0F Variation Selector 16 (emoji presentation)
+# shellcheck disable=SC2155
+readonly VS15=$(printf '\xef\xb8\x8e')  # U+FE0E Variation Selector 15 (text presentation)
+# shellcheck disable=SC2155
+readonly ZWJ=$(printf '\xe2\x80\x8d')   # U+200D Zero Width Joiner
 
 ################################################################################
 # MODERN TERMINAL WIDTHS
