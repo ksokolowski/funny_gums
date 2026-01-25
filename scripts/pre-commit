@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Pre-commit hook: runs shellcheck and tests before allowing commit
+set -uo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+echo "Running pre-commit checks..."
+
+# Run shellcheck
+echo "  Shellcheck..."
+if ! shellcheck --severity=error "$REPO_ROOT"/funny_gums.sh "$REPO_ROOT"/lib/**/*.sh "$REPO_ROOT"/examples/*.sh "$REPO_ROOT"/tests/*.sh 2>/dev/null; then
+    echo "  FAILED: shellcheck found errors"
+    exit 1
+fi
+echo "  OK"
+
+# Run tests
+echo "  Tests..."
+if ! "$REPO_ROOT"/tests/run_tests.sh >/dev/null 2>&1; then
+    echo "  FAILED: tests failed"
+    echo "  Run: make test  (for details)"
+    exit 1
+fi
+echo "  OK"
+
+echo "All checks passed!"

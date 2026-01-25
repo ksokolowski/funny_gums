@@ -37,10 +37,10 @@ shellcheck --severity=error lib/**/*.sh  # Lint all scripts
 
 ## Local CI Setup
 
-Pre-commit hooks catch issues before pushing:
+Native git hooks (no Python required):
 ```bash
-pip install pre-commit            # Install pre-commit tool
-make install-hooks                # Install hooks for this repo
+make install-hooks                # Install pre-commit hook
+make uninstall-hooks              # Remove if needed
 ```
 
 After installation, `shellcheck` and tests run automatically on every commit.
