@@ -56,9 +56,13 @@ assert_eq "2" "$(emoji_width "🔧")" "Wrench emoji should have width 2"
 assert_eq "1" "$(emoji_width "▶")" "Play symbol (no VS16) should have width 1"
 
 # Build VS16 emojis programmatically to avoid encoding issues
-GEAR_VS16="⚙${VS16}"
-PLAY_VS16="▶${VS16}"
-NEXT_VS16="⏭${VS16}"
+# Use printf for base characters too to ensure consistent encoding
+GEAR_BASE=$(printf '\xe2\x9a\x99')   # U+2699 GEAR
+PLAY_BASE=$(printf '\xe2\x96\xb6')   # U+25B6 BLACK RIGHT-POINTING TRIANGLE
+NEXT_BASE=$(printf '\xe2\x8f\xad')   # U+23ED BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR
+GEAR_VS16="${GEAR_BASE}${VS16}"
+PLAY_VS16="${PLAY_BASE}${VS16}"
+NEXT_VS16="${NEXT_BASE}${VS16}"
 
 assert_eq "2" "$(emoji_width "$PLAY_VS16")" "Play symbol (with VS16) should have width 2"
 assert_eq "2" "$(emoji_width "$GEAR_VS16")" "Gear with VS16 should have width 2"
@@ -74,8 +78,10 @@ assert_eq "yes" "$result" "has_vs16 should detect VS16 in gear emoji"
 result=$(has_vs16 "🔧" && echo "yes" || echo "no")
 assert_eq "no" "$result" "has_vs16 should not detect VS16 in wrench emoji"
 
-# Test has_zwj (using programmatically built ZWJ emoji)
-TECH_ZWJ="👨${ZWJ}💻"
+# Test has_zwj (using programmatically built ZWJ emoji with hex bytes)
+MAN_EMOJI=$(printf '\xf0\x9f\x91\xa8')
+LAPTOP_EMOJI=$(printf '\xf0\x9f\x92\xbb')
+TECH_ZWJ="${MAN_EMOJI}${ZWJ}${LAPTOP_EMOJI}"
 result=$(has_zwj "$TECH_ZWJ" && echo "yes" || echo "no")
 assert_eq "yes" "$result" "has_zwj should detect ZWJ in technologist emoji"
 

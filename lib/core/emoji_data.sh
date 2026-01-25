@@ -95,52 +95,79 @@ declare -gA EMOJI_WIDTH_LEGACY=()
 
 ################################################################################
 # VS16 KEY GENERATION
-# Build VS16 emoji keys programmatically to avoid git encoding issues
-# VS16 (U+FE0F) is appended to base emojis to create emoji presentation
+# Build VS16 emoji keys programmatically using hex bytes to avoid git encoding
+# issues. VS16 (U+FE0F) is appended to base emojis to create emoji presentation.
 ################################################################################
 _emoji_data_init_vs16() {
-    # Base emojis that have VS16 variants (base_char:modern_width:legacy_width)
-    local vs16_emojis=(
-        "⚙:2:1" "⏭:2:1" "⏮:2:1" "▶:2:1" "⏸:2:1" "⏹:2:1"
-        "⚠:2:1" "❤:2:1" "☀:2:1" "❄:2:1" "☁:2:1" "♻:2:1"
-        "🗑:2:1" "🖥:2:1" "🖨:2:1" "🏷:2:1" "🗄:2:1"
-        "⏺:2:1" "⏏:2:1" "⌨:2:1" "🖱:2:1" "🕹:2:1"
-        "✂:2:1" "🌡:2:1" "☂:2:1" "⛈:2:1"
-        "🌤:2:1" "🌥:2:1" "🌦:2:1" "🌧:2:1" "🌨:2:1" "🌩:2:1"
-        "🎗:2:1" "🎖:2:1" "🏵:2:1" "⚗:2:1"
-        "🛡:2:1" "⚔:2:1" "⚰:2:1" "⚱:2:1" "🕳:2:1"
-        "🗨:2:1" "🗯:2:1" "👁:2:1" "🕵:2:1" "🗣:2:1"
+    # Base emojis as hex:modern_width:legacy_width
+    # Using hex bytes ensures consistent encoding across git operations
+    local vs16_hex_emojis=(
+        # Symbols: ⚙ ⏭ ⏮ ▶ ⏸ ⏹
+        "e29a99:2:1" "e28fad:2:1" "e28fae:2:1" "e296b6:2:1" "e28fb8:2:1" "e28fb9:2:1"
+        # Warning/hearts/weather: ⚠ ❤ ☀ ❄ ☁ ♻
+        "e29aa0:2:1" "e29da4:2:1" "e29880:2:1" "e29d84:2:1" "e29881:2:1" "e299bb:2:1"
+        # Objects: 🗑 🖥 🖨 🏷 🗄
+        "f09f9791:2:1" "f09f96a5:2:1" "f09f96a8:2:1" "f09f8fb7:2:1" "f09f9784:2:1"
+        # Media controls: ⏺ ⏏ ⌨ 🖱 🕹
+        "e28fba:2:1" "e28f8f:2:1" "e28ca8:2:1" "f09f96b1:2:1" "f09f95b9:2:1"
+        # Misc: ✂ 🌡 ☂ ⛈
+        "e29c82:2:1" "f09f8ca1:2:1" "e29882:2:1" "e29b88:2:1"
+        # Weather: 🌤 🌥 🌦 🌧 🌨 🌩
+        "f09f8ca4:2:1" "f09f8ca5:2:1" "f09f8ca6:2:1" "f09f8ca7:2:1" "f09f8ca8:2:1" "f09f8ca9:2:1"
+        # Decorations: 🎗 🎖 🏵 ⚗
+        "f09f8e97:2:1" "f09f8e96:2:1" "f09f8fb5:2:1" "e29a97:2:1"
+        # Objects: 🛡 ⚔ ⚰ ⚱ 🕳
+        "f09f9ba1:2:1" "e29a94:2:1" "e29ab0:2:1" "e29ab1:2:1" "f09f95b3:2:1"
+        # Speech: 🗨 🗯 👁 🕵 🗣
+        "f09f97a8:2:1" "f09f97af:2:1" "f09f9181:2:1" "f09f95b5:2:1" "f09f97a3:2:1"
     )
 
-    local entry base modern_w legacy_w
-    for entry in "${vs16_emojis[@]}"; do
-        IFS=':' read -r base modern_w legacy_w <<< "$entry"
+    local entry hex modern_w legacy_w base
+    for entry in "${vs16_hex_emojis[@]}"; do
+        IFS=':' read -r hex modern_w legacy_w <<< "$entry"
+        # Convert hex to character using printf
+        base=$(printf "\\x${hex:0:2}\\x${hex:2:2}\\x${hex:4:2}")
+        # Handle 4-byte UTF-8 (emojis starting with f0)
+        if [[ ${#hex} -eq 8 ]]; then
+            base=$(printf "\\x${hex:0:2}\\x${hex:2:2}\\x${hex:4:2}\\x${hex:6:2}")
+        fi
         # Add VS16 variant to modern table
         EMOJI_WIDTH["${base}${VS16}"]=$modern_w
         # Add VS16 variant to legacy table
         EMOJI_WIDTH_LEGACY["${base}${VS16}"]=$legacy_w
     done
 
+    # ZWJ sequences using hex bytes for consistency
+    # 👨=f09f91a8 👩=f09f91a9 💻=f09f92bb 🏳=f09f8fb3 🌈=f09f8c88
+    # 👧=f09f91a7 👦=f09f91a6 ❤=e29da4
+    local man=$(printf '\xf0\x9f\x91\xa8')
+    local woman=$(printf '\xf0\x9f\x91\xa9')
+    local laptop=$(printf '\xf0\x9f\x92\xbb')
+    local flag=$(printf '\xf0\x9f\x8f\xb3')
+    local rainbow=$(printf '\xf0\x9f\x8c\x88')
+    local girl=$(printf '\xf0\x9f\x91\xa7')
+    local boy=$(printf '\xf0\x9f\x91\xa6')
+    local heart=$(printf '\xe2\x9d\xa4')
+
     # ZWJ sequences for legacy terminals (show component emojis)
-    # Built programmatically to avoid encoding issues
-    EMOJI_WIDTH_LEGACY["👨${ZWJ}💻"]=4
-    EMOJI_WIDTH_LEGACY["👩${ZWJ}💻"]=4
-    EMOJI_WIDTH_LEGACY["🏳${VS16}${ZWJ}🌈"]=4
-    EMOJI_WIDTH_LEGACY["👨${ZWJ}👩${ZWJ}👧"]=6
-    EMOJI_WIDTH_LEGACY["👨${ZWJ}👩${ZWJ}👧${ZWJ}👦"]=8
-    EMOJI_WIDTH_LEGACY["👩${ZWJ}❤${VS16}${ZWJ}👨"]=6
-    EMOJI_WIDTH_LEGACY["👨${ZWJ}❤${VS16}${ZWJ}👨"]=6
-    EMOJI_WIDTH_LEGACY["👩${ZWJ}❤${VS16}${ZWJ}👩"]=6
+    EMOJI_WIDTH_LEGACY["${man}${ZWJ}${laptop}"]=4
+    EMOJI_WIDTH_LEGACY["${woman}${ZWJ}${laptop}"]=4
+    EMOJI_WIDTH_LEGACY["${flag}${VS16}${ZWJ}${rainbow}"]=4
+    EMOJI_WIDTH_LEGACY["${man}${ZWJ}${woman}${ZWJ}${girl}"]=6
+    EMOJI_WIDTH_LEGACY["${man}${ZWJ}${woman}${ZWJ}${girl}${ZWJ}${boy}"]=8
+    EMOJI_WIDTH_LEGACY["${woman}${ZWJ}${heart}${VS16}${ZWJ}${man}"]=6
+    EMOJI_WIDTH_LEGACY["${man}${ZWJ}${heart}${VS16}${ZWJ}${man}"]=6
+    EMOJI_WIDTH_LEGACY["${woman}${ZWJ}${heart}${VS16}${ZWJ}${woman}"]=6
 
     # ZWJ sequences for modern terminals
-    EMOJI_WIDTH["👨${ZWJ}💻"]=2
-    EMOJI_WIDTH["👩${ZWJ}💻"]=2
-    EMOJI_WIDTH["🏳${VS16}${ZWJ}🌈"]=2
-    EMOJI_WIDTH["👨${ZWJ}👩${ZWJ}👧"]=2
-    EMOJI_WIDTH["👨${ZWJ}👩${ZWJ}👧${ZWJ}👦"]=2
-    EMOJI_WIDTH["👩${ZWJ}❤${VS16}${ZWJ}👨"]=2
-    EMOJI_WIDTH["👨${ZWJ}❤${VS16}${ZWJ}👨"]=2
-    EMOJI_WIDTH["👩${ZWJ}❤${VS16}${ZWJ}👩"]=2
+    EMOJI_WIDTH["${man}${ZWJ}${laptop}"]=2
+    EMOJI_WIDTH["${woman}${ZWJ}${laptop}"]=2
+    EMOJI_WIDTH["${flag}${VS16}${ZWJ}${rainbow}"]=2
+    EMOJI_WIDTH["${man}${ZWJ}${woman}${ZWJ}${girl}"]=2
+    EMOJI_WIDTH["${man}${ZWJ}${woman}${ZWJ}${girl}${ZWJ}${boy}"]=2
+    EMOJI_WIDTH["${woman}${ZWJ}${heart}${VS16}${ZWJ}${man}"]=2
+    EMOJI_WIDTH["${man}${ZWJ}${heart}${VS16}${ZWJ}${man}"]=2
+    EMOJI_WIDTH["${woman}${ZWJ}${heart}${VS16}${ZWJ}${woman}"]=2
 }
 
 # Initialize VS16 keys
