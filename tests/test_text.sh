@@ -25,9 +25,6 @@ assert_function_exists "get_terminal_mode"
 # Test detect_terminal_mode sets TERMINAL_MODE
 detect_terminal_mode
 assert_not_empty "$TERMINAL_MODE" "TERMINAL_MODE should be set after detect"
-
-# Force modern mode for subsequent VS16 tests (CI environments default to legacy)
-TERMINAL_MODE="modern"
 assert_contains "$TERMINAL_MODE" "modern legacy" "TERMINAL_MODE should be 'modern' or 'legacy'"
 
 # Test legacy override
@@ -35,8 +32,8 @@ FUNNY_GUMS_LEGACY_TERMINAL=1 detect_terminal_mode
 assert_eq "legacy" "$TERMINAL_MODE" "FUNNY_GUMS_LEGACY_TERMINAL=1 should force legacy mode"
 unset FUNNY_GUMS_LEGACY_TERMINAL
 
-# Reset for other tests
-detect_terminal_mode
+# Force modern mode for VS16 tests (CI environments default to legacy)
+TERMINAL_MODE="modern"
 
 ################################################################################
 # EMOJI DATA TESTS
