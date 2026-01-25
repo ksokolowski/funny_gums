@@ -20,6 +20,10 @@ Welcome to the Funny Gums documentation. This library provides modular Bash comp
 - **[Examples](examples.md)** - Detailed walkthroughs of example scripts
 - **[Roadmap](roadmap.md)** - Future development plans and planned CLI tool integrations
 
+### Future: The Golden Path
+- **[Lessons Learned](future/lessons-learned.md)** - What Funny Gums taught us about bash limitations
+- **[Go Charm Project](future/go-charm-project.md)** - Sketch for a proper Go implementation using Charm ecosystem
+
 ## Quick Links
 
 ### Source Modules
