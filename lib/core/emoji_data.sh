@@ -30,22 +30,16 @@ declare -gA EMOJI_WIDTH=(
     # Colored squares
     ["🟥"]=2 ["🟧"]=2 ["🟨"]=2 ["🟩"]=2 ["🟦"]=2 ["🟪"]=2
 
-    # VS16 emojis (now supported with width compensation!)
-    ["⚙️"]=2 ["⏭️"]=2 ["⏮️"]=2 ["▶️"]=2 ["⏸️"]=2 ["⏹️"]=2
-    ["⚠️"]=2 ["❤️"]=2 ["☀️"]=2 ["❄️"]=2 ["☁️"]=2 ["♻️"]=2
-    ["🗑️"]=2 ["🖥️"]=2 ["🖨️"]=2 ["🏷️"]=2 ["🗄️"]=2
-    ["⏺️"]=2 ["⏏️"]=2 ["⌨️"]=2 ["🖱️"]=2 ["🕹️"]=2
-    ["✂️"]=2 ["🌡️"]=2 ["☂️"]=2 ["⛅"]=2 ["⛈️"]=2
-    ["🌤️"]=2 ["🌥️"]=2 ["🌦️"]=2 ["🌧️"]=2 ["🌨️"]=2 ["🌩️"]=2
-    ["⛄"]=2 ["🎗️"]=2 ["🎖️"]=2 ["🏵️"]=2 ["⚗️"]=2
-    ["🛡️"]=2 ["⚔️"]=2 ["⚰️"]=2 ["⚱️"]=2 ["🕳️"]=2
-    ["🗨️"]=2 ["🗯️"]=2 ["👁️"]=2 ["🕵️"]=2 ["🗣️"]=2
-
-    # Non-VS16 emoji equivalents (for comparison)
+    # Non-VS16 base characters (width 1 without VS16)
     ["⚙"]=1 ["⏭"]=1 ["⏮"]=1 ["▶"]=1 ["⏸"]=1 ["⏹"]=1
-    ["⚠"]=1 ["❤"]=1 ["☀"]=1 ["❄"]=1 ["☁"]=1
+    ["⚠"]=1 ["❤"]=1 ["☀"]=1 ["❄"]=1 ["☁"]=1 ["♻"]=1
     ["🗑"]=2 ["🖥"]=2 ["🖨"]=2 ["🏷"]=2 ["🗄"]=2
-    ["✂"]=1 ["🌡"]=2
+    ["✂"]=1 ["🌡"]=2 ["☂"]=1 ["⛅"]=2 ["⛄"]=2
+    ["⏺"]=1 ["⏏"]=1 ["⌨"]=1 ["🖱"]=2 ["🕹"]=2
+    ["🎗"]=2 ["🎖"]=2 ["🏵"]=2 ["⚗"]=1
+    ["🛡"]=2 ["⚔"]=1 ["⚰"]=2 ["⚱"]=2 ["🕳"]=2
+    ["🗨"]=2 ["🗯"]=2 ["👁"]=2 ["🕵"]=2 ["🗣"]=2
+    ["🌤"]=2 ["🌥"]=2 ["🌦"]=2 ["🌧"]=2 ["🌨"]=2 ["🌩"]=2 ["⛈"]=2
 
     # Common emojis
     ["🔧"]=2 ["🔨"]=2 ["🔩"]=2 ["🔑"]=2 ["🔐"]=2 ["🔓"]=2
@@ -94,22 +88,60 @@ declare -gA EMOJI_WIDTH=(
 # VS16 emojis often render narrower in legacy terminals
 # ZWJ sequences often break apart showing multiple characters
 ################################################################################
-declare -gA EMOJI_WIDTH_LEGACY=(
-    # VS16 emojis render as width 1 in legacy terminals
-    ["⚙️"]=1 ["⏭️"]=1 ["⏮️"]=1 ["▶️"]=1 ["⏸️"]=1 ["⏹️"]=1
-    ["⚠️"]=1 ["❤️"]=1 ["☀️"]=1 ["❄️"]=1 ["☁️"]=1 ["♻️"]=1
-    ["🗑️"]=1 ["🖥️"]=1 ["🖨️"]=1 ["🏷️"]=1 ["🗄️"]=1
-    ["⏺️"]=1 ["⏏️"]=1 ["⌨️"]=1 ["🖱️"]=1 ["🕹️"]=1
-    ["✂️"]=1 ["🌡️"]=1 ["☂️"]=1 ["⛈️"]=1
-    ["🌤️"]=1 ["🌥️"]=1 ["🌦️"]=1 ["🌧️"]=1 ["🌨️"]=1 ["🌩️"]=1
-    ["🎗️"]=1 ["🎖️"]=1 ["🏵️"]=1 ["⚗️"]=1
-    ["🛡️"]=1 ["⚔️"]=1 ["⚰️"]=1 ["⚱️"]=1 ["🕳️"]=1
-    ["🗨️"]=1 ["🗯️"]=1 ["👁️"]=1 ["🕵️"]=1 ["🗣️"]=1
+declare -gA EMOJI_WIDTH_LEGACY=()
 
-    # ZWJ sequences often break in legacy terminals (show component emojis)
-    ["👨‍💻"]=4 ["👩‍💻"]=4 ["🏳️‍🌈"]=4 ["👨‍👩‍👧"]=6
-    ["👨‍👩‍👧‍👦"]=8 ["👩‍❤️‍👨"]=6 ["👨‍❤️‍👨"]=6 ["👩‍❤️‍👩"]=6
-)
+################################################################################
+# VS16 KEY GENERATION
+# Build VS16 emoji keys programmatically to avoid git encoding issues
+# VS16 (U+FE0F) is appended to base emojis to create emoji presentation
+################################################################################
+_emoji_data_init_vs16() {
+    # Base emojis that have VS16 variants (base_char:modern_width:legacy_width)
+    local vs16_emojis=(
+        "⚙:2:1" "⏭:2:1" "⏮:2:1" "▶:2:1" "⏸:2:1" "⏹:2:1"
+        "⚠:2:1" "❤:2:1" "☀:2:1" "❄:2:1" "☁:2:1" "♻:2:1"
+        "🗑:2:1" "🖥:2:1" "🖨:2:1" "🏷:2:1" "🗄:2:1"
+        "⏺:2:1" "⏏:2:1" "⌨:2:1" "🖱:2:1" "🕹:2:1"
+        "✂:2:1" "🌡:2:1" "☂:2:1" "⛈:2:1"
+        "🌤:2:1" "🌥:2:1" "🌦:2:1" "🌧:2:1" "🌨:2:1" "🌩:2:1"
+        "🎗:2:1" "🎖:2:1" "🏵:2:1" "⚗:2:1"
+        "🛡:2:1" "⚔:2:1" "⚰:2:1" "⚱:2:1" "🕳:2:1"
+        "🗨:2:1" "🗯:2:1" "👁:2:1" "🕵:2:1" "🗣:2:1"
+    )
+
+    local entry base modern_w legacy_w
+    for entry in "${vs16_emojis[@]}"; do
+        IFS=':' read -r base modern_w legacy_w <<< "$entry"
+        # Add VS16 variant to modern table
+        EMOJI_WIDTH["${base}${VS16}"]=$modern_w
+        # Add VS16 variant to legacy table
+        EMOJI_WIDTH_LEGACY["${base}${VS16}"]=$legacy_w
+    done
+
+    # ZWJ sequences for legacy terminals (show component emojis)
+    # Built programmatically to avoid encoding issues
+    EMOJI_WIDTH_LEGACY["👨${ZWJ}💻"]=4
+    EMOJI_WIDTH_LEGACY["👩${ZWJ}💻"]=4
+    EMOJI_WIDTH_LEGACY["🏳${VS16}${ZWJ}🌈"]=4
+    EMOJI_WIDTH_LEGACY["👨${ZWJ}👩${ZWJ}👧"]=6
+    EMOJI_WIDTH_LEGACY["👨${ZWJ}👩${ZWJ}👧${ZWJ}👦"]=8
+    EMOJI_WIDTH_LEGACY["👩${ZWJ}❤${VS16}${ZWJ}👨"]=6
+    EMOJI_WIDTH_LEGACY["👨${ZWJ}❤${VS16}${ZWJ}👨"]=6
+    EMOJI_WIDTH_LEGACY["👩${ZWJ}❤${VS16}${ZWJ}👩"]=6
+
+    # ZWJ sequences for modern terminals
+    EMOJI_WIDTH["👨${ZWJ}💻"]=2
+    EMOJI_WIDTH["👩${ZWJ}💻"]=2
+    EMOJI_WIDTH["🏳${VS16}${ZWJ}🌈"]=2
+    EMOJI_WIDTH["👨${ZWJ}👩${ZWJ}👧"]=2
+    EMOJI_WIDTH["👨${ZWJ}👩${ZWJ}👧${ZWJ}👦"]=2
+    EMOJI_WIDTH["👩${ZWJ}❤${VS16}${ZWJ}👨"]=2
+    EMOJI_WIDTH["👨${ZWJ}❤${VS16}${ZWJ}👨"]=2
+    EMOJI_WIDTH["👩${ZWJ}❤${VS16}${ZWJ}👩"]=2
+}
+
+# Initialize VS16 keys
+_emoji_data_init_vs16
 
 ################################################################################
 # HELPER FUNCTIONS

@@ -54,22 +54,29 @@ assert_not_empty "$ZWJ" "ZWJ constant should be defined"
 assert_eq "2" "$(emoji_width "✅")" "Checkmark emoji should have width 2"
 assert_eq "2" "$(emoji_width "🔧")" "Wrench emoji should have width 2"
 assert_eq "1" "$(emoji_width "▶")" "Play symbol (no VS16) should have width 1"
-assert_eq "2" "$(emoji_width "▶️")" "Play symbol (with VS16) should have width 2"
-assert_eq "2" "$(emoji_width "⚙️")" "Gear with VS16 should have width 2"
+
+# Build VS16 emojis programmatically to avoid encoding issues
+GEAR_VS16="⚙${VS16}"
+PLAY_VS16="▶${VS16}"
+NEXT_VS16="⏭${VS16}"
+
+assert_eq "2" "$(emoji_width "$PLAY_VS16")" "Play symbol (with VS16) should have width 2"
+assert_eq "2" "$(emoji_width "$GEAR_VS16")" "Gear with VS16 should have width 2"
 
 # Test legacy mode widths
-assert_eq "1" "$(emoji_width "⚙️" "legacy")" "Gear with VS16 in legacy mode should have width 1"
-assert_eq "1" "$(emoji_width "▶️" "legacy")" "Play with VS16 in legacy mode should have width 1"
+assert_eq "1" "$(emoji_width "$GEAR_VS16" "legacy")" "Gear with VS16 in legacy mode should have width 1"
+assert_eq "1" "$(emoji_width "$PLAY_VS16" "legacy")" "Play with VS16 in legacy mode should have width 1"
 
-# Test has_vs16
-result=$(has_vs16 "⚙️" && echo "yes" || echo "no")
+# Test has_vs16 (using programmatically built VS16 emoji)
+result=$(has_vs16 "$GEAR_VS16" && echo "yes" || echo "no")
 assert_eq "yes" "$result" "has_vs16 should detect VS16 in gear emoji"
 
 result=$(has_vs16 "🔧" && echo "yes" || echo "no")
 assert_eq "no" "$result" "has_vs16 should not detect VS16 in wrench emoji"
 
-# Test has_zwj
-result=$(has_zwj "👨‍💻" && echo "yes" || echo "no")
+# Test has_zwj (using programmatically built ZWJ emoji)
+TECH_ZWJ="👨${ZWJ}💻"
+result=$(has_zwj "$TECH_ZWJ" && echo "yes" || echo "no")
 assert_eq "yes" "$result" "has_zwj should detect ZWJ in technologist emoji"
 
 result=$(has_zwj "🔧" && echo "yes" || echo "no")
@@ -107,9 +114,10 @@ assert_eq "7" "$(visual_width "Hello✅")" "String + emoji: 5 + 2 = 7"
 # "Hello ✅" = H(1) + e(1) + l(1) + l(1) + o(1) + space(1) + ✅(2) = 8
 assert_eq "8" "$(visual_width "Hello ✅")" "String + space + emoji: 5 + 1 + 2 = 8"
 
-# Test visual_width - VS16 emojis
-assert_eq "2" "$(visual_width "⚙️")" "Gear with VS16 should have width 2"
-assert_eq "6" "$(visual_width "⏭️⏭️⏭️")" "Three VS16 emojis: 3 x 2 = 6"
+# Test visual_width - VS16 emojis (built programmatically)
+assert_eq "2" "$(visual_width "$GEAR_VS16")" "Gear with VS16 should have width 2"
+THREE_NEXT_VS16="${NEXT_VS16}${NEXT_VS16}${NEXT_VS16}"
+assert_eq "6" "$(visual_width "$THREE_NEXT_VS16")" "Three VS16 emojis: 3 x 2 = 6"
 
 # Test visual_width with ANSI codes (should be stripped)
 assert_eq "5" "$(visual_width $'\e[31mHello\e[0m')" "ANSI codes should be ignored"
@@ -176,10 +184,10 @@ assert_eq "A✅" "$result" "truncate_visual with emoji at boundary"
 result=$(gum_width_adjustment "Hello")
 assert_eq "0" "$result" "ASCII text should have no adjustment"
 
-# Test gum_width_adjustment - VS16 emoji
-# ⚙️ has char length ~3 (base + VS16) but visual width 2
+# Test gum_width_adjustment - VS16 emoji (using programmatically built emoji)
+# GEAR_VS16 has char length ~3 (base + VS16) but visual width 2
 # The VS16 is invisible, so adjustment should be positive
-result=$(gum_width_adjustment "⚙️")
+result=$(gum_width_adjustment "$GEAR_VS16")
 # char_count - visual_width: if ⚙️ is 2 chars and width 2, adjustment is 0
 # But ⚙️ includes VS16 which is an extra char
 # Let's check actual behavior
