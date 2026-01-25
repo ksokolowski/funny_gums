@@ -184,31 +184,19 @@ emoji_width() {
     local emoji="$1"
     local mode="${2:-${TERMINAL_MODE:-modern}}"
 
-    # DEBUG: Show what the function receives
-    if [[ -n "${EMOJI_WIDTH_DEBUG:-}" ]]; then
-        printf "FUNC_DEBUG: emoji hex: " >&2
-        printf '%s' "$emoji" | xxd >&2
-        echo "FUNC_DEBUG: mode=$mode" >&2
-        echo "FUNC_DEBUG: array lookup result: '${EMOJI_WIDTH[$emoji]:-NOTFOUND}'" >&2
-        echo "FUNC_DEBUG: array lookup empty test: '$([[ -n "${EMOJI_WIDTH[$emoji]:-}" ]] && echo YES || echo NO)'" >&2
-    fi
-
     # Check legacy table first if in legacy mode
     if [[ "$mode" == "legacy" ]] && [[ -n "${EMOJI_WIDTH_LEGACY[$emoji]:-}" ]]; then
-        [[ -n "${EMOJI_WIDTH_DEBUG:-}" ]] && echo "FUNC_DEBUG: returning legacy value" >&2
         echo "${EMOJI_WIDTH_LEGACY[$emoji]}"
         return
     fi
 
     # Check main table
     if [[ -n "${EMOJI_WIDTH[$emoji]:-}" ]]; then
-        [[ -n "${EMOJI_WIDTH_DEBUG:-}" ]] && echo "FUNC_DEBUG: returning main value: ${EMOJI_WIDTH[$emoji]}" >&2
         echo "${EMOJI_WIDTH[$emoji]}"
         return
     fi
 
     # Default: assume width 2 for unknown emojis (safer than 1)
-    [[ -n "${EMOJI_WIDTH_DEBUG:-}" ]] && echo "FUNC_DEBUG: returning default 2" >&2
     echo "2"
 }
 

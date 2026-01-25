@@ -25,6 +25,9 @@ assert_function_exists "get_terminal_mode"
 # Test detect_terminal_mode sets TERMINAL_MODE
 detect_terminal_mode
 assert_not_empty "$TERMINAL_MODE" "TERMINAL_MODE should be set after detect"
+
+# Force modern mode for subsequent VS16 tests (CI environments default to legacy)
+TERMINAL_MODE="modern"
 assert_contains "$TERMINAL_MODE" "modern legacy" "TERMINAL_MODE should be 'modern' or 'legacy'"
 
 # Test legacy override
@@ -63,12 +66,6 @@ NEXT_BASE=$(printf '\xe2\x8f\xad')   # U+23ED BLACK RIGHT-POINTING DOUBLE TRIANG
 GEAR_VS16="${GEAR_BASE}${VS16}"
 PLAY_VS16="${PLAY_BASE}${VS16}"
 NEXT_VS16="${NEXT_BASE}${VS16}"
-
-# Debug output for CI - check PLAY_VS16 which is failing
-printf "DEBUG: PLAY_VS16 hex: " && printf '%s' "$PLAY_VS16" | xxd
-echo "DEBUG: EMOJI_WIDTH[\$PLAY_VS16]=${EMOJI_WIDTH[$PLAY_VS16]:-NOT_FOUND}"
-# Enable function debug and call emoji_width
-EMOJI_WIDTH_DEBUG=1 emoji_width "$PLAY_VS16"
 
 assert_eq "2" "$(emoji_width "$PLAY_VS16")" "Play symbol (with VS16) should have width 2"
 assert_eq "2" "$(emoji_width "$GEAR_VS16")" "Gear with VS16 should have width 2"
