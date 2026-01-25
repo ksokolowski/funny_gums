@@ -27,5 +27,18 @@ jobs:
       - name: Run shellcheck (errors only)
         run: shellcheck --severity=error funny_gums.sh lib/**/*.sh examples/*.sh tests/*.sh
 
+      - name: Debug VS16 encoding
+        run: |
+          source lib/core/emoji_data.sh
+          echo "Bash version: $BASH_VERSION"
+          echo "VS16 length: ${#VS16}"
+          printf "VS16 hex: " && printf '%s' "$VS16" | xxd
+          echo "Array keys count: ${#EMOJI_WIDTH[@]}"
+          # Test key lookup
+          GEAR_VS16="⚙${VS16}"
+          echo "Looking up: GEAR_VS16"
+          printf "GEAR_VS16 hex: " && printf '%s' "$GEAR_VS16" | xxd
+          echo "Result: ${EMOJI_WIDTH[$GEAR_VS16]:-NOT_FOUND}"
+
       - name: Run tests
         run: ./tests/run_tests.sh
