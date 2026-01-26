@@ -12,27 +12,75 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 source "$SCRIPT_DIR/framework.sh"
 
 ################################################################################
-# TERMINAL DETECTION TESTS
+# TERMINAL DETECTION TESTS (3-Tier Classification)
 ################################################################################
 
 test_file_start "terminal.sh"
 source "$PROJECT_DIR/lib/core/terminal.sh"
 
+# Test function existence
 assert_function_exists "is_modern_terminal"
 assert_function_exists "detect_terminal_mode"
 assert_function_exists "get_terminal_mode"
+assert_function_exists "detect_terminal_capability"
+assert_function_exists "get_terminal_capability"
+assert_function_exists "needs_vs16_stripping"
+assert_function_exists "supports_zwj"
 
-# Test detect_terminal_mode sets TERMINAL_MODE
-detect_terminal_mode
-assert_not_empty "$TERMINAL_MODE" "TERMINAL_MODE should be set after detect"
+# Test detect_terminal_capability sets TERMINAL_CAPABILITY
+detect_terminal_capability
+assert_not_empty "$TERMINAL_CAPABILITY" "TERMINAL_CAPABILITY should be set after detect"
+assert_contains "$TERMINAL_CAPABILITY" "full compatible legacy" "TERMINAL_CAPABILITY should be 'full', 'compatible', or 'legacy'"
+
+# Test backward compat TERMINAL_MODE is also set
+assert_not_empty "$TERMINAL_MODE" "TERMINAL_MODE should be set for backward compat"
 assert_contains "$TERMINAL_MODE" "modern legacy" "TERMINAL_MODE should be 'modern' or 'legacy'"
 
 # Test legacy override
-FUNNY_GUMS_LEGACY_TERMINAL=1 detect_terminal_mode
+FUNNY_GUMS_LEGACY_TERMINAL=1 detect_terminal_capability
+assert_eq "legacy" "$TERMINAL_CAPABILITY" "FUNNY_GUMS_LEGACY_TERMINAL=1 should force legacy capability"
 assert_eq "legacy" "$TERMINAL_MODE" "FUNNY_GUMS_LEGACY_TERMINAL=1 should force legacy mode"
 unset FUNNY_GUMS_LEGACY_TERMINAL
 
-# Force modern mode for VS16 tests (CI environments default to legacy)
+# Test explicit capability override
+TERMINAL_CAPABILITY="" TERMINAL_MODE=""
+FUNNY_GUMS_TERMINAL_CAPABILITY=full detect_terminal_capability
+assert_eq "full" "$TERMINAL_CAPABILITY" "FUNNY_GUMS_TERMINAL_CAPABILITY=full should force full"
+unset FUNNY_GUMS_TERMINAL_CAPABILITY
+
+TERMINAL_CAPABILITY="" TERMINAL_MODE=""
+FUNNY_GUMS_TERMINAL_CAPABILITY=compatible detect_terminal_capability
+assert_eq "compatible" "$TERMINAL_CAPABILITY" "FUNNY_GUMS_TERMINAL_CAPABILITY=compatible should force compatible"
+unset FUNNY_GUMS_TERMINAL_CAPABILITY
+
+# Test needs_vs16_stripping
+TERMINAL_CAPABILITY="full"
+result=$(needs_vs16_stripping && echo "yes" || echo "no")
+assert_eq "no" "$result" "Full terminals should not need VS16 stripping"
+
+TERMINAL_CAPABILITY="compatible"
+result=$(needs_vs16_stripping && echo "yes" || echo "no")
+assert_eq "yes" "$result" "Compatible terminals should need VS16 stripping"
+
+TERMINAL_CAPABILITY="legacy"
+result=$(needs_vs16_stripping && echo "yes" || echo "no")
+assert_eq "no" "$result" "Legacy terminals should not need VS16 stripping"
+
+# Test supports_zwj
+TERMINAL_CAPABILITY="full"
+result=$(supports_zwj && echo "yes" || echo "no")
+assert_eq "yes" "$result" "Full terminals should support ZWJ"
+
+TERMINAL_CAPABILITY="compatible"
+result=$(supports_zwj && echo "yes" || echo "no")
+assert_eq "no" "$result" "Compatible terminals should not fully support ZWJ"
+
+TERMINAL_CAPABILITY="legacy"
+result=$(supports_zwj && echo "yes" || echo "no")
+assert_eq "no" "$result" "Legacy terminals should not support ZWJ"
+
+# Force full mode for remaining VS16 tests (CI environments default to legacy)
+TERMINAL_CAPABILITY="full"
 TERMINAL_MODE="modern"
 
 ################################################################################
@@ -89,6 +137,77 @@ result=$(has_zwj "🔧" && echo "yes" || echo "no")
 assert_eq "no" "$result" "has_zwj should not detect ZWJ in wrench emoji"
 
 ################################################################################
+# EMOJI REGISTRY TESTS
+################################################################################
+
+test_file_start "emoji_registry.sh"
+source "$PROJECT_DIR/lib/core/emoji_registry.sh"
+
+assert_function_exists "emoji"
+assert_function_exists "emoji_variant"
+assert_function_exists "is_registered_emoji"
+assert_function_exists "strip_vs16"
+assert_function_exists "_export_emoji_vars"
+
+# Test registry has entries
+result=$(is_registered_emoji "WARNING" && echo "yes" || echo "no")
+assert_eq "yes" "$result" "WARNING should be registered"
+
+result=$(is_registered_emoji "CPU" && echo "yes" || echo "no")
+assert_eq "yes" "$result" "CPU should be registered"
+
+result=$(is_registered_emoji "NONEXISTENT" && echo "yes" || echo "no")
+assert_eq "no" "$result" "NONEXISTENT should not be registered"
+
+# Test emoji_variant returns different values for each tier
+warning_full=$(emoji_variant "WARNING" "full")
+warning_compat=$(emoji_variant "WARNING" "compatible")
+warning_legacy=$(emoji_variant "WARNING" "legacy")
+assert_not_empty "$warning_full" "WARNING full variant should exist"
+assert_not_empty "$warning_compat" "WARNING compatible variant should exist"
+assert_not_empty "$warning_legacy" "WARNING legacy variant should exist"
+
+# Full should have VS16 (contains 0xFE0F bytes)
+((TESTS_RUN++))
+if [[ "$warning_full" == *$'\xef\xb8\x8f'* ]]; then
+    echo "  ${GREEN}✓${RESET} WARNING full variant contains VS16"
+    ((TESTS_PASSED++))
+else
+    echo "  ${RED}✗${RESET} WARNING full variant should contain VS16"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("emoji_registry.sh: WARNING full variant should contain VS16")
+fi
+
+# Test emoji() function returns appropriate variant based on capability
+TERMINAL_CAPABILITY="full"
+result=$(emoji "WARNING")
+assert_eq "$warning_full" "$result" "emoji() should return full variant when capability is full"
+
+TERMINAL_CAPABILITY="compatible"
+result=$(emoji "WARNING")
+assert_eq "$warning_compat" "$result" "emoji() should return compatible variant when capability is compatible"
+
+TERMINAL_CAPABILITY="legacy"
+result=$(emoji "WARNING")
+assert_eq "$warning_legacy" "$result" "emoji() should return legacy variant when capability is legacy"
+
+# Test strip_vs16
+vs16_text=$'\xe2\x9a\xa0\xef\xb8\x8f'  # ⚠️
+stripped=$(strip_vs16 "$vs16_text")
+expected=$'\xe2\x9a\xa0'  # ⚠ (no VS16)
+assert_eq "$expected" "$stripped" "strip_vs16 should remove VS16 bytes"
+
+# Test _export_emoji_vars sets EMOJI_ variables
+TERMINAL_CAPABILITY="full"
+_export_emoji_vars
+assert_not_empty "${EMOJI_WARNING:-}" "EMOJI_WARNING should be set after _export_emoji_vars"
+assert_not_empty "${EMOJI_CPU:-}" "EMOJI_CPU should be set after _export_emoji_vars"
+
+# Reset to full for remaining tests
+TERMINAL_CAPABILITY="full"
+TERMINAL_MODE="modern"
+
+################################################################################
 # TEXT WIDTH TESTS
 ################################################################################
 
@@ -101,6 +220,32 @@ assert_function_exists "pad_visual"
 assert_function_exists "truncate_visual"
 assert_function_exists "gum_width_adjustment"
 assert_function_exists "gum_adjusted_width"
+assert_function_exists "strip_vs16"
+assert_function_exists "terminal_safe_text"
+assert_function_exists "fix_vte_vs16"
+
+# Test strip_vs16 from text.sh (duplicate in emoji_registry.sh for convenience)
+vs16_emoji=$'\xe2\x9a\xa0\xef\xb8\x8f'  # ⚠️
+result=$(strip_vs16 "$vs16_emoji")
+expected=$'\xe2\x9a\xa0'  # ⚠
+assert_eq "$expected" "$result" "strip_vs16 should remove VS16 from emoji"
+
+# Test terminal_safe_text
+TERMINAL_CAPABILITY="full"
+result=$(terminal_safe_text "$vs16_emoji")
+assert_eq "$vs16_emoji" "$result" "terminal_safe_text should preserve VS16 for full terminals"
+
+TERMINAL_CAPABILITY="compatible"
+result=$(terminal_safe_text "$vs16_emoji")
+assert_eq "$expected" "$result" "terminal_safe_text should strip VS16 for compatible terminals"
+
+TERMINAL_CAPABILITY="legacy"
+result=$(terminal_safe_text "$vs16_emoji")
+assert_eq "$vs16_emoji" "$result" "terminal_safe_text should preserve text for legacy terminals"
+
+# Reset for remaining tests
+TERMINAL_CAPABILITY="full"
+TERMINAL_MODE="modern"
 
 # Test strip_ansi
 plain=$(strip_ansi $'\e[31mRed\e[0m')

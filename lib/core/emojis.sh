@@ -1,31 +1,35 @@
 #!/usr/bin/env bash
-# emojis.sh - Safe colorful emoji constants for terminal UI
+# emojis.sh - Colorful emoji constants for terminal UI
 #
-# IMPORTANT: Some emojis break gum frame alignment in terminals.
-# Avoid emojis with:
-#   - VS16 (Variation Selector 16, U+FE0F) - forces emoji presentation
-#   - ZWJ (Zero Width Joiner) sequences - combined emojis
+# This file provides semantic, colorful emojis organized by category.
+# VS16 (Variation Selector 16) emojis automatically degrade to colorful
+# fallbacks on VTE terminals and text fallbacks on legacy terminals.
 #
-# This file provides tested, safe, COLORFUL emojis organized by semantic category.
-# All emojis have been verified to work correctly in gum frames.
+# For VS16 emojis, the actual values are set by emoji_registry.sh based
+# on terminal capability. The definitions here serve as documentation
+# of the primary (full VS16) values.
 
 # Prevent multiple sourcing
 [[ -n "${_EMOJIS_SH_LOADED:-}" ]] && return 0
 _EMOJIS_SH_LOADED=1
+
+# Source the emoji registry for automatic VS16 handling
+_EMOJIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_EMOJIS_DIR/emoji_registry.sh"
 
 ################################################################################
 # STATUS INDICATORS
 ################################################################################
 EMOJI_SUCCESS="✅"        # Completed successfully (green checkmark)
 EMOJI_FAILURE="❌"        # Failed/error (red X)
-EMOJI_WARNING="🟡"        # Warning (yellow circle)
+EMOJI_WARNING="⚠️"        # Warning (universal symbol)
 EMOJI_PENDING="⬜"        # Not started (white square)
 EMOJI_SKIP="⏩"           # Skipped (fast forward)
 EMOJI_RUNNING="⏳"        # In progress (hourglass)
 EMOJI_DONE="✨"           # All done/sparkles
 EMOJI_OK="🟢"             # OK/good (green circle)
 EMOJI_ERROR="🔴"          # Error (red circle)
-EMOJI_PAUSED="🟠"         # Paused/waiting (orange circle)
+EMOJI_PAUSED="⏸️"         # Paused/waiting (standard pause symbol)
 
 ################################################################################
 # COLORED CIRCLES (for status/indicators)
@@ -64,7 +68,7 @@ EMOJI_DIAMOND_DOT="💠"
 ################################################################################
 # COLORED HEARTS (for favorites/love)
 ################################################################################
-EMOJI_HEART_RED="❤"       # Note: no VS16
+EMOJI_HEART_RED="❤️"       # Red heart
 EMOJI_HEART_ORANGE="🧡"
 EMOJI_HEART_YELLOW="💛"
 EMOJI_HEART_GREEN="💚"
@@ -82,7 +86,7 @@ EMOJI_SETUP="🔧"          # Setup/configure (wrench)
 EMOJI_PROCESS="🔄"        # Processing/converting (arrows)
 EMOJI_BUILD="🔨"          # Building/compiling (hammer)
 EMOJI_INSTALL="📥"        # Installing/downloading (inbox)
-EMOJI_REMOVE="🗑"         # Removing/deleting (wastebasket, no VS16)
+EMOJI_REMOVE="🗑️"         # Removing/deleting (wastebasket)
 EMOJI_UPDATE="🔃"         # Updating/syncing (arrows)
 EMOJI_SEARCH="🔍"         # Searching (magnifier)
 EMOJI_LOCK="🔐"           # Authentication/locked
@@ -91,7 +95,7 @@ EMOJI_KEY="🔑"            # Credentials/keys
 EMOJI_SAVE="💾"           # Saving/disk
 EMOJI_CLEAN="🧹"          # Cleanup (broom)
 EMOJI_LINK="🔗"           # Link/chain
-EMOJI_SCISSORS="✂"        # Cut (no VS16)
+EMOJI_SCISSORS="✂️"        # Cut
 EMOJI_PIN="📌"            # Pin/important
 EMOJI_CLIP="📎"           # Paperclip/attach
 EMOJI_EDIT="📝"           # Edit/memo
@@ -122,33 +126,33 @@ EMOJI_NETWORK="🌐"        # Network/internet (globe)
 EMOJI_FILES="📁"          # Files/folders
 EMOJI_FILE="📄"           # Single file
 EMOJI_PACKAGE="📦"        # Packages/archives
-EMOJI_DATABASE="🗄"       # Database (no VS16)
-EMOJI_CLOUD="☁"           # Cloud (no VS16)
-EMOJI_SERVER="🖥"         # Server (no VS16)
+EMOJI_DATABASE="🗄️"       # Database
+EMOJI_CLOUD="☁️"           # Cloud
+EMOJI_SERVER="🖥️"         # Server
 EMOJI_TERMINAL="💻"       # Terminal/console
 EMOJI_PHONE="📱"          # Mobile
 EMOJI_MAIL="📧"           # Email
 EMOJI_CALENDAR="📅"       # Date/schedule
 EMOJI_CLOCK="🕐"          # Time
 EMOJI_BOOKMARK="🔖"       # Bookmark/saved
-EMOJI_TAG="🏷"            # Tag/label (no VS16)
+EMOJI_TAG="🏷️"            # Tag/label
 
 ################################################################################
 # HARDWARE
 ################################################################################
-EMOJI_CPU="🔲"            # CPU/processor
+EMOJI_CPU="⚙️"            # CPU/processor (gear represents processing)
 EMOJI_MEMORY="🧠"         # RAM/memory (brain)
 EMOJI_DISK="💾"           # Storage/disk
 EMOJI_GPU="🎮"            # Graphics (gamepad)
 EMOJI_POWER="🔋"          # Battery/power
-EMOJI_TEMP="🌡"           # Temperature (no VS16)
+EMOJI_TEMP="🌡️"           # Temperature
 EMOJI_FAN="🌀"            # Fan/cooling (cyclone)
 EMOJI_RGB="🌈"            # RGB/lighting (rainbow)
 EMOJI_USB="🔌"            # USB/connections (plug)
 EMOJI_SPEAKER="🔊"        # Audio/speaker
 EMOJI_MIC="🎤"            # Microphone
 EMOJI_CAMERA="📷"         # Camera
-EMOJI_PRINTER="🖨"        # Printer (no VS16)
+EMOJI_PRINTER="🖨️"        # Printer
 EMOJI_LIGHT="💡"          # Light/idea
 
 ################################################################################
@@ -196,10 +200,10 @@ EMOJI_SOS="🆘"            # SOS/help
 ################################################################################
 # NATURE / DECORATIVE
 ################################################################################
-EMOJI_SUN="☀"             # Sun (no VS16)
+EMOJI_SUN="☀️"             # Sun
 EMOJI_MOON="🌙"           # Moon
 EMOJI_RAINBOW="🌈"        # Rainbow
-EMOJI_SNOWFLAKE="❄"       # Snow/cold (no VS16)
+EMOJI_SNOWFLAKE="❄️"       # Snow/cold
 EMOJI_DROPLET="💧"        # Water/droplet
 EMOJI_LEAF="🍀"           # Four leaf clover/luck
 EMOJI_TREE="🌴"           # Palm tree
@@ -295,33 +299,36 @@ EMOJI_HUNDRED="💯"        # 100/perfect
 # Severity: 💡 🟡 🟠 🔴 🚨
 
 ################################################################################
-# VS16 EMOJIS (safe with visual_width support from text.sh!)
-# These require sourcing lib/core/text.sh for proper width handling in gum frames.
-# Use gum_exec_style_visual() from gum_wrapper.sh for automatic compensation.
+# DEPRECATED _VS ALIASES
+# Base emojis now include VS16 - these aliases remain for backwards compatibility.
+# Prefer using the base emoji names (e.g., EMOJI_WARNING instead of EMOJI_WARNING_VS)
 ################################################################################
-EMOJI_GEAR_VS="⚙️"         # Gear (VS16) - settings/config
+# Aliases pointing to upgraded base emojis
+EMOJI_GEAR_VS="$EMOJI_CPU"          # Use EMOJI_CPU
+EMOJI_PAUSE_VS="$EMOJI_PAUSED"      # Use EMOJI_PAUSED
+EMOJI_WARNING_VS="$EMOJI_WARNING"   # Use EMOJI_WARNING
+EMOJI_HEART_VS="$EMOJI_HEART_RED"   # Use EMOJI_HEART_RED
+EMOJI_SUN_VS="$EMOJI_SUN"           # Use EMOJI_SUN
+EMOJI_SNOW_VS="$EMOJI_SNOWFLAKE"    # Use EMOJI_SNOWFLAKE
+EMOJI_CLOUD_VS="$EMOJI_CLOUD"       # Use EMOJI_CLOUD
+EMOJI_TRASH_VS="$EMOJI_REMOVE"      # Use EMOJI_REMOVE
+EMOJI_DESKTOP_VS="$EMOJI_SERVER"    # Use EMOJI_SERVER
+EMOJI_PRINTER_VS="$EMOJI_PRINTER"   # Use EMOJI_PRINTER
+EMOJI_LABEL_VS="$EMOJI_TAG"         # Use EMOJI_TAG
+EMOJI_CABINET_VS="$EMOJI_DATABASE"  # Use EMOJI_DATABASE
+EMOJI_THERMOMETER_VS="$EMOJI_TEMP"  # Use EMOJI_TEMP
+EMOJI_SCISSORS_VS="$EMOJI_SCISSORS" # Use EMOJI_SCISSORS
+
+# Emojis without base equivalents (kept with VS16)
 EMOJI_PLAY_VS="▶️"         # Play button (VS16)
-EMOJI_PAUSE_VS="⏸️"        # Pause (VS16)
 EMOJI_STOP_VS="⏹️"         # Stop (VS16)
 EMOJI_RECORD_VS="⏺️"       # Record (VS16)
 EMOJI_EJECT_VS="⏏️"        # Eject (VS16)
 EMOJI_NEXT_VS="⏭️"         # Next track (VS16)
 EMOJI_PREV_VS="⏮️"         # Previous track (VS16)
-EMOJI_WARNING_VS="⚠️"      # Warning (VS16)
-EMOJI_HEART_VS="❤️"        # Red heart (VS16)
-EMOJI_SUN_VS="☀️"          # Sun (VS16)
-EMOJI_SNOW_VS="❄️"         # Snowflake (VS16)
-EMOJI_CLOUD_VS="☁️"        # Cloud (VS16)
-EMOJI_TRASH_VS="🗑️"        # Wastebasket (VS16)
-EMOJI_DESKTOP_VS="🖥️"      # Desktop computer (VS16)
-EMOJI_PRINTER_VS="🖨️"      # Printer (VS16)
-EMOJI_LABEL_VS="🏷️"        # Label/tag (VS16)
-EMOJI_CABINET_VS="🗄️"      # File cabinet (VS16)
 EMOJI_KEYBOARD_VS="⌨️"     # Keyboard (VS16)
 EMOJI_MOUSE_VS="🖱️"        # Mouse (VS16)
 EMOJI_JOYSTICK_VS="🕹️"     # Joystick (VS16)
-EMOJI_THERMOMETER_VS="🌡️"  # Thermometer (VS16)
-EMOJI_SCISSORS_VS="✂️"     # Scissors (VS16)
 EMOJI_UMBRELLA_VS="☂️"     # Umbrella (VS16)
 EMOJI_SHIELD_VS="🛡️"       # Shield (VS16)
 EMOJI_SWORDS_VS="⚔️"       # Crossed swords (VS16)
@@ -339,15 +346,14 @@ EMOJI_RAINBOW_FLAG="🏳️‍🌈"        # Rainbow flag (ZWJ)
 EMOJI_FAMILY="👨‍👩‍👧"              # Family (ZWJ)
 
 ################################################################################
-# LEGACY NOTES - Emojis requiring text.sh for proper alignment
+# USAGE NOTES
 ################################################################################
-# The VS16 and ZWJ emojis above are NOW SAFE when using:
+# VS16 emojis throughout this file are SAFE when using lib/core/text.sh
+# for width calculation:
 #   source lib/core/text.sh
 #   gum_exec_style_visual "Text with ⚙️" 60
 #
-# Without text.sh, these emojis may still cause alignment issues in gum frames.
-# For maximum compatibility without text.sh, use the non-VS16 variants defined
-# earlier in this file (e.g., EMOJI_START="▶" instead of EMOJI_PLAY_VS="▶️")
+# The hybrid width detection provides proper alignment in gum frames.
 
 ################################################################################
 # USAGE EXAMPLES
@@ -379,3 +385,24 @@ EMOJI_FAMILY="👨‍👩‍👧"              # Family (ZWJ)
 #     warning) echo "$EMOJI_YELLOW $message" ;;
 #     ok)      echo "$EMOJI_GREEN $message" ;;
 # esac
+
+################################################################################
+# VS16 EMOJI HANDLING
+################################################################################
+# VS16 (Variation Selector 16) emojis are handled by emoji_registry.sh which:
+# - Provides full VS16 emojis for "full" capability terminals (Kitty, WezTerm, etc.)
+# - Provides colorful fallbacks for "compatible" terminals (VTE/GNOME Terminal)
+# - Provides text fallbacks for "legacy" terminals
+#
+# The registry automatically exports appropriate variants for:
+#   EMOJI_WARNING, EMOJI_PAUSED, EMOJI_CPU, EMOJI_TEMP, EMOJI_SERVER,
+#   EMOJI_PRINTER, EMOJI_REMOVE, EMOJI_SCISSORS, EMOJI_DATABASE, EMOJI_CLOUD,
+#   EMOJI_TAG, EMOJI_SUN, EMOJI_SNOWFLAKE, EMOJI_HEART_RED, and all *_VS emojis.
+#
+# To force re-detection after terminal change:
+#   detect_terminal_capability && _export_emoji_vars
+################################################################################
+
+# Re-export emoji vars AFTER all hardcoded definitions above
+# This ensures VTE/legacy terminals get proper fallbacks instead of VS16 emojis
+_export_emoji_vars

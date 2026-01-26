@@ -55,20 +55,20 @@ LOG_FILE="/tmp/${SCRIPT_NAME// /_}_$(date +%Y-%m-%d_%H-%M-%S).log"
 log_init "$LOG_FILE"
 
 # Dashboard styling
-DASHBOARD_SPINNER="dots"  # Options: dots, line, minidots, jump, pulse, points, globe, moon, monkey, meter, hamburger
+DASHBOARD_SPINNER="DOTS"  # Options: DOTS, CIRCLE, BRAILLE, GLOBE, MOON, CLOCK, ARROWS, BOUNCE, RGB
 
 ############################
 # STEP DEFINITIONS
 # Define your steps here!
 ############################
 # Icons for categories (customize as needed)
-# VS16 emojis are now supported with proper width handling
+# Use emoji variables for proper VS16 handling across terminals
 declare -A CATEGORY_ICON=(
-    [setup]="⚙️"
-    [process]="🔄"
-    [network]="🌐"
-    [files]="📁"
-    [done]="✨"
+    [setup]="$EMOJI_CPU"
+    [process]="$EMOJI_PROCESS"
+    [network]="$EMOJI_NETWORK"
+    [files]="$EMOJI_FILES"
+    [done]="$EMOJI_DONE"
 )
 
 # Step definitions: "category|description"

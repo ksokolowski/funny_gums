@@ -12,6 +12,7 @@ _DASHBOARD_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$_DASHBOARD_DIR/../core/colors.sh"
 source "$_DASHBOARD_DIR/../core/cursor.sh"
 source "$_DASHBOARD_DIR/../core/spinner.sh"
+source "$_DASHBOARD_DIR/../core/text.sh"
 source "$_DASHBOARD_DIR/../core/gum_wrapper.sh"
 
 # Dashboard state
@@ -117,6 +118,9 @@ dashboard_draw() {
     # Display in gum frame
     local output width_arg=""
     [[ -n "$DASHBOARD_WIDTH" ]] && width_arg="--width $DASHBOARD_WIDTH"
+
+    # Note: VS16 stripping for VTE terminals is handled globally in emojis.sh
+
     # shellcheck disable=SC2086
     output=$(echo -e "$content" | gum_exec_style --no-strip-ansi --border rounded --border-foreground "$DASHBOARD_BORDER_COLOR" --padding "1 2" --align left $width_arg)
     printf '%s\n' "$output"

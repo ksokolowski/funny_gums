@@ -162,18 +162,18 @@ declare -A LIVE_DRIVE_SMART=()
 PANEL_WIDTH=0
 
 # Category definitions: name, icon, inxi_section
-# Using VS16 emojis where appropriate (requires text.sh for width handling)
+# Use emoji variables for proper VS16 handling across terminals
 declare -a CATEGORIES=(
-    "System|🖥️|System"
-    "Motherboard|⚙️|Motherboard"
-    "CPU|🧠|CPU"
-    "Memory|💾|Memory"
+    "System|$EMOJI_SERVER|System"
+    "Motherboard|$EMOJI_CPU|Motherboard"
+    "CPU|$EMOJI_MEMORY|CPU"
+    "Memory|$EMOJI_DISK|Memory"
     "Storage|💿|Drives"
-    "Graphics|🎮|Graphics"
-    "Audio|🔊|Audio"
-    "Network|🌐|Network"
-    "Power|🔋|Power"
-    "Sensors|🌡️|Sensors"
+    "Graphics|$EMOJI_GPU|Graphics"
+    "Audio|$EMOJI_SPEAKER|Audio"
+    "Network|$EMOJI_NETWORK|Network"
+    "Power|$EMOJI_POWER|Power"
+    "Sensors|$EMOJI_TEMP|Sensors"
 )
 
 ################################################################################
@@ -440,7 +440,7 @@ get_category_content() {
 # UI BUILDING FUNCTIONS
 ################################################################################
 build_header() {
-    local title="🖥️  System Dashboard"
+    local title="$EMOJI_SERVER  System Dashboard"
     local timestamp
     timestamp=$(date '+%H:%M:%S')
 
@@ -508,7 +508,7 @@ build_nav_panel() {
 build_system_panel() {
     local content=""
 
-    content+="${CLR_HEADER}🖥️ System Information${RESET}\n"
+    content+="${CLR_HEADER}${EMOJI_SERVER} System Information${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n\n"
 
     # Get system info
@@ -527,7 +527,7 @@ build_system_panel() {
 
     # Hardware info from dmidecode (if available)
     if [[ -n "$DMI_BOARD_NAME" || -n "$DMI_SYSTEM_NAME" ]]; then
-        content+="\n${CLR_SUBHEADER}⚙️ Hardware${RESET}\n"
+        content+="\n${CLR_SUBHEADER}${EMOJI_CPU} Hardware${RESET}\n"
         content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
         [[ -n "$DMI_BOARD_VENDOR" && -n "$DMI_BOARD_NAME" ]] && content+="  ${CLR_LABEL}Board:${RESET}     ${CLR_VALUE}$DMI_BOARD_VENDOR ${CLR_HIGHLIGHT}$DMI_BOARD_NAME${RESET}\n"
         [[ -n "$DMI_CHASSIS_TYPE" ]] && content+="  ${CLR_LABEL}Chassis:${RESET}   ${CLR_VALUE}$DMI_CHASSIS_TYPE${RESET}\n"
@@ -998,7 +998,7 @@ build_network_panel() {
 build_motherboard_panel() {
     local content=""
 
-    content+="${CLR_HEADER}⚙️ Motherboard & BIOS Information${RESET}\n"
+    content+="${CLR_HEADER}${EMOJI_CPU} Motherboard & BIOS Information${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n\n"
 
     if dmidecode_available; then
@@ -1153,7 +1153,7 @@ build_power_panel() {
 build_sensors_panel() {
     local content=""
 
-    content+="${CLR_HEADER}🌡️ Sensors Information${RESET}\n"
+    content+="${CLR_HEADER}${EMOJI_TEMP} Sensors Information${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n\n"
 
     # Primary temperatures
@@ -1288,7 +1288,7 @@ build_sensor_bar() {
     # Add timestamp
     sensor_str+=" │ Updated: $LAST_SENSOR_UPDATE"
 
-    printf "\e[48;5;236m\e[38;5;245m 🌡️  %b \e[0m" "$sensor_str"
+    printf "\e[48;5;236m\e[38;5;245m %s  %b \e[0m" "$EMOJI_TEMP" "$sensor_str"
 }
 
 build_footer() {
@@ -1454,7 +1454,7 @@ init_dashboard() {
 
     # Initial data collection
     echo ""
-    gum_exec_style --foreground 39 --bold "🖥️  System Dashboard"
+    gum_exec_style --foreground 39 --bold "$EMOJI_SERVER  System Dashboard"
     gum_exec_style --foreground 245 "Loading system information..."
 
     refresh_inxi_data

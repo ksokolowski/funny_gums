@@ -102,3 +102,31 @@ gum_box_visual() {
         --padding "$GUM_PADDING" \
         --margin "$GUM_MARGIN"
 }
+
+# Pre-pad multiline content for proper gum alignment
+# Pads each line to target visual width, compensating for VS16/wide chars
+# Usage: content=$(gum_prepad_content "$content" inner_width)
+# Note: inner_width should be frame width minus border/padding chars
+gum_prepad_content() {
+    local content="$1"
+    local inner_width="$2"
+
+    # Check if visual_width function is available
+    if ! declare -f visual_width >/dev/null 2>&1; then
+        # Fallback: return content unchanged
+        printf '%s' "$content"
+        return
+    fi
+
+    local line
+    local result=""
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        # Pad each line to inner_width using visual width calculation
+        local padded
+        padded=$(pad_visual "$line" "$inner_width" left)
+        result+="${padded}"$'\n'
+    done <<< "$content"
+
+    # Remove trailing newline
+    printf '%s' "${result%$'\n'}"
+}

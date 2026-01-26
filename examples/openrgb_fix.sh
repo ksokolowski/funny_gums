@@ -53,12 +53,12 @@ DASHBOARD_SPINNER="RGB"
 ############################
 # STEP DEFINITIONS
 ############################
-# VS16 emojis are now supported with proper width handling
+# Use emoji variables for proper VS16 handling across terminals
 declare -A CATEGORY_ICON=(
-    [disk]="💾"
-    [service]="⚙️"
-    [rgb]="🌈"
-    [package]="📦"
+    [disk]="$EMOJI_DISK"
+    [service]="$EMOJI_CPU"
+    [rgb]="$EMOJI_RGB"
+    [package]="$EMOJI_PACKAGE"
 )
 
 # Use indexed arrays to preserve order

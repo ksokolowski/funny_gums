@@ -177,8 +177,11 @@ visual_width() {
                     ((width += EMOJI_WIDTH_LEGACY[$seq]))
                 elif [[ -n "${EMOJI_WIDTH[$seq]:-}" ]]; then
                     ((width += EMOJI_WIDTH[$seq]))
+                elif [[ "$mode" == "legacy" ]]; then
+                    # VS16 emoji not in table, legacy mode - assume width 1
+                    ((width += 1))
                 else
-                    # VS16 emoji not in table - assume width 2
+                    # VS16 emoji not in table, modern mode - assume width 2
                     ((width += 2))
                 fi
                 ((i += 2))
@@ -350,6 +353,60 @@ truncate_visual() {
     else
         echo "$result"
     fi
+}
+
+################################################################################
+# VS16 HANDLING
+################################################################################
+
+# VS16 (Variation Selector 16) causes width calculation issues in some terminals.
+# VTE-based terminals (GNOME Terminal, Tilix) display VS16 emojis at width 2
+# but gum's Go runewidth calculates them as width 1, causing misalignment.
+#
+# The solution is to strip VS16 from text for "compatible" terminals.
+# The emoji still displays correctly, just without the presentation selector.
+
+# Strip VS16 (U+FE0F) from text
+# Usage: text=$(strip_vs16 "$text")
+# Returns: text with VS16 bytes removed
+strip_vs16() {
+    local text="$1"
+    # VS16 in UTF-8 is \xef\xb8\x8f (3 bytes)
+    printf '%s' "${text//$VS16/}"
+}
+
+# Make text safe for current terminal by applying necessary transformations
+# - For "full" terminals: returns text unchanged
+# - For "compatible" terminals: strips VS16 for proper gum alignment
+# - For "legacy" terminals: returns text unchanged (fallbacks should already be applied)
+# Usage: text=$(terminal_safe_text "$text")
+terminal_safe_text() {
+    local text="$1"
+    [[ -z "$TERMINAL_CAPABILITY" ]] && detect_terminal_capability
+
+    if needs_vs16_stripping; then
+        strip_vs16 "$text"
+    else
+        printf '%s' "$text"
+    fi
+}
+
+# DEPRECATED: Use needs_vs16_stripping() and strip_vs16() instead
+# This function only stripped VS16 for VTE terminals.
+# The new approach uses the 3-tier terminal classification.
+fix_vte_vs16() {
+    local text="$1"
+    # Only apply fix for VTE terminals (compatible tier)
+    if [[ -z "${VTE_VERSION:-}" ]]; then
+        printf '%s' "$text"
+        return
+    fi
+    strip_vs16 "$text"
+}
+
+# Legacy alias (DEPRECATED)
+fix_vs16_spacing() {
+    fix_vte_vs16 "$@"
 }
 
 ################################################################################

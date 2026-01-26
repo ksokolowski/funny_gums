@@ -35,12 +35,12 @@ COMMIT_TYPES=(
     "fix      🐛 A bug fix"
     "docs     📚 Documentation only changes"
     "style    💎 Code style (formatting, semicolons, etc)"
-    "refactor ♻️  Code refactoring"
+    "refactor $EMOJI_RECYCLE  Code refactoring"
     "perf     ⚡ Performance improvement"
     "test     🧪 Adding or updating tests"
     "build    📦 Build system or dependencies"
     "ci       🤖 CI/CD configuration"
-    "chore    ⚙️ Other changes (maintenance)"
+    "chore    $EMOJI_CPU Other changes (maintenance)"
     "revert   ⏪ Revert a previous commit"
 )
 
