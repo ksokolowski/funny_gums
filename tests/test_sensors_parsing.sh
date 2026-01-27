@@ -2,7 +2,17 @@
 # test_sensors_parsing.sh - Validates robust sensor parsing
 # Mock data provided by user
 
-source lib/core/colors.sh
+# Get project directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Source test framework
+source "$SCRIPT_DIR/framework.sh"
+
+test_file_start "sensors_parsing.sh"
+
+# Source colors for mock functions
+source "$PROJECT_DIR/lib/core/colors.sh"
 
 # Mock sensors command
 sensors() {
@@ -67,78 +77,73 @@ EOF
 sensors_available() { return 0; }
 
 # Source library under test
-source lib/system/sensors.sh
+source "$PROJECT_DIR/lib/system/sensors.sh"
 
-# Helper assertions
-assert_eq() {
-    if [[ "$1" == "$2" ]]; then
-        echo -e "${GREEN}  ✓ Expected: '$2'${RESET}"
-    else
-        echo -e "${RED}  ✗ Expected: '$2', Got: '$1'${RESET}"
-        FAILED=1
-    fi
-}
-
-echo "━━━ Testing: CPU Temp Selection (k10temp) ━━━"
+# Test CPU Temp Selection (k10temp)
 # Should prefer Tctl over Tccd1
 cpu_temp=$(sensors_get_cpu_temp_smart)
-echo "Got CPU Temp: $cpu_temp"
-assert_eq "$cpu_temp" "46.6"
+assert_eq "46.6" "$cpu_temp" "CPU temp should be Tctl (46.6)"
 
-echo "━━━ Testing: Filtering Anomalies ━━━"
-# Validate filter function directly
+# Test Filtering Anomalies
+((TESTS_RUN++))
 if _is_valid_temp "65261.8"; then
-    echo -e "${RED}  ✗ Should reject 65261.8${RESET}"
-    FAILED=1
+    echo "  ${RED}✗${RESET} Should reject 65261.8"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("sensors_parsing.sh: Should reject anomalous temp 65261.8")
 else
-    echo -e "${GREEN}  ✓ Rejected 65261.8${RESET}"
-fi
-if _is_valid_temp "-273.1"; then
-    echo -e "${RED}  ✗ Should reject -273.1${RESET}"
-    FAILED=1
-else
-    echo -e "${GREEN}  ✓ Rejected -273.1${RESET}"
-fi
-if _is_valid_temp "45.5"; then
-    echo -e "${GREEN}  ✓ Accepted 45.5${RESET}"
-else
-    echo -e "${RED}  ✗ Should accept 45.5${RESET}"
-    FAILED=1
+    echo "  ${GREEN}✓${RESET} Rejected 65261.8"
+    ((TESTS_PASSED++))
 fi
 
-echo "━━━ Testing: NVMe Temp Selection ━━━"
+((TESTS_RUN++))
+if _is_valid_temp "-273.1"; then
+    echo "  ${RED}✗${RESET} Should reject -273.1"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("sensors_parsing.sh: Should reject anomalous temp -273.1")
+else
+    echo "  ${GREEN}✓${RESET} Rejected -273.1"
+    ((TESTS_PASSED++))
+fi
+
+((TESTS_RUN++))
+if _is_valid_temp "45.5"; then
+    echo "  ${GREEN}✓${RESET} Accepted 45.5"
+    ((TESTS_PASSED++))
+else
+    echo "  ${RED}✗${RESET} Should accept 45.5"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("sensors_parsing.sh: Should accept valid temp 45.5")
+fi
+
+# Test NVMe Temp Selection
 # Should prefer Composite over Sensor 1 (which has outliers)
-# Mocking a specific call to a drive sensor logic we will build
 temp=$(sensors_get_temp_by_adapter "nvme-pci-0800")
-echo "Got NVMe 0800 Temp: $temp"
-assert_eq "$temp" "47.9"
+assert_eq "47.9" "$temp" "NVMe 0800 temp should be Composite (47.9)"
 
 temp=$(sensors_get_temp_by_adapter "nvme-pci-0200")
-echo "Got NVMe 0200 Temp: $temp"
-assert_eq "$temp" "53.9"
+assert_eq "53.9" "$temp" "NVMe 0200 temp should be Composite (53.9)"
 
-echo "━━━ Testing: RAM Temp Extraction ━━━"
+# Test RAM Temp Extraction
 # Should find spd sensors
 temps=$(sensors_get_ram_temps)
-echo "Got RAM Temps:"
-echo "$temps"
-# Expecting 50.2 and 49.5
+((TESTS_RUN++))
 if [[ "$temps" == *"50.2"* ]] && [[ "$temps" == *"49.5"* ]]; then
-     echo -e "${GREEN}  ✓ Found RAM temps${RESET}"
+     echo "  ${GREEN}✓${RESET} Found RAM temps (50.2, 49.5)"
+     ((TESTS_PASSED++))
 else
-     echo -e "${RED}  ✗ Missing RAM temps${RESET}"
-     FAILED=1
+     echo "  ${RED}✗${RESET} Missing RAM temps (got: $temps)"
+     ((TESTS_FAILED++))
+     FAILED_TESTS+=("sensors_parsing.sh: Should extract RAM temps")
 fi
 
-echo "━━━ Testing: Network Temp Extraction ━━━"
+# Test Network Temp Extraction
 temps=$(sensors_get_network_temps)
-echo "Got Net Temps:"
-echo "$temps"
+((TESTS_RUN++))
 if [[ "$temps" == *"59.0"* ]]; then
-     echo -e "${GREEN}  ✓ Found Network temp${RESET}"
+     echo "  ${GREEN}✓${RESET} Found Network temp (59.0)"
+     ((TESTS_PASSED++))
 else
-     echo -e "${RED}  ✗ Missing Network temp${RESET}"
-     FAILED=1
+     echo "  ${RED}✗${RESET} Missing Network temp (got: $temps)"
+     ((TESTS_FAILED++))
+     FAILED_TESTS+=("sensors_parsing.sh: Should extract network temp")
 fi
-
-exit ${FAILED:-0}

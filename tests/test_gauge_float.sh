@@ -1,38 +1,43 @@
 #!/usr/bin/env bash
 # test_gauge_float.sh - Verify gauge functions handle floats
 
-source lib/core/colors.sh
-source lib/ui/gauge.sh
+# Get project directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-echo "━━━ Testing: Float Handling ━━━"
+# Source test framework
+source "$SCRIPT_DIR/framework.sh"
+
+test_file_start "gauge_float.sh"
+
+# Source modules
+source "$PROJECT_DIR/lib/core/colors.sh"
+source "$PROJECT_DIR/lib/ui/gauge.sh"
 
 # Test _ui_threshold_color with float
-echo "Testing _ui_threshold_color with 48.6..."
 color=$(_ui_threshold_color "48.6" "70" "90")
-if [[ "$color" == "$NEON_GREEN" ]]; then
-    echo -e "${GREEN}  ✓ Handled 48.6 correctly (Green)${RESET}"
-else
-    echo -e "${RED}  ✗ Failed to handle 48.6 (Got: $color)${RESET}"
-    exit 1
-fi
+assert_eq "$NEON_GREEN" "$color" "_ui_threshold_color should handle float 48.6"
 
 # Test ui_gauge with float
-echo "Testing ui_gauge with 48.6..."
 output=$(ui_gauge "48.6" "100" "20" "Test")
+((TESTS_RUN++))
 if [[ "$output" =~ "48%" ]]; then
-    echo -e "${GREEN}  ✓ ui_gauge handled 48.6 correctly${RESET}"
+    echo "  ${GREEN}✓${RESET} ui_gauge handled 48.6 correctly"
+    ((TESTS_PASSED++))
 else
-    echo -e "${RED}  ✗ ui_gauge failed (Output: $output)${RESET}"
-    exit 1
+    echo "  ${RED}✗${RESET} ui_gauge failed (Output: $output)"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("gauge_float.sh: ui_gauge should handle float 48.6")
 fi
 
-echo "Testing ui_gauge_colored with 48.6..."
+# Test ui_gauge_colored with float
 output=$(ui_gauge_colored "48.6" "100" "20" "Test" "70" "90")
+((TESTS_RUN++))
 if [[ "$output" =~ "48%" ]]; then
-     echo -e "${GREEN}  ✓ ui_gauge_colored handled 48.6 correctly${RESET}"
+     echo "  ${GREEN}✓${RESET} ui_gauge_colored handled 48.6 correctly"
+     ((TESTS_PASSED++))
 else
-     echo -e "${RED}  ✗ ui_gauge_colored failed${RESET}"
-     exit 1
+     echo "  ${RED}✗${RESET} ui_gauge_colored failed"
+     ((TESTS_FAILED++))
+     FAILED_TESTS+=("gauge_float.sh: ui_gauge_colored should handle float 48.6")
 fi
-
-exit 0
