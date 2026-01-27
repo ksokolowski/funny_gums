@@ -61,7 +61,12 @@ lib/
 │   ├── cursor.sh   # Cursor control
 │   ├── spinner.sh  # Spinner animation
 │   ├── logging.sh  # Logging with gum
-│   └── sudo.sh     # Sudo helpers
+│   ├── sudo.sh     # Sudo helpers
+│   ├── terminal.sh # Terminal capability detection (3-tier)
+│   ├── emoji_data.sh    # Emoji width tables, VS16/ZWJ detection
+│   ├── emoji_registry.sh # VS16 emoji registry with fallbacks
+│   ├── emojis.sh   # Semantic emoji constants (auto-adapts)
+│   └── text.sh     # Visual width calculation, padding
 │
 ├── ui/             # UI component modules
 │   ├── ui.sh       # Loader (sources all ui/*.sh)
