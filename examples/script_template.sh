@@ -55,7 +55,7 @@ LOG_FILE="/tmp/${SCRIPT_NAME// /_}_$(date +%Y-%m-%d_%H-%M-%S).log"
 log_init "$LOG_FILE"
 
 # Dashboard styling
-DASHBOARD_SPINNER="DOTS"  # Options: DOTS, CIRCLE, BRAILLE, GLOBE, MOON, CLOCK, ARROWS, BOUNCE, RGB
+DASHBOARD_SPINNER="MOON"  # Options: DOTS, CIRCLE, BRAILLE, GLOBE, MOON, CLOCK, ARROWS, BOUNCE, RGB
 
 ############################
 # STEP DEFINITIONS

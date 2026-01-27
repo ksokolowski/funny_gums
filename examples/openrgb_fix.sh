@@ -48,7 +48,7 @@ log_init "$LOG_FILE"
 FRAME_WIDTH=60
 
 # Dashboard styling
-DASHBOARD_SPINNER="RGB"
+DASHBOARD_SPINNER="MOON"
 
 ############################
 # STEP DEFINITIONS
