@@ -438,7 +438,7 @@ slots=$(dmidecode_get_memory_slots)
 # Output: Number of memory slots
 
 dmidecode_get_memory_info
-# Output (multiple lines): "slot|size|type|speed|manufacturer"
+# Output (multiple lines): "slot|channel|size|type|speed|manufacturer|configured_speed"
 ```
 
 ### Processor Information

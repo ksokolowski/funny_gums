@@ -103,7 +103,7 @@ EOF
     result=$(dmidecode_get_memory_info)
     
     # Expected: includes "6000 MT/s"
-    # Format: slot|size|type|speed|mfr|configured_speed
+    # Format: slot|channel|size|type|speed|mfr|configured_speed
     if echo "$result" | grep -q "6000 MT/s"; then
         echo "  ${GREEN}✓${RESET} dmidecode_get_memory_info parses Configured Memory Speed"
     else

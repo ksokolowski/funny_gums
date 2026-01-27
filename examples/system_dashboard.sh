@@ -379,13 +379,13 @@ get_category_content() {
             fi
             ;;
         "CPU")      inxi_parse_cpu_csv ;;
-        "Memory")   
+        "Memory")
             echo "Item,Value"
             # Parse memory info including configured speed
             if dmidecode_available; then
-                dmidecode_get_memory_info | while IFS='|' read -r slot size type speed mfr conf_speed; do
+                dmidecode_get_memory_info | while IFS='|' read -r slot channel size type speed mfr conf_speed; do
                      [[ "$size" == "No Module Installed" ]] && continue
-                     echo "Slot,$slot"
+                     echo "Slot,$slot (Channel $channel)"
                      echo "Size,$size"
                      echo "Type,$type"
                      echo "Speed,${speed} (Configured: ${conf_speed})"
@@ -1034,9 +1034,9 @@ build_motherboard_panel() {
         mem_info=$(dmidecode_get_memory_info 2>/dev/null)
         if [[ -n "$mem_info" ]]; then
             content+="\n  ${CLR_SUBHEADER}Installed Modules:${RESET}\n"
-            while IFS='|' read -r slot size mtype speed mfr; do
+            while IFS='|' read -r slot channel size mtype speed mfr conf_speed; do
                 [[ -z "$slot" ]] && continue
-                content+="    ${CLR_MEM}●${RESET} ${CLR_LABEL}$slot:${RESET} ${CLR_HIGHLIGHT}$size${RESET} ${CLR_VALUE}$mtype${RESET} @ ${CLR_ACCENT}$speed${RESET}"
+                content+="    ${CLR_MEM}●${RESET} ${CLR_LABEL}${slot}/${channel}:${RESET} ${CLR_HIGHLIGHT}$size${RESET} ${CLR_VALUE}$mtype${RESET} @ ${CLR_ACCENT}$speed${RESET}"
                 [[ "$mfr" != "-" ]] && content+=" ${CLR_DIM}($mfr)${RESET}"
                 content+="\n"
             done <<< "$mem_info"

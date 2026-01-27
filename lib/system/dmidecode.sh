@@ -85,80 +85,23 @@ dmidecode_get_memory_slots() {
 
 # Get memory information for each slot
 # Usage: dmidecode_get_memory_info
-# Returns: Lines of "slot|size|type|speed|manufacturer|configured_speed"
+# Returns: Lines of "slot|channel|size|type|speed|manufacturer|configured_speed"
 dmidecode_get_memory_info() {
     dmidecode_available || return 1
 
-    local in_device=0
-    local slot="" size="" type="" speed="" mfr="" conf_speed=""
-    local slot_num=0
-
-    sudo dmidecode -t memory 2>/dev/null | while IFS= read -r line; do
-        # Detect start of Memory Device section
-        if [[ "$line" == "Memory Device" ]]; then
-            # Output previous device if we had one with size
-            if [[ $in_device -eq 1 && -n "$size" && "$size" != "No Module Installed" ]]; then
-                [[ -z "$slot" ]] && slot="Slot $slot_num"
-                [[ -z "$type" ]] && type="-"
-                [[ -z "$speed" ]] && speed="-"
-                [[ -z "$mfr" ]] && mfr="-"
-                [[ -z "$conf_speed" ]] && conf_speed="-"
-                echo "${slot}|${size}|${type}|${speed}|${mfr}|${conf_speed}"
-            fi
-            in_device=1
-            slot=""
-            size=""
-            type=""
-            speed=""
-            mfr=""
-            conf_speed=""
-            slot_num=$((slot_num + 1))
-            continue
-        fi
-
-        if [[ $in_device -eq 1 ]]; then
-            case "$line" in
-                *"Locator:"*)
-                    if [[ "$line" != *"Bank Locator:"* ]]; then
-                        slot=$(echo "$line" | sed 's/.*Locator: *//')
-                    fi
-                    ;;
-                *"Size:"*)
-                    size=$(echo "$line" | sed 's/.*Size: *//')
-                    ;;
-                *"Type:"*)
-                    if [[ "$line" != *"Type Detail:"* && "$line" != *"Error Correction Type:"* ]]; then
-                        type=$(echo "$line" | sed 's/.*Type: *//')
-                    fi
-                    ;;
-                *"Speed:"*)
-                    if [[ "$line" != *"Configured"* ]]; then
-                        speed=$(echo "$line" | sed 's/.*Speed: *//')
-                    fi
-                    ;;
-                *"Configured Memory Speed:"*)
-                    conf_speed=$(echo "$line" | sed 's/.*Configured Memory Speed: *//')
-                    ;;
-                *"Manufacturer:"*)
-                    mfr=$(echo "$line" | sed 's/.*Manufacturer: *//')
-                    ;;
-            esac
-        fi
-    done
-
-    # Handle last device (the while loop is in a subshell, so this won't capture it)
-    # Re-run to capture last entry
     sudo dmidecode -t memory 2>/dev/null | awk '
         /^Memory Device$/ {
             if (size != "" && size != "No Module Installed") {
                 if (slot == "") slot = "Slot " slot_num
+                if (channel == "") channel = "-"
                 if (type == "") type = "-"
                 if (speed == "") speed = "-"
                 if (mfr == "") mfr = "-"
                 if (conf_speed == "") conf_speed = "-"
-                print slot "|" size "|" type "|" speed "|" mfr "|" conf_speed
+                print slot "|" channel "|" size "|" type "|" speed "|" mfr "|" conf_speed
             }
             slot = ""
+            channel = ""
             size = ""
             type = ""
             speed = ""
@@ -169,11 +112,20 @@ dmidecode_get_memory_info() {
             next
         }
         in_device == 1 {
-            if ($0 ~ /Locator:/ && $0 !~ /Bank Locator:/) {
+            if ($0 ~ /^[[:space:]]*Locator:/) {
                 gsub(/.*Locator: */, "")
                 slot = $0
             }
-            if ($0 ~ /Size:/) {
+            if ($0 ~ /Bank Locator:/) {
+                gsub(/.*Bank Locator: */, "")
+                # Extract channel letter (A, B, C, D) from strings like "P0 CHANNEL A"
+                if (match($0, /CHANNEL [A-Z]/)) {
+                    channel = substr($0, RSTART + 8, 1)
+                } else {
+                    channel = $0
+                }
+            }
+            if ($0 ~ /^[[:space:]]*Size:/) {
                 gsub(/.*Size: */, "")
                 size = $0
             }
@@ -197,11 +149,12 @@ dmidecode_get_memory_info() {
         END {
             if (size != "" && size != "No Module Installed") {
                 if (slot == "") slot = "Slot " slot_num
+                if (channel == "") channel = "-"
                 if (type == "") type = "-"
                 if (speed == "") speed = "-"
                 if (mfr == "") mfr = "-"
                 if (conf_speed == "") conf_speed = "-"
-                print slot "|" size "|" type "|" speed "|" mfr "|" conf_speed
+                print slot "|" channel "|" size "|" type "|" speed "|" mfr "|" conf_speed
             }
         }
     '
