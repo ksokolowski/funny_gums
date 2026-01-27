@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # test_ui.sh - Unit tests for ui.sh
 
 set -uo pipefail
