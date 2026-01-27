@@ -22,17 +22,13 @@ A modular Bash library providing terminal UI components powered by [gum](https:/
 
 - **Bash** 4.0+
 - **[gum](https://github.com/charmbracelet/gum)** - Required for UI components
+- **jq** - Required for efficient JSON parsing (system modules)
+- **Standard Utils** - awk, sed, grep, date (usually pre-installed)
 
-Install gum:
+Install dependencies:
 ```bash
-# macOS
-brew install gum
-
-# Linux (Debian/Ubuntu)
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
-echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
-sudo apt update && sudo apt install gum
+# Ubuntu / Debian
+sudo apt install gum jq
 ```
 
 ## Installation

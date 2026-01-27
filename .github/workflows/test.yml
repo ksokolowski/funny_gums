@@ -14,18 +14,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install shellcheck
-        run: sudo apt-get update && sudo apt-get install -y shellcheck
-
-      - name: Install gum
+      - name: Install dependencies
         run: |
           sudo mkdir -p /etc/apt/keyrings
           curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
           echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
-          sudo apt-get update && sudo apt-get install -y gum
+          sudo apt-get update && sudo apt-get install -y gum shellcheck jq
 
-      - name: Run shellcheck (errors only)
-        run: shellcheck --severity=error funny_gums.sh lib/**/*.sh examples/*.sh tests/*.sh
+      - name: Check dependencies
+        run: make deps
 
-      - name: Run tests
-        run: ./tests/run_tests.sh
+      - name: Run verification (lint + tests)
+        run: make check

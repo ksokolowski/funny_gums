@@ -7,82 +7,184 @@ _SYSTEM_SENSORS_LOADED=1
 
 # Check if lm-sensors is installed
 # Usage: sensors_available && echo "sensors installed"
+# Check if lm-sensors is installed
+# Usage: sensors_available && echo "sensors installed"
 sensors_available() {
     command -v sensors &>/dev/null
 }
 
-# Get CPU temperature from sensors
-# Usage: cpu_temp=$(sensors_get_cpu_temp)
-# Returns: Temperature in Celsius (integer) or empty if unavailable
-sensors_get_cpu_temp() {
-    sensors_available || return 1
-    local temp
-    temp=$(sensors 2>/dev/null | grep -E "(Core 0|Tctl|CPU|Package)" | head -1 | grep -oP '\+\K[0-9]+(?=\.[0-9]*°C)')
-    [[ -n "$temp" ]] && echo "$temp"
+# Validate temperature value
+# Usage: _is_valid_temp "65261.8"
+# Returns: 0 if valid, 1 if outlier
+_is_valid_temp() {
+    local temp="${1%\.*}" # Integer part
+    temp="${temp#+}"      # Remove leading +
+    
+    # Check for empty or non-integer
+    [[ -z "$temp" || ! "$temp" =~ ^-?[0-9]+$ ]] && return 1
+
+    # Filter out impossible temps
+    (( temp < -50 || temp > 150 )) && return 1
+    
+    return 0
 }
 
-# Get AMD GPU temperature (edge sensor)
-# Usage: temp=$(sensors_get_amd_gpu_temp)
-# Returns: Temperature in Celsius (integer) or empty
-sensors_get_amd_gpu_temp() {
+# Get CPU temperature (Smart selection)
+# Prioritizes: Tctl > Package > Core 0
+# Usage: cpu_temp=$(sensors_get_cpu_temp_smart)
+sensors_get_cpu_temp_smart() {
     sensors_available || return 1
-    local temp
-    temp=$(sensors 2>/dev/null | grep -E "(edge|junction)" | head -1 | grep -oP '\+\K[0-9]+(?=\.[0-9]*°C)')
-    [[ -n "$temp" ]] && echo "$temp"
+    local output
+    output=$(sensors 2>/dev/null)
+
+    local temp=""
+    
+    # Try Tctl (AMD)
+    temp=$(echo "$output" | grep -m1 "Tctl:" | grep -oP '\+\K[0-9]+\.[0-9]+')
+    if _is_valid_temp "$temp"; then echo "$temp"; return; fi
+
+    # Try Package id 0 (Intel)
+    temp=$(echo "$output" | grep -m1 "Package id 0:" | grep -oP '\+\K[0-9]+\.[0-9]+')
+    if _is_valid_temp "$temp"; then echo "$temp"; return; fi
+
+    # Fallback to Core 0
+    temp=$(echo "$output" | grep -m1 "Core 0:" | grep -oP '\+\K[0-9]+\.[0-9]+')
+    if _is_valid_temp "$temp"; then echo "$temp"; return; fi
 }
 
-# Get AMD GPU edge temperature specifically
-# Usage: temp=$(sensors_get_amd_edge_temp)
-sensors_get_amd_edge_temp() {
+# Get temperature for a specific adapter/chip
+# Usage: temp=$(sensors_get_temp_by_adapter "nvme-pci-0800")
+sensors_get_temp_by_adapter() {
+    local adapter="$1"
     sensors_available || return 1
-    local temp
-    temp=$(sensors 2>/dev/null | grep -E "^edge:" | head -1 | grep -oP '\+\K[0-9]+(?=\.[0-9]*°C)')
-    [[ -n "$temp" ]] && echo "$temp"
+    
+    local output
+    # extraction: match adapter block, stop at next adapter (empty line usually) or end
+    output=$(sensors 2>/dev/null | sed -n "/^${adapter}/,/^$/p")
+    
+    local temp=""
+
+    # Try Composite first (NVMe)
+    temp=$(echo "$output" | grep -m1 "Composite:" | grep -oP '\+\K[0-9]+\.[0-9]+' | head -1)
+    if _is_valid_temp "$temp"; then echo "$temp"; return; fi
+
+    # Try Sensor 1, 2, etc (but validate them!)
+    while read -r line; do
+        if [[ "$line" =~ \+([0-9]+\.[0-9]+)°C ]]; then
+            val="${BASH_REMATCH[1]}"
+            if _is_valid_temp "$val"; then
+                echo "$val"
+                return
+            fi
+        fi
+    done <<< "$(echo "$output" | grep "Sensor")"
 }
 
-# Get AMD GPU junction (hotspot) temperature
-# Usage: temp=$(sensors_get_amd_junction_temp)
-sensors_get_amd_junction_temp() {
+# Get RAM temperatures (best effort spd detection)
+# Returns: "50.2 49.5"
+sensors_get_ram_temps() {
     sensors_available || return 1
-    local temp
-    temp=$(sensors 2>/dev/null | grep -E "^junction:" | head -1 | grep -oP '\+\K[0-9]+(?=\.[0-9]*°C)')
-    [[ -n "$temp" ]] && echo "$temp"
-}
-
-# Get all temperature readings
-# Usage: sensors_get_all_temps
-# Returns: Lines of "chip|sensor|temp"
-sensors_get_all_temps() {
-    sensors_available || return 1
+    local temps=""
+    
+    # Look for spd* blocks
     local current_chip=""
-    sensors 2>/dev/null | while IFS= read -r line; do
-        # Detect chip header (no colon at end of first word, contains hyphen)
-        if [[ "$line" =~ ^([a-zA-Z0-9_-]+)-([a-zA-Z0-9]+)$ ]]; then
-            current_chip="$line"
+    local current_temp=""
+    
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^(spd[0-9a-z-]+) ]]; then
+            current_chip="${BASH_REMATCH[1]}"
             continue
         fi
-        # Detect temperature line
-        if [[ "$line" =~ ^([^:]+):.*\+([0-9]+)\.[0-9]+°C ]]; then
-            local sensor="${BASH_REMATCH[1]}"
-            local temp="${BASH_REMATCH[2]}"
-            # Clean up sensor name
-            sensor=$(echo "$sensor" | sed 's/^ *//;s/ *$//')
-            echo "${current_chip}|${sensor}|${temp}"
+        
+        # Strict match for temp1 value (avoiding high/crit thresholds)
+        # Matches: temp1: +50.2°C ...
+        if [[ -n "$current_chip" ]] && [[ "$line" =~ temp1:[[:space:]]*\+([0-9]+\.[0-9]+)°C ]]; then
+             val="${BASH_REMATCH[1]}"
+             if _is_valid_temp "$val"; then
+                 temps+="$val "
+             fi
+             current_chip="" # Reset for next
         fi
-    done
+    done <<< "$(sensors 2>/dev/null)"
+    
+    echo "${temps% }"
 }
 
-# Get fan speed readings
-# Usage: sensors_get_fan_speeds
-# Returns: Lines of "fan_name|rpm"
-sensors_get_fan_speeds() {
+# Get Network temperatures (best effort r8169 detection)
+sensors_get_network_temps() {
     sensors_available || return 1
-    sensors 2>/dev/null | grep -E "fan[0-9]*:" | while IFS= read -r line; do
-        if [[ "$line" =~ ^([^:]+):.*([0-9]+)\ RPM ]]; then
-            local fan="${BASH_REMATCH[1]}"
-            local rpm="${BASH_REMATCH[2]}"
-            fan=$(echo "$fan" | sed 's/^ *//;s/ *$//')
-            echo "${fan}|${rpm}"
+    local temps=""
+    
+    # Look for r8169* blocks
+    local current_chip=""
+    
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^(r8169[0-9a-z_:-]+) ]]; then
+            current_chip="${BASH_REMATCH[1]}"
+            continue
+        fi
+        
+        if [[ -n "$current_chip" ]] && [[ "$line" =~ temp1:[[:space:]]*\+([0-9]+\.[0-9]+)°C ]]; then
+             val="${BASH_REMATCH[1]}"
+             if _is_valid_temp "$val"; then
+                 temps+="$val "
+             fi
+             current_chip=""
+        fi
+    done <<< "$(sensors 2>/dev/null)"
+    
+    echo "${temps% }"
+}
+
+# Get temperature via Sysfs lookup by PCI ID
+# Usage: temp=$(sensors_get_temp_by_pci_id "0000:0d:00.0")
+sensors_get_temp_by_pci_id() {
+    local pci_id="$1"
+    local hwmon_dir="${SYSFS_HWMON_DIR:-/sys/class/hwmon}"
+    
+    # Iterate over all hwmon directories
+    for dir in "$hwmon_dir"/hwmon*; do
+        [[ -d "$dir" ]] || continue
+        
+        # Check device symlink
+        local dev_link="$dir/device"
+        if [[ -L "$dev_link" ]]; then
+            # Get target of symlink
+            local target
+            target=$(readlink "$dev_link")
+            
+            # Check if target contains our PCI ID
+            if [[ "$target" == *"$pci_id"* ]]; then
+                # Found the sensor! Read temp1_input (millidegrees)
+                if [[ -f "$dir/temp1_input" ]]; then
+                    local millidegrees
+                    millidegrees=$(<"$dir/temp1_input")
+                    
+                    if [[ "$millidegrees" =~ ^[0-9]+$ ]]; then
+                        # Convert to degrees (bash arithmetic is integer only, so emulate float)
+                        local degrees=$((millidegrees / 1000))
+                        local decimal=$(( (millidegrees % 1000) / 100 )) # 1 decimal place
+                        
+                        local val="${degrees}.${decimal}"
+                        if _is_valid_temp "$val"; then
+                            echo "$val"
+                            return 0
+                        fi
+                    fi
+                fi
+            fi
         fi
     done
+    return 1
 }
+
+# Legacy functions kept for compatibility but redirected or updated
+sensors_get_cpu_temp() { sensors_get_cpu_temp_smart; }
+sensors_get_amd_gpu_temp() {
+    sensors_available || return 1
+    # Try edge then junction
+    local temp
+    temp=$(sensors 2>/dev/null | grep -m1 "edge:" | grep -oP '\+\K[0-9]+\.[0-9]+')
+    if _is_valid_temp "$temp"; then echo "$temp"; return; fi
+}
+

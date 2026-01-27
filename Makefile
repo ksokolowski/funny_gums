@@ -1,4 +1,26 @@
-.PHONY: test lint check install-hooks uninstall-hooks clean help
+.PHONY: help setup deps test lint check clean
+
+# Help (Default Target)
+help:
+	@echo "Available targets:"
+	@echo "  make setup           - Configure dev environment (git hooks, deps)"
+	@echo "  make deps            - Check project dependencies"
+	@echo "  make check           - Run lint + tests (mirrors CI)"
+	@echo "  make test            - Run all tests"
+	@echo "  make test-ui         - Run specific test (e.g., test_ui.sh)"
+	@echo "  make lint            - Run shellcheck"
+	@echo "  make clean           - Clean generated files"
+
+# Setup development environment
+setup:
+	@git config core.hooksPath scripts
+	@chmod +x scripts/pre-commit
+	@./scripts/check_deps.sh
+	@echo "Development environment configured."
+
+# Check dependencies
+deps:
+	@./scripts/check_deps.sh
 
 # Run all tests
 test:
@@ -15,29 +37,7 @@ lint:
 # Run both lint and tests (mirrors CI)
 check: lint test
 
-# Install git pre-commit hook (no Python required)
-install-hooks:
-	@cp scripts/pre-commit .git/hooks/pre-commit
-	@chmod +x .git/hooks/pre-commit
-	@echo "Pre-commit hook installed"
-
-# Remove git hooks
-uninstall-hooks:
-	@rm -f .git/hooks/pre-commit
-	@echo "Pre-commit hook removed"
-
 # Clean generated files
 clean:
 	@rm -f tests/*.log
 	@echo "Cleaned"
-
-# Help
-help:
-	@echo "Available targets:"
-	@echo "  make check           - Run lint + tests (mirrors CI)"
-	@echo "  make test            - Run all tests"
-	@echo "  make test-ui         - Run specific test (e.g., test_ui.sh)"
-	@echo "  make lint            - Run shellcheck"
-	@echo "  make install-hooks   - Install git pre-commit hook"
-	@echo "  make uninstall-hooks - Remove git pre-commit hook"
-	@echo "  make clean           - Clean generated files"

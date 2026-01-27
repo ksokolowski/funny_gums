@@ -68,15 +68,7 @@ LIB_DIR="$SCRIPT_DIR/../lib"
 ################################################################################
 # SOURCE LIBRARIES
 ################################################################################
-source "$LIB_DIR/core/colors.sh"
-source "$LIB_DIR/core/cursor.sh"
-source "$LIB_DIR/core/logging.sh"
-source "$LIB_DIR/core/terminal.sh"
-source "$LIB_DIR/core/emoji_data.sh"
-source "$LIB_DIR/core/text.sh"
-source "$LIB_DIR/core/emojis.sh"
-source "$LIB_DIR/ui/ui.sh"
-source "$LIB_DIR/system/system.sh"
+source "$SCRIPT_DIR/../funny_gums.sh"
 source "$LIB_DIR/core/gum_wrapper.sh"
 
 # Detect terminal mode for proper emoji width handling
@@ -407,7 +399,38 @@ get_category_content() {
             ;;
         "Graphics") inxi_parse_graphics_csv ;;
         "Audio")    inxi_parse_audio_csv ;;
-        "Network")  inxi_parse_network_csv ;;
+        "Network")
+            inxi_parse_network_csv
+            
+            # Network Temperatures
+            local net_temps
+            net_temps=$(sensors_get_network_temps)
+            if [[ -n "$net_temps" ]]; then
+                echo ""
+                echo "Temperatures,Values" # Header for CSV-like parsing if re-used or just appending check
+                # Actually inxi_parse_network_csv likely outputs a built stream or similar. 
+                # System dashboard uses `get_category_content` which outputs CSV or lines?
+                # Ah, `inxi_parse_network_csv` probably outputs styled text or CSV?
+                # Let's check `get_category_content` structure.
+                # It seems `inxi_parse_*` functions handle the output.
+                # Since we can't easily append to inxi's output table structure defined elsewhere,
+                # we'll just print a separate section label if needed or just lines.
+                # But wait, `build_system_panel` and others consume this output.
+                # `get_category_content` is called by `build_*_panel`?? 
+                # No, `build_graphics_panel` etc seem to build their own.
+                # `get_category_content` seems to be used for the "Details" sub-section of panels.
+                
+                # So we should modify `build_network_panel` if it exists, or update `inxi_parse_network_csv` 
+                # but that's in `system.sh` probably?
+                
+                # Let's just output it here as Key,Value which `get_category_content` callers seem to expect (CSV format).
+                local i=1
+                for temp in $net_temps; do
+                    echo "Temp (Sensor $i),${temp}°C"
+                    ((i++))
+                done
+            fi
+            ;;
         "Power")
             echo "Item,Value"
             if power_available; then
@@ -653,6 +676,21 @@ build_memory_panel() {
     mem_gauge=$(ui_gauge_colored "$LIVE_MEM_PERCENT" 100 30 "RAM" "$RESOURCE_WARN" "$RESOURCE_CRIT")
     content+="  $mem_gauge\n"
     content+="  ${CLR_LABEL}Used:${RESET} ${CLR_MEM}$LIVE_MEM_USED_HR${RESET} / ${CLR_LABEL}Total:${RESET} ${CLR_HIGHLIGHT}$LIVE_MEM_TOTAL_HR${RESET}\n\n"
+
+    # RAM Temperatures (if available)
+    local ram_temps
+    ram_temps=$(sensors_get_ram_temps)
+    if [[ -n "$ram_temps" ]]; then
+        content+="${CLR_SUBHEADER}Module Temperatures${RESET}\n"
+        local i=1
+        for temp in $ram_temps; do
+            local temp_color
+            temp_color=$(_ui_threshold_color "$temp" "$TEMP_WARN" "$TEMP_CRIT")
+            content+="  ${CLR_DIM}Module $i:${RESET} ${temp_color}${temp}°C${RESET}"
+            ((i++))
+        done
+        content+="\n\n"
+    fi
 
     # Swap usage (using cached formatted values)
     if [[ "$LIVE_SWAP_TOTAL_KB" -gt 0 ]]; then
@@ -1421,6 +1459,11 @@ main_loop() {
         else
             # Timeout - refresh sensors if auto-refresh enabled
             if [[ "$AUTO_REFRESH" == true ]]; then
+                # Update terminal dimensions in case of resize
+                TERM_ROWS=$(tput lines)
+                TERM_COLS=$(tput cols)
+                PANEL_WIDTH=$((TERM_COLS - NAV_PANEL_WIDTH - 8))
+                
                 current_time=$(date +%s)
                 if [[ $((current_time - last_refresh_time)) -ge $REFRESH_INTERVAL ]]; then
                     refresh_live_metrics

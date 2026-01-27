@@ -57,6 +57,9 @@ gum_confirm() {
 # Execute gum style with visual width compensation
 # Automatically adjusts --width to account for VS16/ZWJ/wide characters
 # Usage: gum_exec_style_visual "content" target_width [other_args...]
+# Execute gum style with visual width compensation
+# Automatically adjusts --width to account for VS16/ZWJ/wide characters
+# Usage: gum_exec_style_visual "content" target_width [other_args...]
 gum_exec_style_visual() {
     local content="$1"
     local target_width="$2"
@@ -69,9 +72,9 @@ gum_exec_style_visual() {
         return
     fi
 
-    # Calculate adjusted width for gum
+    # Calculate adjusted width for gum (optimized, no subshell)
     local adjusted_width
-    adjusted_width=$(gum_adjusted_width "$content" "$target_width")
+    gum_adjusted_width_ref "$content" "$target_width" adjusted_width
 
     gum_exec_style --width "$adjusted_width" "$@" <<< "$content"
 }

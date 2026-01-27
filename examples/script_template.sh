@@ -18,19 +18,7 @@ SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
 # Source shared functions
-source "$LIB_DIR/core/colors.sh"
-source "$LIB_DIR/core/cursor.sh"
-source "$LIB_DIR/core/logging.sh"
-source "$LIB_DIR/core/spinner.sh"
-source "$LIB_DIR/core/terminal.sh"
-source "$LIB_DIR/core/text.sh"
-source "$LIB_DIR/core/emojis.sh"
-source "$LIB_DIR/ui/ui.sh"
-source "$LIB_DIR/dashboard/dashboard.sh"
-source "$LIB_DIR/dashboard/runner.sh"
-
-# Detect terminal mode for VS16 emoji support
-detect_terminal_mode
+source "$SCRIPT_DIR/../funny_gums.sh"
 
 ############################
 # CUSTOMIZATION - Edit these!

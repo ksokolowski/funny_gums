@@ -25,8 +25,12 @@ _FUNNY_GUMS_LIB="$_FUNNY_GUMS_DIR/lib"
 
 # Core modules (no dependencies)
 source "$_FUNNY_GUMS_LIB/core/colors.sh"
+source "$_FUNNY_GUMS_LIB/core/deps.sh"
 source "$_FUNNY_GUMS_LIB/core/cursor.sh"
 source "$_FUNNY_GUMS_LIB/core/spinner.sh"
+
+# Enforce core dependencies immediately
+dep_require_all "gum" "jq" "awk" "sed" "grep" "date"
 source "$_FUNNY_GUMS_LIB/core/logging.sh"
 source "$_FUNNY_GUMS_LIB/core/sudo.sh"
 source "$_FUNNY_GUMS_LIB/core/terminal.sh"
@@ -46,5 +50,13 @@ source "$_FUNNY_GUMS_LIB/ui/ui.sh"
 source "$_FUNNY_GUMS_LIB/dashboard/dashboard.sh"
 source "$_FUNNY_GUMS_LIB/dashboard/runner.sh"
 
-# System modules (optional - for hardware monitoring)
+# System modules (hardware monitoring and parsing)
 source "$_FUNNY_GUMS_LIB/system/system.sh"
+
+# Extended modules (optional standard library extensions)
+# These degrade gracefully if tools (fzf, bat, curl) are missing
+source "$_FUNNY_GUMS_LIB/ext/fzf.sh"
+source "$_FUNNY_GUMS_LIB/ext/http.sh"
+source "$_FUNNY_GUMS_LIB/ext/viewer.sh"
+
+

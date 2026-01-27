@@ -52,9 +52,17 @@ spinner_reset() {
 }
 
 # Get current spinner frame
+# Get current spinner frame
 spinner_frame() {
     local frame_idx=$((SPINNER_IDX % ${#SPINNER_FRAMES[@]}))
     echo "${SPINNER_FRAMES[$frame_idx]}"
+}
+
+# Get current spinner frame (sets variable, no subshell)
+# Usage: spinner_frame_ref var_name
+spinner_frame_ref() {
+    local frame_idx=$((SPINNER_IDX % ${#SPINNER_FRAMES[@]}))
+    printf -v "$1" '%s' "${SPINNER_FRAMES[$frame_idx]}"
 }
 
 # Advance spinner to next frame
@@ -65,5 +73,12 @@ spinner_next() {
 # Get frame and advance (convenience function)
 spinner_tick() {
     spinner_frame
+    spinner_next
+}
+
+# Get frame and advance (sets variable)
+# Usage: spinner_tick_ref var_name
+spinner_tick_ref() {
+    spinner_frame_ref "$1"
     spinner_next
 }

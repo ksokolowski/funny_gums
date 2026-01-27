@@ -24,11 +24,111 @@ source "$_TEXT_DIR/emoji_data.sh"
 # Strip ANSI escape sequences from text
 # Usage: strip_ansi "colored text"
 # Returns: text without ANSI codes
+# Strip ANSI escape sequences from text (pure bash)
+# Usage: strip_ansi "colored text"
+# Returns: text without ANSI codes
 strip_ansi() {
     local text="$1"
-    # Remove all ANSI escape sequences (CSI sequences)
-    # shellcheck disable=SC2001
-    echo "$text" | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g'
+    local result=""
+    local i=0
+    local len=${#text}
+    
+    while ((i < len)); do
+        local char="${text:i:1}"
+        if [[ "$char" == $'\e' ]]; then
+            if [[ "${text:i+1:1}" == "[" ]]; then
+                ((i += 2))
+                while ((i < len)); do
+                    local next_c="${text:i:1}"
+                    ((i++))
+                    [[ "$next_c" =~ [a-zA-Z] ]] && break
+                done
+                continue
+            fi
+            ((i++))
+            continue
+        fi
+        result+="$char"
+        ((i++))
+    done
+    echo "$result"
+}
+
+# Calculate length of string ignoring ANSI codes (pure bash)
+strlen_no_ansi() {
+    local text="$1"
+    local len=0
+    local i=0
+    local input_len=${#text}
+    
+    # Fast path
+    if [[ "$text" != *$'\e'* ]]; then
+        echo "$input_len"
+        return
+    fi
+    
+    while ((i < input_len)); do
+        local char="${text:i:1}"
+        if [[ "$char" == $'\e' ]]; then
+            if [[ "${text:i+1:1}" == "[" ]]; then
+                ((i += 2))
+                while ((i < input_len)); do
+                    local next_c="${text:i:1}"
+                    ((i++))
+                    [[ "$next_c" =~ [a-zA-Z] ]] && break
+                done
+                continue
+            fi
+            ((i++))
+            continue
+        fi
+        ((len++))
+        ((i++))
+    done
+    echo "$len"
+}
+
+# Calculate length of string ignoring ANSI codes (sets variable)
+# Usage: strlen_no_ansi_ref "text" var_name
+strlen_no_ansi_ref() {
+    local text="$1"
+    local len=0
+    local i=0
+    local input_len=${#text}
+    
+    # Fast path
+    if [[ "$text" != *$'\e'* ]]; then
+        printf -v "$2" '%d' "$input_len"
+        return
+    fi
+    
+    while ((i < input_len)); do
+        local char="${text:i:1}"
+        if [[ "$char" == $'\e' ]]; then
+            if [[ "${text:i+1:1}" == "[" ]]; then
+                ((i += 2))
+                while ((i < input_len)); do
+                    local next_c="${text:i:1}"
+                    ((i++))
+                    [[ "$next_c" =~ [a-zA-Z] ]] && break
+                done
+                continue
+            fi
+            ((i++))
+            continue
+        fi
+        ((len++))
+        ((i++))
+    done
+    printf -v "$2" '%d' "$len"
+}
+
+# Get visual width without subshell (sets variable)
+# Usage: visual_width_ref "text" var_name [mode]
+visual_width_ref() {
+    local width
+    width=$(visual_width "$1" "$3")
+    printf -v "$2" '%s' "$width"
 }
 
 ################################################################################
@@ -115,28 +215,20 @@ visual_width() {
     # Empty string has width 0
     [[ -z "$text" ]] && { echo 0; return; }
 
-    # Strip ANSI codes first (only if present)
-    if [[ "$text" == *$'\e'* ]]; then
-        text=$(strip_ansi "$text")
-    fi
-
     # Check cache first
     local cache_key="${mode}:${text}"
-    if [[ -n "${_VISUAL_WIDTH_CACHE[$cache_key]:-}" ]]; then
-        echo "${_VISUAL_WIDTH_CACHE[$cache_key]}"
-        return
-    fi
+    [[ -n "${_VISUAL_WIDTH_CACHE[$cache_key]:-}" ]] && { echo "${_VISUAL_WIDTH_CACHE[$cache_key]}"; return; }
 
-    # Fast path: pure ASCII printable characters
-    local byte_len=${#text}
-    local char_len
-    char_len=$(printf '%s' "$text" | wc -c)
-    if [[ "$char_len" -eq "$byte_len" ]] && [[ "$text" =~ ^[[:print:]]*$ ]]; then
-        _VISUAL_WIDTH_CACHE[$cache_key]=$byte_len
-        echo "$byte_len"
-        return
+    # Fast path: pure ASCII printable characters without ANSI
+    # We check if the string contains only ASCII characters (0x20-0x7E)
+    local ascii_regex='^[ -~]*$'
+    if [[ "$text" =~ $ascii_regex ]]; then
+         local len=${#text}
+         _VISUAL_WIDTH_CACHE[$cache_key]=$len
+         echo "$len"
+         return
     fi
-
+    
     # Check if entire string is in emoji table (single emoji)
     if [[ "$mode" == "legacy" ]] && [[ -n "${EMOJI_WIDTH_LEGACY[$text]:-}" ]]; then
         _VISUAL_WIDTH_CACHE[$cache_key]="${EMOJI_WIDTH_LEGACY[$text]}"
@@ -149,14 +241,38 @@ visual_width() {
         return
     fi
 
-    # Character-by-character processing with heuristics
+    # Character-by-character processing
     local width=0
     local i=0
     local len=${#text}
+    local char codepoint
 
     while ((i < len)); do
-        local char="${text:i:1}"
-        local codepoint
+        char="${text:i:1}"
+        
+        # ANSI ESC detection (pure bash)
+        if [[ "$char" == $'\e' ]]; then
+            # Look ahead for [
+            if [[ "${text:i+1:1}" == "[" ]]; then
+                # Found CSI sequence starter \e[
+                ((i += 2)) # Skip \e and [
+                # Advance until we find a letter (terminator)
+                while ((i < len)); do
+                    local next_c="${text:i:1}"
+                    ((i++))
+                    # Check if it's a letter (a-z, A-Z)
+                    if [[ "$next_c" =~ [a-zA-Z] ]]; then
+                        break
+                    fi
+                done
+                continue
+            else
+                # Non-CSI escape, just skip the ESC char
+                ((i++))
+                continue
+            fi
+        fi
+
         printf -v codepoint '%d' "'$char" 2>/dev/null || codepoint=0
 
         # Skip zero-width characters (VS16, VS15, ZWJ)

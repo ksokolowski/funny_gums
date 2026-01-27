@@ -32,16 +32,26 @@ inxi_parse_generic() {
         return 1
     fi
 
-    # Simple parser for line-based data
-    # Skips the first line (header)
-    # Extracts labels and their values
-    echo "$section_data" | sed '1d' | sed 's/^[[:space:]]*//' | while read -r line; do
-        if [[ $line =~ ^([^:]+):[[:space:]](.*)$ ]]; then
-            label="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-            echo "$label,$value"
-        fi
-    done
+    # Efficient parsing with AWK (replaces loop+regex)
+    # 1. Skip first line (header)
+    # 2. Match pattern "Label: Value"
+    # 3. Print as "Label,Value"
+    echo "$section_data" | awk '
+        NR > 1 {
+            # Use split to separate Label: Value chunks if multiple per line
+            # This handles input like "Label1: Value1 Label2: Value2" somewhat, 
+            # though inxi -c0 usually puts them on separate lines or formats them predictably.
+            
+            # Simple approach: find the first colon, everything before is label, after is value
+            $0 = substr($0, match($0, /[a-zA-Z0-9]/)) # Trim leading whitespace
+            n = index($0, ":")
+            if (n > 0) {
+                label = substr($0, 1, n-1)
+                value = substr($0, n+2) # Skip ": "
+                print label "," value
+            }
+        }
+    '
 }
 
 # Specialized parsers

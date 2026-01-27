@@ -25,7 +25,9 @@ _ui_build_bar() {
 # Get threshold-based color (green/yellow/red)
 # Usage: color=$(_ui_threshold_color <value> [warn] [crit])
 _ui_threshold_color() {
-    local value=$1 warn=${2:-70} crit=${3:-90}
+    local value="${1%.*}" warn="${2:-70}" crit="${3:-90}" # Truncate float to int
+    warn="${warn%.*}"; crit="${crit%.*}"
+
     if ((value >= crit)); then
         echo "$NEON_RED"
     elif ((value >= warn)); then
@@ -38,7 +40,7 @@ _ui_threshold_color() {
 # Clamp a value to 0-100 range
 # Usage: percent=$(_ui_clamp_percent <value>)
 _ui_clamp_percent() {
-    local val=$1
+    local val="${1%.*}" # Truncate float
     ((val < 0)) && val=0
     ((val > 100)) && val=100
     echo "$val"
@@ -47,7 +49,7 @@ _ui_clamp_percent() {
 # Normalize current/max values for gauge calculations
 # Usage: read -r current max percent <<< "$(_ui_normalize_gauge <current> <max>)"
 _ui_normalize_gauge() {
-    local current=$1 max=$2
+    local current="${1%.*}" max="${2%.*}" # Truncate floats
     ((max <= 0)) && max=1
     ((current > max)) && current=$max
     ((current < 0)) && current=0

@@ -79,8 +79,10 @@ dashboard_enabled_count() {
 dashboard_draw() {
     $DASHBOARD_QUIET && return
 
-    local enabled_count
-    enabled_count=$(dashboard_enabled_count)
+    local enabled_count=0
+    for enabled in "${DASHBOARD_ENABLED[@]}"; do
+        $enabled && ((enabled_count++))
+    done
 
     # Clear previous dashboard
     if ((DASHBOARD_LINES > 0)); then
@@ -98,7 +100,7 @@ dashboard_draw() {
             content+="${DIM}⏩ ${DASHBOARD_STEPS[i]}${RESET}\n"
         elif ((DASHBOARD_RUNNING == i)); then
             local spinner_char
-            spinner_char=$(spinner_frame)
+            spinner_frame_ref spinner_char
             content+="${spinner_char} ${DASHBOARD_STEPS[i]}${RESET}\n"
         else
             content+="${CYAN}${DASHBOARD_STATUS[i]} ${DASHBOARD_STEPS[i]}${RESET}\n"
@@ -144,7 +146,7 @@ dashboard_update_spinner() {
 
     local idx=$DASHBOARD_RUNNING
     local spinner_char
-    spinner_char=$(spinner_frame)
+    spinner_frame_ref spinner_char
     local line_offset="${DASHBOARD_LINE_OFFSET[$idx]}"
 
     # Restore, move up, print, restore

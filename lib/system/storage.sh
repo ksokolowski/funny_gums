@@ -9,6 +9,7 @@ _SYSTEM_STORAGE_LOADED=1
 _SYSTEM_STORAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$_SYSTEM_STORAGE_DIR/../core/colors.sh"
 source "$_SYSTEM_STORAGE_DIR/smartctl.sh"
+source "$_SYSTEM_STORAGE_DIR/sensors.sh"
 
 # Get disk usage for all mounted filesystems
 # Usage: get_disk_usage_live
@@ -33,30 +34,20 @@ get_root_disk_usage_live() {
 # Usage: get_physical_drives
 # Returns: Lines of "device|size_bytes|model|type" (type: ssd/hdd/nvme)
 get_physical_drives() {
-    # Use separate lsblk calls to avoid column parsing issues with spaces in model names
-    lsblk -d -o NAME -n 2>/dev/null | grep -vE "^(loop|zram|sr)" | while read -r name; do
-        [[ -z "$name" ]] && continue
-
-        # Get individual attributes
-        local size model rota tran
-        size=$(lsblk -b -d -o SIZE -n "/dev/$name" 2>/dev/null)
-        model=$(lsblk -d -o MODEL -n "/dev/$name" 2>/dev/null | sed 's/^ *//;s/ *$//')
-        rota=$(lsblk -d -o ROTA -n "/dev/$name" 2>/dev/null)
-        tran=$(lsblk -d -o TRAN -n "/dev/$name" 2>/dev/null)
-
-        [[ -z "$size" ]] && continue
-        [[ -z "$model" ]] && model="Unknown"
-
-        # Determine drive type
-        local dtype="hdd"
-        if [[ "$tran" == "nvme" ]]; then
-            dtype="nvme"
-        elif [[ "$rota" == "0" ]]; then
-            dtype="ssd"
-        fi
-
-        echo "$name|$size|$model|$dtype"
-    done
+    # One-pass JSON parsing with jq for efficiency
+    # Ignores types: loop, zram, rom (sr*)
+    lsblk -J -b -d -o NAME,SIZE,MODEL,ROTA,TRAN,TYPE 2>/dev/null | jq -r '
+        .blockdevices[] | 
+        select(.type != "loop" and .type != "rom" and .name != "zram*") |
+        [
+            .name,
+            .size,
+            (.model? // "Unknown" | sub("^\\s+"; "") | sub("\\s+$"; "")),
+            (if .tran == "nvme" then "nvme" 
+             elif .rota == false or .rota == "0" then "ssd" 
+             else "hdd" end)
+        ] | join("|")
+    '
 }
 
 # Get partitions for a specific drive
@@ -87,11 +78,42 @@ get_drive_partitions() {
     done
 }
 
-# Get drive health/temperature if available (via smartctl module)
+# Resolve drive to PCI ID if possible
+get_drive_pci_id() {
+    local drive="$1"
+    # Try sysfs
+    local sys_path="/sys/block/$drive/device"
+    if [[ -L "$sys_path" ]]; then
+        local full_path
+        full_path=$(readlink -f "$sys_path")
+        # Extract PCI ID (0000:00:00.0) from path
+        # Grep matching valid PCI addresses, take the last one likely effectively the device
+        if [[ "$full_path" =~ ([0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f]) ]]; then
+            echo "${BASH_REMATCH[1]}"
+            return
+        fi
+    fi
+}
+
+# Get drive health/temperature if available (via sensors or smartctl)
 # Usage: get_drive_temp "sda"
 # Returns: Temperature in Celsius or empty
 get_drive_temp() {
     local drive="$1"
+    
+    # Try via mapped sensors first (faster, no wakeup)
+    local pci_id
+    pci_id=$(get_drive_pci_id "$drive")
+    if [[ -n "$pci_id" ]]; then
+        local sens_temp
+        sens_temp=$(sensors_get_temp_by_pci_id "$pci_id")
+        if [[ -n "$sens_temp" ]]; then
+            echo "$sens_temp"
+            return
+        fi
+    fi
+
+    # Fallback to smartctl
     smartctl_get_drive_temp "$drive"
 }
 

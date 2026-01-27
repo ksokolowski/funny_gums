@@ -43,3 +43,9 @@ ui_warn() {
 ui_info() {
     gum_exec_style --foreground 6 "$@"
 }
+
+# Show generic styled text
+# Usage: ui_text "Message"
+ui_text() {
+    gum_exec_style --no-strip-ansi "$@"
+}

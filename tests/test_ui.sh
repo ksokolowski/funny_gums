@@ -1,5 +1,13 @@
-#!/usr/bin/env bash
 # test_ui.sh - Unit tests for ui.sh
+
+set -uo pipefail
+
+# Get project directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Source test framework
+source "$SCRIPT_DIR/framework.sh"
 
 test_file_start "ui.sh"
 
