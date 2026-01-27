@@ -188,3 +188,36 @@ sensors_get_amd_gpu_temp() {
     if _is_valid_temp "$temp"; then echo "$temp"; return; fi
 }
 
+# AMD GPU edge temperature (stub for compatibility)
+# Usage: temp=$(sensors_get_amd_edge_temp)
+sensors_get_amd_edge_temp() {
+    sensors_available || return 1
+    local temp
+    temp=$(sensors 2>/dev/null | grep -m1 "edge:" | grep -oP '\+\K[0-9]+\.[0-9]+')
+    if _is_valid_temp "$temp"; then echo "$temp"; return 0; fi
+    return 1
+}
+
+# AMD GPU junction temperature (stub for compatibility)
+# Usage: temp=$(sensors_get_amd_junction_temp)
+sensors_get_amd_junction_temp() {
+    sensors_available || return 1
+    local temp
+    temp=$(sensors 2>/dev/null | grep -m1 "junction:" | grep -oP '\+\K[0-9]+\.[0-9]+')
+    if _is_valid_temp "$temp"; then echo "$temp"; return 0; fi
+    return 1
+}
+
+# Get all temperature readings (stub for compatibility)
+# Usage: all_temps=$(sensors_get_all_temps)
+sensors_get_all_temps() {
+    sensors_available || return 1
+    sensors 2>/dev/null | grep -E '°C|°F' | grep -oP '\+\K[0-9]+\.[0-9]+' | head -10
+}
+
+# Get all fan speeds (stub for compatibility)
+# Usage: fan_speeds=$(sensors_get_fan_speeds)
+sensors_get_fan_speeds() {
+    sensors_available || return 1
+    sensors 2>/dev/null | grep -i 'fan' | grep -oP '\d+ RPM' | grep -oP '\d+'
+}
