@@ -15,7 +15,7 @@ A modular Bash library providing terminal UI components powered by [gum](https:/
 - 📊 **Dashboard** - Multi-step progress dashboard with in-place updates
 - 🏃 **Runner** - Command execution with spinner/dashboard integration
 - 🔐 **Sudo** - Credential management with keepalive
-- ⚙️ **VS16 Emoji Support** - Proper width handling for VS16/ZWJ emoji sequences
+- 🎯 **Terminal-Aware Emojis** - 3-tier system with automatic VS16 fallbacks for GNOME Terminal
 - 🖥️ **System Monitoring** - CPU, memory, storage, GPU, and network metrics
 
 ## Requirements
@@ -92,6 +92,26 @@ log_structured info "Processing" file "data.csv" rows 100
 | [csv_viewer.sh](examples/csv_viewer.sh) | CSV data explorer with table/filter |
 | [markdown_preview.sh](examples/markdown_preview.sh) | Markdown file preview |
 | [system_dashboard.sh](examples/system_dashboard.sh) | System info dashboard |
+
+## Terminal-Aware Emoji System
+
+VS16 emojis (like ⚠️ ⚙️ 🌡️) cause alignment issues in GNOME Terminal and other VTE-based terminals. The library automatically detects terminal capability and provides appropriate fallbacks:
+
+| Terminal Tier | Examples | Emoji Handling |
+|---------------|----------|----------------|
+| **full** | Kitty, WezTerm, Ghostty, iTerm | Full VS16 support |
+| **compatible** | GNOME Terminal, Tilix | Colorful fallbacks (🟡 instead of ⚠️) |
+| **legacy** | xterm, TTY | Text fallbacks (`[!]` instead of ⚠️) |
+
+**Usage:** Simply use the `$EMOJI_*` variables - they auto-adapt to the terminal:
+
+```bash
+source lib/core/emojis.sh
+
+echo "$EMOJI_WARNING Config missing"   # ⚠️ or 🟡 or [!]
+echo "$EMOJI_CPU Processing..."        # ⚙️ or 🔧 or [*]
+echo "$EMOJI_SUCCESS Done!"            # ✅ (works everywhere)
+```
 
 ## API Reference
 

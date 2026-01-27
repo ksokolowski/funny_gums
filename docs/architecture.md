@@ -13,7 +13,12 @@ funny_gums/
 │   │   ├── cursor.sh       # Cursor control
 │   │   ├── spinner.sh      # Spinner animation
 │   │   ├── logging.sh      # Logging with gum
-│   │   └── sudo.sh         # Sudo helpers
+│   │   ├── sudo.sh         # Sudo helpers
+│   │   ├── terminal.sh     # Terminal capability detection (3-tier)
+│   │   ├── emoji_data.sh   # Emoji width tables and VS16/ZWJ detection
+│   │   ├── emoji_registry.sh # VS16 emoji registry with fallbacks
+│   │   ├── emojis.sh       # Semantic emoji constants
+│   │   └── text.sh         # Visual width calculation
 │   │
 │   ├── ui/                 # UI component modules
 │   │   ├── ui.sh           # Loader (sources all ui/*.sh)
@@ -93,6 +98,11 @@ No dependencies on other Funny Gums modules. Can be sourced independently.
 - `spinner.sh` - Spinner frame animations
 - `logging.sh` - Structured logging via gum
 - `sudo.sh` - Sudo credential management
+- `terminal.sh` - Terminal capability detection (3-tier classification)
+- `emoji_data.sh` - Emoji width tables, VS16/ZWJ detection
+- `emoji_registry.sh` - VS16 emoji registry with automatic fallbacks
+- `emojis.sh` - Semantic emoji constants (auto-adapts to terminal)
+- `text.sh` - Visual width calculation, padding, truncation
 
 ### UI Modules (Level 1)
 Depend on `core/colors.sh` for color support.
@@ -250,3 +260,100 @@ Functions follow these conventions:
 - Return `-` for missing/unavailable fields in combined output
 - Use availability checks before calling tools: `tool_available || return 1`
 - Silent failure for optional features
+
+## Terminal-Aware Emoji System
+
+The library includes a sophisticated emoji degradation system that ensures proper display across different terminal emulators.
+
+### The VS16 Problem
+
+VS16 (Variation Selector 16, U+FE0F) causes alignment issues in some terminals:
+
+```
+Problem in VTE terminals (GNOME Terminal, Tilix):
+┌─────────────────────────────────────────┐
+│  ⚠️ Warning message                      │  <- Border misaligned!
+│  ✅ Success message                      │
+└─────────────────────────────────────────┘
+```
+
+**Why it happens:**
+- `gum` uses Go's `runewidth` library which calculates VS16 emoji width as **1**
+- VTE terminals display VS16 emojis at width **2**
+- This 1-character mismatch causes frame borders to shift
+
+### 3-Tier Solution
+
+The library detects terminal capability and selects appropriate emojis:
+
+```
+┌─────────────┬────────────────────────────────┬─────────────────────┐
+│ Tier        │ Terminals                      │ Emoji Handling      │
+├─────────────┼────────────────────────────────┼─────────────────────┤
+│ full        │ Kitty, WezTerm, Ghostty,       │ Full VS16 support   │
+│             │ iTerm, Alacritty, Win Terminal │                     │
+├─────────────┼────────────────────────────────┼─────────────────────┤
+│ compatible  │ GNOME Terminal, Tilix,         │ Colorful fallbacks  │
+│             │ Terminator (VTE-based)         │ (no VS16)           │
+├─────────────┼────────────────────────────────┼─────────────────────┤
+│ legacy      │ xterm, TTY, older terminals    │ Text fallbacks      │
+└─────────────┴────────────────────────────────┴─────────────────────┘
+```
+
+### Emoji Flow
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  Script uses: $EMOJI_WARNING                                     │
+│                    │                                             │
+│                    ▼                                             │
+│  ┌─────────────────────────────────────────────────────────┐    │
+│  │  emoji_registry.sh detects TERMINAL_CAPABILITY          │    │
+│  └─────────────────────────────────────────────────────────┘    │
+│                    │                                             │
+│       ┌───────────┼───────────┐                                 │
+│       ▼           ▼           ▼                                 │
+│   ┌───────┐  ┌─────────┐  ┌────────┐                           │
+│   │ full  │  │compatible│  │ legacy │                           │
+│   │  ⚠️   │  │   🟡    │  │  [!]   │                           │
+│   └───────┘  └─────────┘  └────────┘                           │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Semantic Fallbacks
+
+VS16 emojis map to semantically similar colorful alternatives:
+
+| Original | Compatible | Legacy | Semantic Meaning |
+|----------|------------|--------|------------------|
+| ⚠️ | 🟡 | `[!]` | Warning/caution (yellow) |
+| ⚙️ | 🔧 | `[*]` | Settings/config |
+| 🌡️ | 🔥 | `[T]` | Temperature/heat |
+| 🖥️ | 💻 | `[S]` | Computer/server |
+| ⏸️ | 🟠 | `\|\|` | Paused/waiting |
+| 🗑️ | ❌ | `[X]` | Delete/remove |
+
+### Best Practices for Scripts
+
+**Use emoji variables, not hardcoded emojis:**
+
+```bash
+# Good - adapts to terminal
+echo "$EMOJI_WARNING Configuration missing"
+dashboard_add_step "$EMOJI_CPU" "Initialize CPU"
+
+# Bad - may cause alignment issues in VTE
+echo "⚙️ Processing..."
+```
+
+**For custom emojis, use the registry:**
+
+```bash
+# Get emoji appropriate for current terminal
+icon=$(emoji "WARNING")
+
+# Or check terminal capability
+if [[ "$TERMINAL_CAPABILITY" == "full" ]]; then
+    echo "Using fancy ZWJ emoji: 👨‍💻"
+fi
+```
