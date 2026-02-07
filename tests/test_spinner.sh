@@ -4,7 +4,7 @@
 test_file_start "spinner.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/core/spinner.sh"
+source "$PROJECT_DIR/lib/ui/widgets/spinner.sh"
 
 # Test that spinner functions exist
 assert_function_exists "spinner_set"

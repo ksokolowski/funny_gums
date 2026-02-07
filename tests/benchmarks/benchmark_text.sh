@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # benchmark_text.sh - Benchmark text processing functions
 
-source lib/core/text.sh
-source lib/core/colors.sh
+source lib/core/text/text.sh
+source lib/core/term/colors.sh
 
 # Test strings
 SHORT="Hello"
@@ -21,14 +21,14 @@ benchmark() {
     echo -n "Benchmarking $name ($count iterations)... "
 
     start_time=$(date +%s%N)
-    for ((i=0; i<count; i++)); do
+    for ((i = 0; i < count; i++)); do
         # Call the function (discard output)
         _=$(visual_width "$string")
     done
     end_time=$(date +%s%N)
 
     # Calculate duration in milliseconds
-    duration=$(( (end_time - start_time) / 1000000 ))
+    duration=$(((end_time - start_time) / 1000000))
     echo "${duration}ms"
 }
 

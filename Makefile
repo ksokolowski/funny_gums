@@ -1,14 +1,16 @@
-.PHONY: help setup deps test lint check clean
+.PHONY: help setup deps test lint check format format-check clean
 
 # Help (Default Target)
 help:
 	@echo "Available targets:"
 	@echo "  make setup           - Configure dev environment (git hooks, deps)"
 	@echo "  make deps            - Check project dependencies"
-	@echo "  make check           - Run lint + tests (mirrors CI)"
+	@echo "  make check           - Run lint + format-check + tests (mirrors CI)"
 	@echo "  make test            - Run all tests"
 	@echo "  make test-ui         - Run specific test (e.g., test_ui.sh)"
 	@echo "  make lint            - Run shellcheck"
+	@echo "  make format          - Auto-format all scripts with shfmt"
+	@echo "  make format-check    - Check script formatting without applying"
 	@echo "  make clean           - Clean generated files"
 
 # Setup development environment
@@ -35,7 +37,15 @@ lint:
 	@shellcheck --severity=error funny_gums.sh lib/**/*.sh examples/*.sh tests/*.sh
 
 # Run both lint and tests (mirrors CI)
-check: lint test
+check: lint format-check test
+
+# Auto-format all scripts with shfmt (4 spaces, binary operators start lines)
+format:
+	@shfmt -i 4 -w .
+
+# Check script formatting without applying changes
+format-check:
+	@shfmt -i 4 -d .
 
 # Clean generated files
 clean:

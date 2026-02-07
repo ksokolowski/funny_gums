@@ -4,7 +4,7 @@
 test_file_start "cursor.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/core/cursor.sh"
+source "$PROJECT_DIR/lib/core/term/cursor.sh"
 
 # Test that cursor functions exist
 assert_function_exists "cursor_hide"

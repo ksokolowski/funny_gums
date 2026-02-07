@@ -4,7 +4,7 @@
 test_file_start "sudo.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/core/sudo.sh"
+source "$PROJECT_DIR/lib/core/sh/sudo.sh"
 
 # Test that sudo functions exist
 assert_function_exists "sudo_auth"

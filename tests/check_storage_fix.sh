@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source lib/system/storage.sh
+source lib/mod/storage/storage.sh
 
 if type get_root_disk_usage_live &>/dev/null; then
     echo "SUCCESS: get_root_disk_usage_live found."

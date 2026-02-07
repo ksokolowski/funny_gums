@@ -5,9 +5,9 @@ set -u
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
-source "$PROJECT_DIR/lib/core/colors.sh"
-source "$PROJECT_DIR/lib/core/emojis.sh"
-source "$PROJECT_DIR/lib/ui/ui.sh"
+source "$PROJECT_DIR/lib/core/term/colors.sh"
+source "$PROJECT_DIR/lib/core/text/emojis.sh"
+source "$PROJECT_DIR/lib/ui/layout/ui.sh"
 
 echo ""
 echo "Testing safe colorful emojis in gum frames..."

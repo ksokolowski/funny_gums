@@ -4,7 +4,7 @@
 test_file_start "nvidia.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/system/nvidia.sh"
+source "$PROJECT_DIR/lib/mod/hw/nvidia.sh"
 
 # Test that guard variable is set
 assert_var_defined "_SYSTEM_NVIDIA_LOADED"

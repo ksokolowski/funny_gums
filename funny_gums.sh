@@ -24,39 +24,37 @@ _FUNNY_GUMS_LIB="$_FUNNY_GUMS_DIR/lib"
 # Source all modules in dependency order
 
 # Core modules (no dependencies)
-source "$_FUNNY_GUMS_LIB/core/colors.sh"
-source "$_FUNNY_GUMS_LIB/core/deps.sh"
-source "$_FUNNY_GUMS_LIB/core/cursor.sh"
-source "$_FUNNY_GUMS_LIB/core/spinner.sh"
+source "$_FUNNY_GUMS_LIB/core/term/colors.sh"
+source "$_FUNNY_GUMS_LIB/core/sh/deps.sh"
+source "$_FUNNY_GUMS_LIB/core/term/cursor.sh"
+source "$_FUNNY_GUMS_LIB/ui/widgets/spinner.sh"
 
 # Enforce core dependencies immediately
 dep_require_all "gum" "jq" "awk" "sed" "grep" "date"
-source "$_FUNNY_GUMS_LIB/core/logging.sh"
-source "$_FUNNY_GUMS_LIB/core/sudo.sh"
-source "$_FUNNY_GUMS_LIB/core/terminal.sh"
-source "$_FUNNY_GUMS_LIB/core/emoji_data.sh"
-source "$_FUNNY_GUMS_LIB/core/emoji_registry.sh"
-source "$_FUNNY_GUMS_LIB/core/emojis.sh"
-source "$_FUNNY_GUMS_LIB/core/text.sh"
+source "$_FUNNY_GUMS_LIB/core/sh/logging.sh"
+source "$_FUNNY_GUMS_LIB/core/sh/sudo.sh"
+source "$_FUNNY_GUMS_LIB/core/term/terminal.sh"
+source "$_FUNNY_GUMS_LIB/core/text/emoji_data.sh"
+source "$_FUNNY_GUMS_LIB/core/text/emoji_registry.sh"
+source "$_FUNNY_GUMS_LIB/core/text/emojis.sh"
+source "$_FUNNY_GUMS_LIB/core/text/text.sh"
 
 # Terminal capability is detected by emoji_registry.sh on source
 # Re-export emoji vars after all modules loaded
 _export_emoji_vars
 
 # UI modules (depends on core/colors)
-source "$_FUNNY_GUMS_LIB/ui/ui.sh"
+source "$_FUNNY_GUMS_LIB/ui/layout/ui.sh"
 
 # Dashboard modules (depends on core/colors, cursor, spinner)
-source "$_FUNNY_GUMS_LIB/dashboard/dashboard.sh"
-source "$_FUNNY_GUMS_LIB/dashboard/runner.sh"
+source "$_FUNNY_GUMS_LIB/app/dashboard.sh"
+source "$_FUNNY_GUMS_LIB/app/runner.sh"
 
 # System modules (hardware monitoring and parsing)
-source "$_FUNNY_GUMS_LIB/system/system.sh"
+source "$_FUNNY_GUMS_LIB/mod/os/system.sh"
 
 # Extended modules (optional standard library extensions)
 # These degrade gracefully if tools (fzf, bat, curl) are missing
-source "$_FUNNY_GUMS_LIB/ext/fzf.sh"
-source "$_FUNNY_GUMS_LIB/ext/http.sh"
-source "$_FUNNY_GUMS_LIB/ext/viewer.sh"
-
-
+source "$_FUNNY_GUMS_LIB/ui/interaction/fzf.sh"
+source "$_FUNNY_GUMS_LIB/core/sh/http.sh"
+source "$_FUNNY_GUMS_LIB/ui/widgets/viewer.sh"

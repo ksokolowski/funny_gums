@@ -4,7 +4,7 @@
 test_file_start "lspci.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/system/lspci.sh"
+source "$PROJECT_DIR/lib/mod/os/lspci.sh"
 
 # Test that guard variable is set
 assert_var_defined "_SYSTEM_LSPCI_LOADED"

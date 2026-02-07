@@ -13,7 +13,7 @@ test_file_start "enhancements.sh"
 # 1. Test ui_version_check
 it_version_check() {
     assert_function_exists "ui_version_check"
-    
+
     local version
     version=$(gum --version | awk '{print $3}')
     assert_success ui_version_check ">= $version"
@@ -55,7 +55,7 @@ it_dashboard_spinner() {
     DASHBOARD_SPINNER="MOON"
     dashboard_init "Custom Spinner Test"
     assert_eq "MOON" "$DASHBOARD_SPINNER" "DASHBOARD_SPINNER should be MOON"
-    
+
     # Draw (sets spinner)
     dashboard_draw >/dev/null
     local frame

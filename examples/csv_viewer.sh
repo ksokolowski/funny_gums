@@ -36,13 +36,13 @@ detect_separator() {
     local file="$1"
     local first_line
     first_line=$(head -1 "$file")
-    
+
     # Count occurrences
     local tabs commas semicolons
     tabs=$(echo "$first_line" | tr -cd '\t' | wc -c)
     commas=$(echo "$first_line" | tr -cd ',' | wc -c)
     semicolons=$(echo "$first_line" | tr -cd ';' | wc -c)
-    
+
     if ((tabs > commas && tabs > semicolons)); then
         echo $'\t'
     elif ((semicolons > commas)); then
@@ -84,7 +84,7 @@ fi
 # Show file info
 echo ""
 filename=$(basename "$CSV_FILE")
-lines=$(wc -l < "$CSV_FILE")
+lines=$(wc -l <"$CSV_FILE")
 size=$(du -h "$CSV_FILE" | cut -f1)
 
 ui_box "📄 File: $filename" \
@@ -111,50 +111,50 @@ while true; do
         "📝 View raw content" \
         "📈 Show statistics" \
         "❌ Exit")
-    
+
     case "$action" in
-        "📊 View table")
+    "📊 View table")
+        echo ""
+        ui_table --separator "$separator" <"$CSV_FILE"
+        ;;
+
+    "🔍 Filter/search rows")
+        echo ""
+        ui_info "Type to filter rows (fuzzy search):"
+        selected=$(ui_filter --header "Search rows:" <"$CSV_FILE")
+        if [[ -n "$selected" ]]; then
             echo ""
-            ui_table --separator "$separator" < "$CSV_FILE"
-            ;;
-        
-        "🔍 Filter/search rows")
-            echo ""
-            ui_info "Type to filter rows (fuzzy search):"
-            selected=$(ui_filter --header "Search rows:" < "$CSV_FILE")
-            if [[ -n "$selected" ]]; then
-                echo ""
-                ui_box "Selected Row" "" "$selected"
-            fi
-            ;;
-        
-        "📝 View raw content")
-            echo ""
-            ui_pager_numbered < "$CSV_FILE"
-            ;;
-        
-        "📈 Show statistics")
-            echo ""
-            # Get column count from header
-            header=$(head -1 "$CSV_FILE")
-            if [[ "$separator" == $'\t' ]]; then
-                col_count=$(echo "$header" | awk -F'\t' '{print NF}')
-            else
-                col_count=$(echo "$header" | awk -F"$separator" '{print NF}')
-            fi
-            
-            ui_box "📈 Statistics" \
-                "" \
-                "Columns: $col_count" \
-                "Rows: $((lines - 1)) (excluding header)" \
-                "Total lines: $lines" \
-                "" \
-                "Header: $header"
-            ;;
-        
-        "❌ Exit"|"")
-            ui_info "Goodbye!"
-            exit 0
-            ;;
+            ui_box "Selected Row" "" "$selected"
+        fi
+        ;;
+
+    "📝 View raw content")
+        echo ""
+        ui_pager_numbered <"$CSV_FILE"
+        ;;
+
+    "📈 Show statistics")
+        echo ""
+        # Get column count from header
+        header=$(head -1 "$CSV_FILE")
+        if [[ "$separator" == $'\t' ]]; then
+            col_count=$(echo "$header" | awk -F'\t' '{print NF}')
+        else
+            col_count=$(echo "$header" | awk -F"$separator" '{print NF}')
+        fi
+
+        ui_box "📈 Statistics" \
+            "" \
+            "Columns: $col_count" \
+            "Rows: $((lines - 1)) (excluding header)" \
+            "Total lines: $lines" \
+            "" \
+            "Header: $header"
+        ;;
+
+    "❌ Exit" | "")
+        ui_info "Goodbye!"
+        exit 0
+        ;;
     esac
 done

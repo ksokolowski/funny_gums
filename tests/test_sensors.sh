@@ -4,7 +4,7 @@
 test_file_start "sensors.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/system/sensors.sh"
+source "$PROJECT_DIR/lib/mod/hw/sensors.sh"
 
 # Test that guard variable is set
 assert_var_defined "_SYSTEM_SENSORS_LOADED"

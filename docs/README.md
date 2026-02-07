@@ -1,28 +1,23 @@
-# Funny Gums Documentation
+# Documentation Hub 📖
 
-Welcome to the Funny Gums documentation. This library provides modular Bash components for building terminal UI applications powered by [gum](https://github.com/charmbracelet/gum).
+Welcome to the Funny Gums documentation. This library provides modular Bash components for building terminal UI applications.
 
-## Documentation Index
+## Documentation Index 🗂️
 
-### Getting Started
-- **[Getting Started](getting-started.md)** - Installation, dependencies, and your first script
+### 🏁 Getting Started
+- **[Getting Started](GETTING-STARTED.md)** - Installation, dependencies, and your first script.
 
-### Architecture
-- **[Architecture](architecture.md)** - System design, module relationships, and sourcing patterns
+### 🏛️ System Design
+- **[Architecture](ARCHITECTURE.md)** - System design, module relationships, and sourcing patterns.
+- **[User Guide](USER-GUIDE.md)** - Comprehensive API reference for all modules.
 
-### API Reference
-- **[Core Modules](api/core.md)** - Foundation modules (colors, cursor, spinner, logging, sudo)
-- **[UI Components](api/ui.md)** - User interface functions (input, display, format, table, gauge)
-- **[System Metrics](api/system.md)** - Hardware monitoring functions (CPU, memory, storage, GPU, network)
-- **[CLI Tool Abstractions](api/cli-tools.md)** - Wrappers for system utilities (sensors, lspci, smartctl, hdparm, dmidecode, power)
+### 💡 Resources
+- **[Examples](EXAMPLES.md)** - Detailed walkthroughs of example scripts.
+- **[Roadmap](ROADMAP.md)** - Future development plans and planned integrations.
 
-### Examples & Roadmap
-- **[Examples](examples.md)** - Detailed walkthroughs of example scripts
-- **[Roadmap](roadmap.md)** - Future development plans and planned CLI tool integrations
-
-### Future: The Golden Path
-- **[Lessons Learned](future/lessons-learned.md)** - What Funny Gums taught us about bash limitations
-- **[Go Charm Project](future/go-charm-project.md)** - Sketch for a proper Go implementation using Charm ecosystem
+### 🔮 Future: The Golden Path
+- **[Lessons Learned](future/LESSONS-LEARNED.md)** - What Funny Gums taught us about bash limitations.
+- **[Go Charm Project](future/GO-CHARM-PROJECT.md)** - Sketch for a proper Go implementation.
 
 ## Quick Links
 
@@ -31,17 +26,17 @@ Welcome to the Funny Gums documentation. This library provides modular Bash comp
 # Source everything
 source funny_gums.sh
 
-# Source only what you need
-source lib/core/colors.sh      # Just colors
-source lib/ui/ui.sh            # All UI components
-source lib/system/system.sh    # All system metrics
-source lib/system/cpu.sh       # Just CPU metrics
+# Source specifically
+source lib/core/term/colors.sh      # Just colors
+source lib/ui/layout/ui.sh          # All UI components
+source lib/mod/os/system.sh         # All system metrics
+source lib/mod/hw/cpu.sh            # Just CPU metrics
 ```
 
 ### Run Tests
 ```bash
-./tests/run_tests.sh              # All tests
-./tests/run_tests.sh test_cpu.sh  # Specific test
+./tests/run_tests.sh               # All tests
+./tests/run_tests.sh test_text.sh  # Specific test
 ```
 
 ### Dependencies
@@ -50,12 +45,12 @@ source lib/system/cpu.sh       # Just CPU metrics
 
 ## Module Overview
 
-| Domain | Purpose | Key Functions |
-|--------|---------|---------------|
-| `lib/core/` | Foundation utilities | Colors, cursor control, spinner, logging |
-| `lib/ui/` | Terminal UI components | Input, dialogs, tables, progress bars, gauges |
-| `lib/system/` | Hardware metrics | CPU, memory, storage, GPU, network monitoring |
-| `lib/dashboard/` | Orchestration | Step-based dashboard UI, command runners |
+| Tier | Location | Purpose |
+|------|----------|---------|
+| **Core** | `lib/core/` | Foundation: Term, Text, Sh utilities |
+| **UI** | `lib/ui/` | Visualization: Layout, Widgets, Interaction |
+| **Modules** | `lib/mod/` | Domain: HW, OS, Storage, Net monitoring |
+| **App** | `lib/app/` | Orchestration: Dashboard, Runner logic |
 
 ## License
 

@@ -5,7 +5,7 @@ test_file_start "logging.sh"
 
 # Source the module
 LOG_FILE="/tmp/test_gum_log_$$.log"
-source "$PROJECT_DIR/lib/core/logging.sh"
+source "$PROJECT_DIR/lib/core/sh/logging.sh"
 
 # Test that logging functions exist
 assert_function_exists "log_init"

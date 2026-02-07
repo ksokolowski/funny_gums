@@ -4,7 +4,7 @@
 test_file_start "smartctl.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/system/smartctl.sh"
+source "$PROJECT_DIR/lib/mod/storage/smartctl.sh"
 
 # Test that guard variable is set
 assert_var_defined "_SYSTEM_SMARTCTL_LOADED"

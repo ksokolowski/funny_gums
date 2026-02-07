@@ -12,7 +12,7 @@ source "$SCRIPT_DIR/framework.sh"
 test_file_start "sysfs_mapping.sh"
 
 # Source colors for mock functions
-source "$PROJECT_DIR/lib/core/colors.sh"
+source "$PROJECT_DIR/lib/core/term/colors.sh"
 
 # Setup Mock Sysfs
 MOCK_SYS=$(mktemp -d)
@@ -31,12 +31,12 @@ create_mock_sensor() {
     local name="$2"
     local pci="$3"
     local temp="$4"
-    
+
     local dir="$MOCK_HWMON/$id"
     mkdir -p "$dir"
-    echo "$name" > "$dir/name"
-    echo "$temp" > "$dir/temp1_input"
-    
+    echo "$name" >"$dir/name"
+    echo "$temp" >"$dir/temp1_input"
+
     # Mock symlink to device pci path (device is the symlink itself)
     ln -s "../../../devices/pci0000:00/$pci" "$dir/device"
 }
@@ -53,7 +53,7 @@ create_mock_sensor "hwmon2" "r8169" "0000:05:00.0" "59000"
 # Source library
 # We need to override the system path variable to point to our mock
 SYSFS_HWMON_DIR="$MOCK_HWMON"
-source "$PROJECT_DIR/lib/system/sensors.sh"
+source "$PROJECT_DIR/lib/mod/hw/sensors.sh"
 
 # Test Sysfs PCI Mapping
 

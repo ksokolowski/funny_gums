@@ -16,7 +16,7 @@ source "$_DIR/../funny_gums.sh"
 
 # Source the newly added extensions
 # (Note: These are not loaded by default to keep start-up light)
-source "$_DIR/../lib/ext/http.sh"
+source "$_DIR/../lib/core/sh/http.sh"
 
 main() {
     # Check for external dependencies required for this specific script
@@ -29,7 +29,7 @@ main() {
     ui_box "API Browser Example" "Fetching data from jsonplaceholder..." --border rounded --padding "0 1"
 
     local api_url="https://jsonplaceholder.typicode.com/todos?_limit=10"
-    
+
     # 1. Fetch JSON data
     # net_get_json handles the spinner and error checking
     local json_data
@@ -47,10 +47,10 @@ main() {
     echo ""
     ui_text "Data fetched successfully! Parsing to table..."
     echo ""
-    
+
     # We pipe the CSV data to ui_table
     echo "$csv_data" | ui_table --border rounded --columns "ID,User,Title,Completed" --widths "4,6,40,10"
-    
+
     # 4. Error handling demo
     echo ""
     ui_text "Now attempting to fetch a broken URL to demonstrate error handling..."

@@ -4,7 +4,7 @@
 test_file_start "dmidecode.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/system/dmidecode.sh"
+source "$PROJECT_DIR/lib/mod/os/dmidecode.sh"
 
 # Test that guard variable is set
 assert_var_defined "_SYSTEM_DMIDECODE_LOADED"
@@ -66,7 +66,7 @@ test_memory_speed_parsing() {
     # Mock sudo to return specific dmidecode output
     sudo() {
         if [[ "$1" == "dmidecode" && "$2" == "-t" && "$3" == "memory" ]]; then
-           cat <<EOF
+            cat <<EOF
 Memory Device
 	Array Handle: 0x0001
 	Error Information Handle: Not Provided
@@ -91,17 +91,17 @@ Memory Device
 	Configured Voltage: 1.1 V
 EOF
         else
-           # Fallback requires capturing original behavior or just failing for this mock
-           return 1
+            # Fallback requires capturing original behavior or just failing for this mock
+            return 1
         fi
     }
-    
+
     # Mock available check to force execution
     dmidecode_available() { return 0; }
-    
+
     local result
     result=$(dmidecode_get_memory_info)
-    
+
     # Expected: includes "6000 MT/s"
     # Format: slot|channel|size|type|speed|mfr|configured_speed
     if echo "$result" | grep -q "6000 MT/s"; then

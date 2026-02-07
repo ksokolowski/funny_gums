@@ -4,7 +4,7 @@
 test_file_start "power.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/system/power.sh"
+source "$PROJECT_DIR/lib/mod/os/power.sh"
 
 # Test that guard variable is set
 assert_var_defined "_SYSTEM_POWER_LOADED"

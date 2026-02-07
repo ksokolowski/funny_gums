@@ -6,12 +6,13 @@
 source "$(dirname "$0")/framework.sh"
 
 # Source library
-source "$(dirname "$0")/../lib/system/inxi.sh"
+source "$(dirname "$0")/../lib/mod/os/inxi.sh"
 
 test_file_start "inxi_helper.sh"
 
 # Mock inxi output
-MOCK_INXI_OUTPUT=$(cat <<'EOF'
+MOCK_INXI_OUTPUT=$(
+    cat <<'EOF'
 System:
   Kernel: 6.14.0-37-generic arch: x86_64 bits: 64 compiler: gcc v: 14.2.0
   Desktop: GNOME v: 48.0 Distro: Ubuntu 25.04 (Plucky Puffin)

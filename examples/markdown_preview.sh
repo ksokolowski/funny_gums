@@ -39,11 +39,11 @@ preview_file() {
     local file="$1"
     local content
     content=$(cat "$file")
-    
+
     echo ""
     ui_info "Rendering: $(basename "$file")"
     echo ""
-    
+
     # Render markdown and pipe to pager
     echo "$content" | ui_format | ui_pager
 }
@@ -86,7 +86,7 @@ fi
 ############################
 while true; do
     filename=$(basename "$MD_FILE")
-    
+
     echo ""
     action=$(ui_choose_with_header "📖 $filename - What would you like to do?" \
         "📄 Preview formatted" \
@@ -95,40 +95,40 @@ while true; do
         "📝 View raw content" \
         "📂 Open different file" \
         "❌ Exit")
-    
+
     case "$action" in
-        "📄 Preview formatted")
-            echo ""
-            ui_format < "$MD_FILE" | ui_pager
-            ;;
-        
-        "💻 View as code (syntax highlighted)")
-            echo ""
-            ui_format_code < "$MD_FILE" | ui_pager
-            ;;
-        
-        "😀 Preview with emoji parsing")
-            echo ""
-            ui_format_emoji < "$MD_FILE" | ui_pager
-            ;;
-        
-        "📝 View raw content")
-            echo ""
-            ui_pager_numbered < "$MD_FILE"
-            ;;
-        
-        "📂 Open different file")
-            echo ""
-            ui_info "Choose a file:"
-            new_file=$(ui_file ".")
-            if [[ -n "$new_file" && -f "$new_file" ]]; then
-                MD_FILE="$new_file"
-            fi
-            ;;
-        
-        "❌ Exit"|"")
-            ui_info "Goodbye!"
-            exit 0
-            ;;
+    "📄 Preview formatted")
+        echo ""
+        ui_format <"$MD_FILE" | ui_pager
+        ;;
+
+    "💻 View as code (syntax highlighted)")
+        echo ""
+        ui_format_code <"$MD_FILE" | ui_pager
+        ;;
+
+    "😀 Preview with emoji parsing")
+        echo ""
+        ui_format_emoji <"$MD_FILE" | ui_pager
+        ;;
+
+    "📝 View raw content")
+        echo ""
+        ui_pager_numbered <"$MD_FILE"
+        ;;
+
+    "📂 Open different file")
+        echo ""
+        ui_info "Choose a file:"
+        new_file=$(ui_file ".")
+        if [[ -n "$new_file" && -f "$new_file" ]]; then
+            MD_FILE="$new_file"
+        fi
+        ;;
+
+    "❌ Exit" | "")
+        ui_info "Goodbye!"
+        exit 0
+        ;;
     esac
 done

@@ -19,7 +19,7 @@ echo "${BOLD}Checking Funny Gums dependencies...${RESET}"
 echo ""
 
 # Define dependencies
-CORE_DEPS=("bash" "gum" "jq" "awk" "sed" "grep" "date" "tput")
+CORE_DEPS=("bash" "shfmt" "gum" "jq" "awk" "sed" "grep" "date" "tput")
 EXT_DEPS=("lsblk" "df" "free" "sensors" "lspci" "dmidecode" "inxi" "smartctl" "hdparm" "nmcli")
 
 MISSING_CORE=0
@@ -31,7 +31,7 @@ check_list() {
     local deps=("$@")
 
     echo "${BOLD}${type} Dependencies:${RESET}"
-    
+
     for tool in "${deps[@]}"; do
         if command -v "$tool" &>/dev/null; then
             version=""
@@ -39,7 +39,7 @@ check_list() {
             if [[ "$tool" == "bash" ]]; then
                 version="($BASH_VERSION)"
             elif [[ "$tool" == "gum" ]]; then
-                 version="($(gum --version | awk '{print $3}'))"
+                version="($(gum --version | awk '{print $3}'))"
             fi
             echo "  ${GREEN}✓${RESET} $tool $version"
         else

@@ -43,7 +43,7 @@ LOG_FILE="/tmp/${SCRIPT_NAME// /_}_$(date +%Y-%m-%d_%H-%M-%S).log"
 log_init "$LOG_FILE"
 
 # Dashboard styling
-DASHBOARD_SPINNER="MOON"  # Options: DOTS, CIRCLE, BRAILLE, GLOBE, MOON, CLOCK, ARROWS, BOUNCE, RGB
+DASHBOARD_SPINNER="MOON" # Options: DOTS, CIRCLE, BRAILLE, GLOBE, MOON, CLOCK, ARROWS, BOUNCE, RGB
 
 ############################
 # STEP DEFINITIONS
@@ -71,11 +71,11 @@ STEP_DEFS=(
 # Commands for each step (must match STEP_DEFS order)
 # Replace these with your actual commands!
 STEP_CMDS=(
-    "sleep 1"                              # Step 0: dummy init
-    "sleep 1.5"                            # Step 1: dummy process
-    "sleep 0.8"                            # Step 2: dummy network
-    "sleep 0.5"                            # Step 3: dummy cleanup
-    "sleep 0.3"                            # Step 4: dummy finalize
+    "sleep 1"   # Step 0: dummy init
+    "sleep 1.5" # Step 1: dummy process
+    "sleep 0.8" # Step 2: dummy network
+    "sleep 0.5" # Step 3: dummy cleanup
+    "sleep 0.3" # Step 4: dummy finalize
 )
 
 ############################
@@ -113,7 +113,10 @@ select_steps() {
 
         # Pre-select all steps
         local preselected
-        preselected=$(IFS=,; echo "${DASHBOARD_STEPS[*]}")
+        preselected=$(
+            IFS=,
+            echo "${DASHBOARD_STEPS[*]}"
+        )
 
         local selected
         selected=$(ui_choose_multi "${DASHBOARD_STEPS[@]}" \
@@ -159,7 +162,7 @@ main() {
 
     # 4. Add steps to dashboard
     for i in "${!STEP_DEFS[@]}"; do
-        IFS='|' read -r category title <<< "${STEP_DEFS[$i]}"
+        IFS='|' read -r category title <<<"${STEP_DEFS[$i]}"
         dashboard_add_step "${CATEGORY_ICON[$category]} $title"
     done
 
@@ -206,14 +209,14 @@ main() {
             echo ""
             ui_box --width "$FRAME_WIDTH" --padding "0 2" "📋 Log: $LOG_FILE"
             echo ""
-            ui_pager_numbered < "$LOG_FILE"
+            ui_pager_numbered <"$LOG_FILE"
         fi
     else
         if ui_confirm "View log file?" --affirmative "Yes" --negative "No" --default=false; then
             echo ""
             ui_box --width "$FRAME_WIDTH" --padding "0 2" "📋 Log: $LOG_FILE"
             echo ""
-            ui_pager_numbered < "$LOG_FILE"
+            ui_pager_numbered <"$LOG_FILE"
         fi
     fi
 }

@@ -43,7 +43,7 @@ DASHBOARD_SPINNER="MOON"
 # Use emoji variables for proper VS16 handling across terminals
 declare -A CATEGORY_ICON=(
     [disk]="$EMOJI_DISK"
-    [service]="$EMOJI_CPU"
+    [service]="$EMOJI_SERVICE"
     [rgb]="$EMOJI_RGB"
     [package]="$EMOJI_PACKAGE"
 )
@@ -90,11 +90,11 @@ ui_box_double --width "$FRAME_WIDTH" --padding "1 3" --border-foreground "$NEON_
     "${NEON_CYAN}${BOLD}🔧 OpenRGB / OpenLinkHub Fix Script ${NEON_PINK}v2.0${RESET}" \
     "" \
     "This script will:" \
-    "  • ${NEON_YELLOW}Spin down disk${RESET} and restart ${BOLD}OpenLinkHub${RESET} ⚡" \
-    "  • ${NEON_GREEN}Initialize RGB devices${RESET} via ${BOLD}OpenRGB${RESET} 🌈" \
-    "  • ${NEON_PURPLE}Update system packages${RESET} (*apt, snap, flatpak*) 📦" \
+    "  • ${NEON_YELLOW}Spin down disk${RESET} and restart ${BOLD}OpenLinkHub${RESET} ${EMOJI_SERVICE}" \
+    "  • ${NEON_GREEN}Initialize RGB devices${RESET} via ${BOLD}OpenRGB${RESET} ${EMOJI_RGB}" \
+    "  • ${NEON_PURPLE}Update system packages${RESET} (*apt, snap, flatpak*) ${EMOJI_PACKAGE}" \
     "" \
-    "🚨 ${NEON_RED}${BOLD}Requires sudo privileges${RESET}"
+    "${EMOJI_ALERT} ${NEON_RED}${BOLD}Requires sudo privileges${RESET}"
 
 echo ""
 if ! ui_confirm "Do you want to proceed?"; then
@@ -110,7 +110,7 @@ dashboard_init "$(ui_format_template "{{ Bold \"${NEON_CYAN}OpenRGB${RESET} / ${
 
 # Add steps to dashboard
 for i in "${!STEP_DEFS[@]}"; do
-    IFS='|' read -r category title <<< "${STEP_DEFS[$i]}"
+    IFS='|' read -r category title <<<"${STEP_DEFS[$i]}"
     dashboard_add_step "${CATEGORY_ICON[$category]} $title"
 done
 
@@ -129,7 +129,10 @@ if ui_confirm "Do you want to select which steps to run?" --default=false; then
     choices=$(echo -n "$choices" | head -c -1)
 
     # Pre-select all steps
-    preselected=$(IFS=,; echo "${DASHBOARD_STEPS[*]}")
+    preselected=$(
+        IFS=,
+        echo "${DASHBOARD_STEPS[*]}"
+    )
 
     selected=$(ui_choose_multi "${DASHBOARD_STEPS[@]}" \
         --selected="$preselected" \
@@ -201,13 +204,13 @@ if $has_failure; then
         echo ""
         ui_box --width "$FRAME_WIDTH" --padding "0 2" "📋 Log: $LOG_FILE"
         echo ""
-        ui_pager_numbered < "$LOG_FILE"
+        ui_pager_numbered <"$LOG_FILE"
     fi
 else
     if ui_confirm "View log file?" --affirmative "Yes" --negative "No" --default=false; then
         echo ""
         ui_box --width "$FRAME_WIDTH" --padding "0 2" "📋 Log: $LOG_FILE"
         echo ""
-        ui_pager_numbered < "$LOG_FILE"
+        ui_pager_numbered <"$LOG_FILE"
     fi
 fi

@@ -1,5 +1,68 @@
-# Funny Gums
+# Funny Gums 🚀
 
+**Modular, Hierarchical Bash Library for Stunning Terminal UIs.**
+
+Funny Gums is a professional-grade Bash toolkit designed to build complex, responsive, and visually rich terminal applications. It bridges the gap between simple shell scripts and full-blown TUIs by providing a layered architecture powered by [gum](https://github.com/charmbracelet/gum).
+
+---
+
+## Key Features ✨
+
+- 🧱 **3-Tier Architecture**: Core foundational utilities, generic UI widgets, and domain-specific system modules.
+- 🎨 **Rich Aesthetics**: 256-color support, neon palettes, and curated visual styles.
+- 🧪 **Robust Testing**: 300+ automated unit tests ensuring stability across shell environments.
+- 🎭 **Emoji Awareness**: Sophisticated 3-tier emoji degradation logic (VS16/ZWJ support).
+- ⚙️ **Hardware Metrics**: Integrated wrappers for `inxi`, `nvidia-smi`, `smartctl`, and more.
+
+---
+
+## Quick Start 🏎️
+
+### 1. Install Dependencies
+Funny Gums requires `gum`. Most systems also benefit from `inxi` and `lm-sensors`.
+
+```bash
+# Ubuntu/Debian
+sudo apt install gum inxi lm-sensors
+```
+
+### 2. Write Your First Script
+```bash
+#!/usr/bin/env bash
+source ./funny_gums.sh
+
+ui_box "Welcome" "Funny Gums is ready!"
+cpu_temp=$(get_cpu_temp_live)
+echo "Mainframe Temperature: ${cpu_temp}°C"
+```
+
+---
+
+## Documentation 📖
+
+| Resource | Description |
+|----------|-------------|
+| 📖 **[User Guide](docs/USER-GUIDE.md)** | Comprehensive reference for all modules. |
+| 🚀 **[Getting Started](docs/GETTING-STARTED.md)** | Step-by-step installation and basic patterns. |
+| 🏛️ **[Architecture](docs/ARCHITECTURE.md)** | Deep dive into the tiered design and dependency chain. |
+| 💡 **[Examples](docs/EXAMPLES.md)** | Walkthroughs of the `examples/` directory. |
+
+---
+
+## Project Structure 📂
+
+```text
+lib/
+├── core/ 🧱 - Foundation: Colors, Text, Logging, Sudo
+├── ui/   📦 - Visualization: Boxes, Gauges, Tables, Inputs
+├── mod/  ⚙️ - Domain: CPU, GPU, Storage, Network
+└── app/  🏗️ - Logic: Dashboards and Command Runners
+```
+
+---
+
+## License 📜
+MIT License. See [LICENSE](LICENSE) for details.
 [![Tests](https://github.com/ksokolowski/funny_gums/actions/workflows/test.yml/badge.svg)](https://github.com/ksokolowski/funny_gums/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -47,8 +110,12 @@ source /path/to/funny_gums/funny_gums.sh
 
 ### Source individual modules
 ```bash
-source /path/to/funny_gums/lib/core/colors.sh
-source /path/to/funny_gums/lib/ui/ui.sh
+# Core utils
+source /path/to/funny_gums/lib/core/term/colors.sh
+source /path/to/funny_gums/lib/core/text/text.sh
+
+# UI components
+source /path/to/funny_gums/lib/ui/layout/ui.sh
 ```
 
 ### Quick examples
@@ -151,26 +218,20 @@ echo "$EMOJI_SUCCESS Done!"            # ✅ (works everywhere)
 funny_gums/
 ├── funny_gums.sh       # Entry point - sources all modules
 ├── lib/
-│   ├── core/           # Foundation modules
-│   │   ├── colors.sh   # ANSI color variables
-│   │   ├── cursor.sh   # Cursor control functions
-│   │   ├── spinner.sh  # Spinner animation presets
-│   │   ├── logging.sh  # Structured logging
-│   │   └── sudo.sh     # Sudo management
-│   ├── ui/             # UI component modules
-│   │   ├── ui.sh       # Loader for all UI modules
-│   │   ├── base.sh     # Box, success, error, warn, info
-│   │   ├── input.sh    # Input, choose, confirm
-│   │   ├── gauge.sh    # Progress bars, minibars
-│   │   └── ...
-│   ├── system/         # System monitoring modules
-│   │   ├── system.sh   # Loader for all system modules
-│   │   ├── cpu.sh      # CPU metrics
-│   │   ├── memory.sh   # Memory metrics
-│   │   └── ...
-│   └── dashboard/      # Dashboard modules
-│       ├── dashboard.sh
-│       └── runner.sh
+│   ├── core/           # Foundational utilities
+│   │   ├── term/       # Colors, cursor, terminal
+│   │   ├── text/       # Visual width, emojis
+│   │   └── sh/         # Logging, sudo, deps
+│   ├── ui/             # Visualization widgets
+│   │   ├── layout/     # Core formatting, boxes
+│   │   ├── widgets/    # Gauges, tables, spinners
+│   │   └── interaction/ # Inputs, fuzzy select
+│   ├── mod/            # Domain-specific modules
+│   │   ├── hw/         # CPU, GPU, RAM, Sensors
+│   │   ├── os/         # power, lspci, dmidecode
+│   │   ├── storage/    # smartctl, hdparm
+│   │   └── net/        # network info/ui
+│   └── app/            # Application logic (Dashboard)
 ├── examples/           # Example scripts
 └── tests/              # Test suite
 ```

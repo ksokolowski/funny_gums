@@ -4,7 +4,7 @@
 test_file_start "hdparm.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/system/hdparm.sh"
+source "$PROJECT_DIR/lib/mod/storage/hdparm.sh"
 
 # Test that guard variable is set
 assert_var_defined "_SYSTEM_HDPARM_LOADED"

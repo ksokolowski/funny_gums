@@ -16,7 +16,7 @@ source "$SCRIPT_DIR/framework.sh"
 ################################################################################
 
 test_file_start "terminal.sh"
-source "$PROJECT_DIR/lib/core/terminal.sh"
+source "$PROJECT_DIR/lib/core/term/terminal.sh"
 
 # Test function existence
 assert_function_exists "is_modern_terminal"
@@ -88,7 +88,7 @@ TERMINAL_MODE="modern"
 ################################################################################
 
 test_file_start "emoji_data.sh"
-source "$PROJECT_DIR/lib/core/emoji_data.sh"
+source "$PROJECT_DIR/lib/core/text/emoji_data.sh"
 
 assert_function_exists "emoji_width"
 assert_function_exists "has_vs16"
@@ -105,9 +105,9 @@ assert_eq "1" "$(emoji_width "▶")" "Play symbol (no VS16) should have width 1"
 
 # Build VS16 emojis programmatically to avoid encoding issues
 # Use printf for base characters too to ensure consistent encoding
-GEAR_BASE=$(printf '\xe2\x9a\x99')   # U+2699 GEAR
-PLAY_BASE=$(printf '\xe2\x96\xb6')   # U+25B6 BLACK RIGHT-POINTING TRIANGLE
-NEXT_BASE=$(printf '\xe2\x8f\xad')   # U+23ED BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR
+GEAR_BASE=$(printf '\xe2\x9a\x99') # U+2699 GEAR
+PLAY_BASE=$(printf '\xe2\x96\xb6') # U+25B6 BLACK RIGHT-POINTING TRIANGLE
+NEXT_BASE=$(printf '\xe2\x8f\xad') # U+23ED BLACK RIGHT-POINTING DOUBLE TRIANGLE WITH VERTICAL BAR
 GEAR_VS16="${GEAR_BASE}${VS16}"
 PLAY_VS16="${PLAY_BASE}${VS16}"
 NEXT_VS16="${NEXT_BASE}${VS16}"
@@ -141,7 +141,7 @@ assert_eq "no" "$result" "has_zwj should not detect ZWJ in wrench emoji"
 ################################################################################
 
 test_file_start "emoji_registry.sh"
-source "$PROJECT_DIR/lib/core/emoji_registry.sh"
+source "$PROJECT_DIR/lib/core/text/emoji_registry.sh"
 
 assert_function_exists "emoji"
 assert_function_exists "emoji_variant"
@@ -192,9 +192,9 @@ result=$(emoji "WARNING")
 assert_eq "$warning_legacy" "$result" "emoji() should return legacy variant when capability is legacy"
 
 # Test strip_vs16
-vs16_text=$'\xe2\x9a\xa0\xef\xb8\x8f'  # ⚠️
+vs16_text=$'\xe2\x9a\xa0\xef\xb8\x8f' # ⚠️
 stripped=$(strip_vs16 "$vs16_text")
-expected=$'\xe2\x9a\xa0'  # ⚠ (no VS16)
+expected=$'\xe2\x9a\xa0' # ⚠ (no VS16)
 assert_eq "$expected" "$stripped" "strip_vs16 should remove VS16 bytes"
 
 # Test _export_emoji_vars sets EMOJI_ variables
@@ -212,7 +212,7 @@ TERMINAL_MODE="modern"
 ################################################################################
 
 test_file_start "text.sh"
-source "$PROJECT_DIR/lib/core/text.sh"
+source "$PROJECT_DIR/lib/core/text/text.sh"
 
 assert_function_exists "strip_ansi"
 assert_function_exists "visual_width"
@@ -225,9 +225,9 @@ assert_function_exists "terminal_safe_text"
 assert_function_exists "fix_vte_vs16"
 
 # Test strip_vs16 from text.sh (duplicate in emoji_registry.sh for convenience)
-vs16_emoji=$'\xe2\x9a\xa0\xef\xb8\x8f'  # ⚠️
+vs16_emoji=$'\xe2\x9a\xa0\xef\xb8\x8f' # ⚠️
 result=$(strip_vs16 "$vs16_emoji")
-expected=$'\xe2\x9a\xa0'  # ⚠
+expected=$'\xe2\x9a\xa0' # ⚠
 assert_eq "$expected" "$result" "strip_vs16 should remove VS16 from emoji"
 
 # Test terminal_safe_text

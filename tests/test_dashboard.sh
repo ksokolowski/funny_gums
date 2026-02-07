@@ -4,7 +4,7 @@
 test_file_start "dashboard.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/dashboard/dashboard.sh"
+source "$PROJECT_DIR/lib/app/dashboard.sh"
 
 # Test that dashboard functions exist
 assert_function_exists "dashboard_init"

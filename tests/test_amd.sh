@@ -4,7 +4,7 @@
 test_file_start "amd.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/system/amd.sh"
+source "$PROJECT_DIR/lib/mod/hw/amd.sh"
 
 # Test that guard variable is set
 assert_var_defined "_SYSTEM_AMD_LOADED"

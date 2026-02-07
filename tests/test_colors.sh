@@ -4,7 +4,7 @@
 test_file_start "colors.sh"
 
 # Source the module
-source "$PROJECT_DIR/lib/core/colors.sh"
+source "$PROJECT_DIR/lib/core/term/colors.sh"
 
 # Test that color variables are defined
 assert_var_defined "RED"

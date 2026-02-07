@@ -12,7 +12,11 @@ source "$SCRIPT_DIR/framework.sh"
 test_file_start "sensors_parsing.sh"
 
 # Source colors for mock functions
-source "$PROJECT_DIR/lib/core/colors.sh"
+source "$PROJECT_DIR/lib/core/term/colors.sh"
+
+# Reset state and mocks
+_SENSORS_CACHE=""
+unset -f sensors
 
 # Mock sensors command
 sensors() {
@@ -77,7 +81,7 @@ EOF
 sensors_available() { return 0; }
 
 # Source library under test
-source "$PROJECT_DIR/lib/system/sensors.sh"
+source "$PROJECT_DIR/lib/mod/hw/sensors.sh"
 
 # Test CPU Temp Selection (k10temp)
 # Should prefer Tctl over Tccd1
@@ -128,22 +132,50 @@ assert_eq "53.9" "$temp" "NVMe 0200 temp should be Composite (53.9)"
 temps=$(sensors_get_ram_temps)
 ((TESTS_RUN++))
 if [[ "$temps" == *"50.2"* ]] && [[ "$temps" == *"49.5"* ]]; then
-     echo "  ${GREEN}✓${RESET} Found RAM temps (50.2, 49.5)"
-     ((TESTS_PASSED++))
+    echo "  ${GREEN}✓${RESET} Found RAM temps (50.2, 49.5)"
+    ((TESTS_PASSED++))
 else
-     echo "  ${RED}✗${RESET} Missing RAM temps (got: $temps)"
-     ((TESTS_FAILED++))
-     FAILED_TESTS+=("sensors_parsing.sh: Should extract RAM temps")
+    echo "  ${RED}✗${RESET} Missing RAM temps (got: $temps)"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("sensors_parsing.sh: Should extract RAM temps")
 fi
 
 # Test Network Temp Extraction
 temps=$(sensors_get_network_temps)
 ((TESTS_RUN++))
 if [[ "$temps" == *"59.0"* ]]; then
-     echo "  ${GREEN}✓${RESET} Found Network temp (59.0)"
-     ((TESTS_PASSED++))
+    echo "  ${GREEN}✓${RESET} Found Network temp (59.0)"
+    ((TESTS_PASSED++))
 else
-     echo "  ${RED}✗${RESET} Missing Network temp (got: $temps)"
-     ((TESTS_FAILED++))
-     FAILED_TESTS+=("sensors_parsing.sh: Should extract network temp")
+    echo "  ${RED}✗${RESET} Missing Network temp (got: $temps)"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("sensors_parsing.sh: Should extract network temp")
+fi
+# Test sensors_get_all_temps format
+all_temps=$(sensors_get_all_temps)
+((TESTS_RUN++))
+if [[ -n "$all_temps" ]]; then
+    echo "  ${GREEN}✓${RESET} sensors_get_all_temps returned data"
+    ((TESTS_PASSED++))
+
+    # Check specific format (chip|sensor|temp)
+    if [[ "$all_temps" == *"spd5118|temp1|+50.2"* ]]; then
+        echo "    ${GREEN}✓${RESET} Found expected spd5118 entry"
+    else
+        echo "    ${RED}✗${RESET} Missing spd5118 entry or wrong format"
+        ((TESTS_FAILED++))
+        FAILED_TESTS+=("sensors_parsing.sh: sensors_get_all_temps missing spd5118")
+    fi
+
+    if [[ "$all_temps" == *"k10temp|Tctl|+46.6"* ]]; then
+        echo "    ${GREEN}✓${RESET} Found expected k10temp entry"
+    else
+        echo "    ${RED}✗${RESET} Missing k10temp entry or wrong format"
+        ((TESTS_FAILED++))
+        FAILED_TESTS+=("sensors_parsing.sh: sensors_get_all_temps missing k10temp")
+    fi
+else
+    echo "  ${RED}✗${RESET} sensors_get_all_temps returned no data"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("sensors_parsing.sh: sensors_get_all_temps should not be empty")
 fi
