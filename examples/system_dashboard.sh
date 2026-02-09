@@ -7,51 +7,51 @@ set -u
 ################################################################################
 # CONFIGURATION
 ################################################################################
-REFRESH_INTERVAL=5           # Sensor refresh interval in seconds
-MIN_COLS=100                 # Minimum terminal width required
-MIN_ROWS=30                  # Minimum terminal height required
-NAV_PANEL_WIDTH=22           # Width of left navigation panel
+REFRESH_INTERVAL=5 # Sensor refresh interval in seconds
+MIN_COLS=100       # Minimum terminal width required
+MIN_ROWS=30        # Minimum terminal height required
+NAV_PANEL_WIDTH=22 # Width of left navigation panel
 INXI_GITHUB="https://github.com/smxi/inxi"
 
 # Threshold configuration (centralized for easy tuning)
-RESOURCE_WARN=70             # Warning threshold for CPU/RAM/Disk (%)
-RESOURCE_CRIT=90             # Critical threshold for CPU/RAM/Disk (%)
-SWAP_WARN=50                 # Warning threshold for swap (%)
-SWAP_CRIT=80                 # Critical threshold for swap (%)
-TEMP_WARN=70                 # Warning threshold for temps (°C)
-TEMP_CRIT=85                 # Critical threshold for temps (°C)
+RESOURCE_WARN=70 # Warning threshold for CPU/RAM/Disk (%)
+RESOURCE_CRIT=90 # Critical threshold for CPU/RAM/Disk (%)
+SWAP_WARN=50     # Warning threshold for swap (%)
+SWAP_CRIT=80     # Critical threshold for swap (%)
+TEMP_WARN=70     # Warning threshold for temps (°C)
+TEMP_CRIT=85     # Critical threshold for temps (°C)
 
 ################################################################################
 # COLOR THEME (semantic colors for consistent styling)
 ################################################################################
 # Panel section headers
-CLR_HEADER=$'\e[1;38;5;39m'       # Bold cyan - section titles
-CLR_SUBHEADER=$'\e[38;5;147m'     # Light purple - subsection titles
+CLR_HEADER=$'\e[1;38;5;39m'   # Bold cyan - section titles
+CLR_SUBHEADER=$'\e[38;5;147m' # Light purple - subsection titles
 
 # Labels and values
-CLR_LABEL=$'\e[38;5;245m'         # Gray - field labels
-CLR_VALUE=$'\e[38;5;255m'         # Bright white - normal values
-CLR_HIGHLIGHT=$'\e[38;5;51m'      # Cyan - highlighted values
-CLR_ACCENT=$'\e[38;5;213m'        # Pink - accent values
+CLR_LABEL=$'\e[38;5;245m'    # Gray - field labels
+CLR_VALUE=$'\e[38;5;255m'    # Bright white - normal values
+CLR_HIGHLIGHT=$'\e[38;5;51m' # Cyan - highlighted values
+CLR_ACCENT=$'\e[38;5;213m'   # Pink - accent values
 
 # Status indicators
-CLR_GOOD=$'\e[38;5;46m'           # Green - healthy/good status
-CLR_WARN=$'\e[38;5;220m'          # Yellow/Orange - warning status
-CLR_CRIT=$'\e[38;5;196m'          # Red - critical status
-CLR_INFO=$'\e[38;5;39m'           # Blue - informational
+CLR_GOOD=$'\e[38;5;46m'  # Green - healthy/good status
+CLR_WARN=$'\e[38;5;220m' # Yellow/Orange - warning status
+CLR_CRIT=$'\e[38;5;196m' # Red - critical status
+CLR_INFO=$'\e[38;5;39m'  # Blue - informational
 
 # Hardware types
-CLR_CPU=$'\e[38;5;208m'           # Orange - CPU related
-CLR_GPU=$'\e[38;5;46m'            # Green - GPU related
-CLR_MEM=$'\e[38;5;141m'           # Purple - Memory related
-CLR_DISK=$'\e[38;5;39m'           # Blue - Storage related
-CLR_NET=$'\e[38;5;45m'            # Cyan - Network related
-CLR_POWER=$'\e[38;5;226m'         # Yellow - Power related
+CLR_CPU=$'\e[38;5;208m'   # Orange - CPU related
+CLR_GPU=$'\e[38;5;46m'    # Green - GPU related
+CLR_MEM=$'\e[38;5;141m'   # Purple - Memory related
+CLR_DISK=$'\e[38;5;39m'   # Blue - Storage related
+CLR_NET=$'\e[38;5;45m'    # Cyan - Network related
+CLR_POWER=$'\e[38;5;226m' # Yellow - Power related
 
 # Decorative
-CLR_BORDER=$'\e[38;5;240m'        # Dark gray - borders/separators
-CLR_DIM=$'\e[38;5;242m'           # Dim gray - less important info
-CLR_ICON=$'\e[38;5;117m'          # Light blue - icons
+CLR_BORDER=$'\e[38;5;240m' # Dark gray - borders/separators
+CLR_DIM=$'\e[38;5;242m'    # Dim gray - less important info
+CLR_ICON=$'\e[38;5;117m'   # Light blue - icons
 
 ################################################################################
 # PATH RESOLUTION (supports symlinks)
@@ -77,13 +77,13 @@ detect_terminal_mode
 ################################################################################
 # STATE VARIABLES
 ################################################################################
-CURRENT_CATEGORY=0           # Currently selected category index (0-7)
-VIEW_MODE="overview"         # "overview" or "detail"
-AUTO_REFRESH=true            # Toggle with 'A' key
-INXI_CACHE=""                # Cached inxi output
-TERM_COLS=0                  # Terminal columns
-TERM_ROWS=0                  # Terminal rows
-LAST_SENSOR_UPDATE=""        # Timestamp of last sensor update
+CURRENT_CATEGORY=0    # Currently selected category index (0-7)
+VIEW_MODE="overview"  # "overview" or "detail"
+AUTO_REFRESH=true     # Toggle with 'A' key
+INXI_CACHE=""         # Cached inxi output
+TERM_COLS=0           # Terminal columns
+TERM_ROWS=0           # Terminal rows
+LAST_SENSOR_UPDATE="" # Timestamp of last sensor update
 
 # Live metrics cache (updated on refresh)
 LIVE_CPU_PERCENT=0
@@ -237,12 +237,12 @@ refresh_live_metrics() {
     LIVE_CPU_PERCENT=$(get_cpu_usage_live)
 
     # Memory (raw + pre-formatted)
-    read -r LIVE_MEM_USED_KB LIVE_MEM_TOTAL_KB LIVE_MEM_PERCENT <<< "$(get_memory_usage_live)"
+    read -r LIVE_MEM_USED_KB LIVE_MEM_TOTAL_KB LIVE_MEM_PERCENT <<<"$(get_memory_usage_live)"
     LIVE_MEM_USED_HR=$(format_kb "$LIVE_MEM_USED_KB")
     LIVE_MEM_TOTAL_HR=$(format_kb "$LIVE_MEM_TOTAL_KB")
 
     # Swap (raw + pre-formatted)
-    read -r LIVE_SWAP_USED_KB LIVE_SWAP_TOTAL_KB LIVE_SWAP_PERCENT <<< "$(get_swap_usage_live)"
+    read -r LIVE_SWAP_USED_KB LIVE_SWAP_TOTAL_KB LIVE_SWAP_PERCENT <<<"$(get_swap_usage_live)"
     if [[ "$LIVE_SWAP_TOTAL_KB" -gt 0 ]]; then
         LIVE_SWAP_USED_HR=$(format_kb "$LIVE_SWAP_USED_KB")
         LIVE_SWAP_TOTAL_HR=$(format_kb "$LIVE_SWAP_TOTAL_KB")
@@ -253,7 +253,7 @@ refresh_live_metrics() {
 
     # Root disk
     local disk_used disk_total
-    read -r disk_used disk_total LIVE_DISK_PERCENT <<< "$(get_root_disk_usage_live)"
+    read -r disk_used disk_total LIVE_DISK_PERCENT <<<"$(get_root_disk_usage_live)"
     LIVE_DISK_USED=$(format_bytes "$disk_used")
     LIVE_DISK_TOTAL=$(format_bytes "$disk_total")
 
@@ -297,14 +297,14 @@ refresh_live_metrics() {
         LIVE_GPU_FAN=$(nvidia_get_fan_speed 2>/dev/null)
         LIVE_GPU_DRIVER=$(nvidia_get_driver_version 2>/dev/null)
         local vram_used vram_total
-        read -r vram_used vram_total <<< "$(nvidia_get_memory_usage 2>/dev/null)"
+        read -r vram_used vram_total <<<"$(nvidia_get_memory_usage 2>/dev/null)"
         if [[ -n "$vram_used" && -n "$vram_total" ]]; then
             LIVE_GPU_VRAM_USED="${vram_used} MiB"
             LIVE_GPU_VRAM_TOTAL="${vram_total} MiB"
         fi
         # GPU clock speeds
         local gpu_clk mem_clk
-        read -r gpu_clk mem_clk <<< "$(nvidia_get_clocks 2>/dev/null)"
+        read -r gpu_clk mem_clk <<<"$(nvidia_get_clocks 2>/dev/null)"
         LIVE_GPU_CLOCK_CORE="$gpu_clk"
         LIVE_GPU_CLOCK_MEM="$mem_clk"
     elif amd_gpu_available; then
@@ -312,7 +312,7 @@ refresh_live_metrics() {
         LIVE_GPU_POWER=$(amd_get_power 2>/dev/null)
         LIVE_GPU_FAN=$(amd_get_fan_speed 2>/dev/null)
         local vram_used vram_total
-        read -r vram_used vram_total <<< "$(amd_get_vram_usage 2>/dev/null)"
+        read -r vram_used vram_total <<<"$(amd_get_vram_usage 2>/dev/null)"
         if [[ -n "$vram_used" && -n "$vram_total" ]]; then
             LIVE_GPU_VRAM_USED=$(format_bytes "$vram_used")
             LIVE_GPU_VRAM_TOTAL=$(format_bytes "$vram_total")
@@ -353,109 +353,109 @@ get_category_content() {
     local cat_idx="$1"
     local cat_def="${CATEGORIES[$cat_idx]}"
     local cat_name cat_icon cat_section
-    IFS='|' read -r cat_name cat_icon cat_section <<< "$cat_def"
+    IFS='|' read -r cat_name cat_icon cat_section <<<"$cat_def"
 
     case "$cat_section" in
-        "System")   inxi_parse_system_csv ;;
-        "Motherboard")
-            echo "Item,Value"
-            if dmidecode_available; then
-                echo "Board Vendor,${DMI_BOARD_VENDOR:-N/A}"
-                echo "Board Name,${DMI_BOARD_NAME:-N/A}"
-                echo "BIOS Vendor,${DMI_BIOS_VENDOR:-N/A}"
-                echo "BIOS Version,${DMI_BIOS_VERSION:-N/A}"
-                echo "BIOS Date,${DMI_BIOS_DATE:-N/A}"
-                echo "Chassis Type,${DMI_CHASSIS_TYPE:-N/A}"
-            else
-                echo "Status,dmidecode not available"
-            fi
-            ;;
-        "CPU")      inxi_parse_cpu_csv ;;
-        "Memory")
-            echo "Item,Value"
-            # Parse memory info including configured speed
-            if dmidecode_available; then
-                dmidecode_get_memory_info | while IFS='|' read -r slot channel size type speed mfr conf_speed; do
-                     [[ "$size" == "No Module Installed" ]] && continue
-                     echo "Slot,$slot (Channel $channel)"
-                     echo "Size,$size"
-                     echo "Type,$type"
-                     echo "Speed,${speed} (Configured: ${conf_speed})"
-                     echo "Manufacturer,$mfr"
-                     echo "---,---"
-                done
-            else
-                inxi_parse_memory_csv
-            fi
-            ;;
-        "Drives")
-            echo "Item,Value"
-            inxi_get_section "Drives" | sed '1d' | sed 's/^[[:space:]]*//' | while read -r line; do
-                [[ -n "$line" ]] && echo "$line" | sed 's/: /,/' | head -1
+    "System") inxi_parse_system_csv ;;
+    "Motherboard")
+        echo "Item,Value"
+        if dmidecode_available; then
+            echo "Board Vendor,${DMI_BOARD_VENDOR:-N/A}"
+            echo "Board Name,${DMI_BOARD_NAME:-N/A}"
+            echo "BIOS Vendor,${DMI_BIOS_VENDOR:-N/A}"
+            echo "BIOS Version,${DMI_BIOS_VERSION:-N/A}"
+            echo "BIOS Date,${DMI_BIOS_DATE:-N/A}"
+            echo "Chassis Type,${DMI_CHASSIS_TYPE:-N/A}"
+        else
+            echo "Status,dmidecode not available"
+        fi
+        ;;
+    "CPU") inxi_parse_cpu_csv ;;
+    "Memory")
+        echo "Item,Value"
+        # Parse memory info including configured speed
+        if dmidecode_available; then
+            dmidecode_get_memory_info | while IFS='|' read -r slot channel size type speed mfr conf_speed; do
+                [[ "$size" == "No Module Installed" ]] && continue
+                echo "Slot,$slot (Channel $channel)"
+                echo "Size,$size"
+                echo "Type,$type"
+                echo "Speed,${speed} (Configured: ${conf_speed})"
+                echo "Manufacturer,$mfr"
+                echo "---,---"
             done
+        else
+            inxi_parse_memory_csv
+        fi
+        ;;
+    "Drives")
+        echo "Item,Value"
+        inxi_get_section "Drives" | sed '1d' | sed 's/^[[:space:]]*//' | while read -r line; do
+            [[ -n "$line" ]] && echo "$line" | sed 's/: /,/' | head -1
+        done
+        echo ""
+        echo "Partitions:"
+        inxi_parse_partition_csv
+        ;;
+    "Graphics") inxi_parse_graphics_csv ;;
+    "Audio") inxi_parse_audio_csv ;;
+    "Network")
+        inxi_parse_network_csv
+
+        # Network Temperatures
+        local net_temps
+        net_temps=$(sensors_get_network_temps)
+        if [[ -n "$net_temps" ]]; then
             echo ""
-            echo "Partitions:"
-            inxi_parse_partition_csv
-            ;;
-        "Graphics") inxi_parse_graphics_csv ;;
-        "Audio")    inxi_parse_audio_csv ;;
-        "Network")
-            inxi_parse_network_csv
-            
-            # Network Temperatures
-            local net_temps
-            net_temps=$(sensors_get_network_temps)
-            if [[ -n "$net_temps" ]]; then
-                echo ""
-                echo "Temperatures,Values" # Header for CSV-like parsing if re-used or just appending check
-                # Actually inxi_parse_network_csv likely outputs a built stream or similar. 
-                # System dashboard uses `get_category_content` which outputs CSV or lines?
-                # Ah, `inxi_parse_network_csv` probably outputs styled text or CSV?
-                # Let's check `get_category_content` structure.
-                # It seems `inxi_parse_*` functions handle the output.
-                # Since we can't easily append to inxi's output table structure defined elsewhere,
-                # we'll just print a separate section label if needed or just lines.
-                # But wait, `build_system_panel` and others consume this output.
-                # `get_category_content` is called by `build_*_panel`?? 
-                # No, `build_graphics_panel` etc seem to build their own.
-                # `get_category_content` seems to be used for the "Details" sub-section of panels.
-                
-                # So we should modify `build_network_panel` if it exists, or update `inxi_parse_network_csv` 
-                # but that's in `system.sh` probably?
-                
-                # Let's just output it here as Key,Value which `get_category_content` callers seem to expect (CSV format).
-                local i=1
-                for temp in $net_temps; do
-                    echo "Temp (Sensor $i),${temp}°C"
-                    ((i++))
-                done
-            fi
-            ;;
-        "Power")
-            echo "Item,Value"
-            if power_available; then
-                if power_on_ac; then
-                    echo "Power Source,AC Adapter"
-                else
-                    echo "Power Source,Battery"
-                fi
-                if power_has_battery; then
-                    echo "Battery Level,${POWER_BATTERY_PERCENT:-?}%"
-                    echo "Battery Status,${POWER_BATTERY_STATUS:-Unknown}"
-                    [[ -n "${POWER_BATTERY_TIME:-}" ]] && echo "Time Remaining,$POWER_BATTERY_TIME"
-                    [[ -n "${POWER_BATTERY_HEALTH:-}" ]] && echo "Battery Health,$POWER_BATTERY_HEALTH%"
-                else
-                    echo "Battery,Not present"
-                fi
+            echo "Temperatures,Values" # Header for CSV-like parsing if re-used or just appending check
+            # Actually inxi_parse_network_csv likely outputs a built stream or similar.
+            # System dashboard uses `get_category_content` which outputs CSV or lines?
+            # Ah, `inxi_parse_network_csv` probably outputs styled text or CSV?
+            # Let's check `get_category_content` structure.
+            # It seems `inxi_parse_*` functions handle the output.
+            # Since we can't easily append to inxi's output table structure defined elsewhere,
+            # we'll just print a separate section label if needed or just lines.
+            # But wait, `build_system_panel` and others consume this output.
+            # `get_category_content` is called by `build_*_panel`??
+            # No, `build_graphics_panel` etc seem to build their own.
+            # `get_category_content` seems to be used for the "Details" sub-section of panels.
+
+            # So we should modify `build_network_panel` if it exists, or update `inxi_parse_network_csv`
+            # but that's in `system.sh` probably?
+
+            # Let's just output it here as Key,Value which `get_category_content` callers seem to expect (CSV format).
+            local i=1
+            for temp in $net_temps; do
+                echo "Temp (Sensor $i),${temp}°C"
+                ((i++))
+            done
+        fi
+        ;;
+    "Power")
+        echo "Item,Value"
+        if power_available; then
+            if power_on_ac; then
+                echo "Power Source,AC Adapter"
             else
-                echo "Status,Power tools not available"
+                echo "Power Source,Battery"
             fi
-            ;;
-        "Sensors")  inxi_parse_sensors_csv ;;
-        *)
-            echo "Item,Value"
-            echo "Info,No data available"
-            ;;
+            if power_has_battery; then
+                echo "Battery Level,${POWER_BATTERY_PERCENT:-?}%"
+                echo "Battery Status,${POWER_BATTERY_STATUS:-Unknown}"
+                [[ -n "${POWER_BATTERY_TIME:-}" ]] && echo "Time Remaining,$POWER_BATTERY_TIME"
+                [[ -n "${POWER_BATTERY_HEALTH:-}" ]] && echo "Battery Health,$POWER_BATTERY_HEALTH%"
+            else
+                echo "Battery,Not present"
+            fi
+        else
+            echo "Status,Power tools not available"
+        fi
+        ;;
+    "Sensors") inxi_parse_sensors_csv ;;
+    *)
+        echo "Item,Value"
+        echo "Info,No data available"
+        ;;
     esac
 }
 
@@ -473,7 +473,7 @@ build_header() {
     else
         local cat_def="${CATEGORIES[$CURRENT_CATEGORY]}"
         local cat_name cat_icon
-        IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
+        IFS='|' read -r cat_name cat_icon _ <<<"$cat_def"
         mode_indicator="$cat_icon $cat_name"
     fi
 
@@ -500,7 +500,7 @@ build_nav_panel() {
 
     for cat_def in "${CATEGORIES[@]}"; do
         local cat_name cat_icon
-        IFS='|' read -r cat_name cat_icon _ <<< "$cat_def"
+        IFS='|' read -r cat_name cat_icon _ <<<"$cat_def"
 
         if [[ $i -eq $CURRENT_CATEGORY ]]; then
             lines+="  ${NEON_CYAN}▶ $cat_icon $cat_name${RESET}\n"
@@ -639,7 +639,7 @@ build_cpu_panel() {
     if [[ ${#LIVE_ALL_TEMPS[@]} -gt 0 ]]; then
         local has_core_temps=false
         for temp_data in "${LIVE_ALL_TEMPS[@]}"; do
-            IFS='|' read -r chip sensor temp <<< "$temp_data"
+            IFS='|' read -r chip sensor temp <<<"$temp_data"
             if [[ "$sensor" == Core* ]]; then
                 if ! $has_core_temps; then
                     content+="${CLR_SUBHEADER}Core Temperatures${RESET}\n"
@@ -657,7 +657,7 @@ build_cpu_panel() {
     content+="${CLR_SUBHEADER}Details${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
     local cpu_details
-    cpu_details=$(get_category_content 2 | tail -n +2 | head -10 | \
+    cpu_details=$(get_category_content 2 | tail -n +2 | head -10 |
         awk -F',' '{if(NF>=2) printf "  \033[38;5;245m%-12s\033[0m %s\n", $1":", $2}')
     content+="$cpu_details"
 
@@ -716,7 +716,7 @@ build_memory_panel() {
     content+="${CLR_SUBHEADER}Details${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
     local mem_details
-    mem_details=$(get_category_content 3 | tail -n +2 | head -10 | \
+    mem_details=$(get_category_content 3 | tail -n +2 | head -10 |
         awk -F',' '{if(NF>=2) printf "  \033[38;5;245m%-12s\033[0m \033[38;5;141m%s\033[0m\n", $1":", $2}')
     content+="$mem_details"
 
@@ -739,10 +739,22 @@ build_storage_panel() {
         size_hr=$(format_bytes "$size_bytes")
 
         case "$drive_type" in
-            nvme) icon="⚡"; type_color="${CLR_GOOD}" ;;
-            ssd)  icon="💾"; type_color="${CLR_INFO}" ;;
-            hdd)  icon="💿"; type_color="${CLR_WARN}" ;;
-            *)    icon="📀"; type_color="${CLR_DIM}" ;;
+        nvme)
+            icon="⚡"
+            type_color="${CLR_GOOD}"
+            ;;
+        ssd)
+            icon="💾"
+            type_color="${CLR_INFO}"
+            ;;
+        hdd)
+            icon="💿"
+            type_color="${CLR_WARN}"
+            ;;
+        *)
+            icon="📀"
+            type_color="${CLR_DIM}"
+            ;;
         esac
 
         # Drive header
@@ -825,7 +837,7 @@ build_storage_panel() {
         else
             # No partitions - show empty
             local i
-            for ((i=0; i<bar_width; i++)); do content+="${DIM}░${RESET}"; done
+            for ((i = 0; i < bar_width; i++)); do content+="${DIM}░${RESET}"; done
         fi
         content+="]\n"
 
@@ -923,7 +935,7 @@ build_graphics_panel() {
     content+="${CLR_SUBHEADER}Details (via inxi)${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
     local gfx_details
-    gfx_details=$(get_category_content 5 | tail -n +2 | head -10 | \
+    gfx_details=$(get_category_content 5 | tail -n +2 | head -10 |
         awk -F',' '{if(NF>=2) printf "  \033[38;5;245m%-12s\033[0m \033[38;5;46m%s\033[0m\n", $1":", $2}')
     content+="$gfx_details"
 
@@ -939,7 +951,7 @@ build_audio_panel() {
 
     # Audio info from inxi
     local audio_details
-    audio_details=$(get_category_content 6 | tail -n +2 | head -15 | \
+    audio_details=$(get_category_content 6 | tail -n +2 | head -15 |
         awk -F',' '{if(NF>=2) printf "  \033[38;5;245m%-12s\033[0m \033[38;5;213m%s\033[0m\n", $1":", $2}')
     content+="$audio_details"
 
@@ -962,17 +974,29 @@ build_network_panel() {
 
         local icon status_color status_icon status_label
         case "$iface_type" in
-            wireless) icon="📶" ;;
-            ethernet) icon="🔌" ;;
-            *)        icon="🌐" ;;
+        wireless) icon="📶" ;;
+        ethernet) icon="🔌" ;;
+        *) icon="🌐" ;;
         esac
 
         status_color=$(_ui_net_status_color "$state")
         case "$state" in
-            up)        status_icon="●"; status_label="Connected" ;;
-            down)      status_icon="○"; status_label="Disconnected" ;;
-            no-driver) status_icon="◌"; status_label="No Driver" ;;
-            *)         status_icon="?"; status_label="Unknown" ;;
+        up)
+            status_icon="●"
+            status_label="Connected"
+            ;;
+        down)
+            status_icon="○"
+            status_label="Disconnected"
+            ;;
+        no-driver)
+            status_icon="◌"
+            status_label="No Driver"
+            ;;
+        *)
+            status_icon="?"
+            status_label="Unknown"
+            ;;
         esac
 
         # Interface header
@@ -980,8 +1004,8 @@ build_network_panel() {
 
         # Model/description (truncate to fit panel width)
         if [[ "$model" != "-" ]]; then
-            local max_model_len=$((PANEL_WIDTH - 12))  # Account for padding/border
-            [[ ${#model} -gt $max_model_len ]] && model="${model:0:$((max_model_len-3))}..."
+            local max_model_len=$((PANEL_WIDTH - 12)) # Account for padding/border
+            [[ ${#model} -gt $max_model_len ]] && model="${model:0:$((max_model_len - 3))}..."
             content+="     ${CLR_DIM}$model${RESET}\n"
         fi
 
@@ -1077,7 +1101,7 @@ build_motherboard_panel() {
                 content+="    ${CLR_MEM}●${RESET} ${CLR_LABEL}${slot}/${channel}:${RESET} ${CLR_HIGHLIGHT}$size${RESET} ${CLR_VALUE}$mtype${RESET} @ ${CLR_ACCENT}$speed${RESET}"
                 [[ "$mfr" != "-" ]] && content+=" ${CLR_DIM}($mfr)${RESET}"
                 content+="\n"
-            done <<< "$mem_info"
+            done <<<"$mem_info"
         fi
     else
         content+="  ${CLR_WARN}dmidecode not available or requires sudo${RESET}\n"
@@ -1130,10 +1154,22 @@ build_power_panel() {
             if [[ -n "$LIVE_BATTERY_STATUS" ]]; then
                 local status_icon status_color
                 case "$LIVE_BATTERY_STATUS" in
-                    Charging)     status_icon="⚡"; status_color="$CLR_GOOD" ;;
-                    Discharging)  status_icon="🔋"; status_color="$CLR_POWER" ;;
-                    Full)         status_icon="✓"; status_color="$CLR_GOOD" ;;
-                    *)            status_icon="●"; status_color="$CLR_VALUE" ;;
+                Charging)
+                    status_icon="⚡"
+                    status_color="$CLR_GOOD"
+                    ;;
+                Discharging)
+                    status_icon="🔋"
+                    status_color="$CLR_POWER"
+                    ;;
+                Full)
+                    status_icon="✓"
+                    status_color="$CLR_GOOD"
+                    ;;
+                *)
+                    status_icon="●"
+                    status_color="$CLR_VALUE"
+                    ;;
                 esac
                 content+="  ${CLR_LABEL}Status:${RESET}      ${status_color}${status_icon} ${LIVE_BATTERY_STATUS}${RESET}\n"
             fi
@@ -1167,7 +1203,7 @@ build_power_panel() {
             content+="${CLR_SUBHEADER}Thermal Zones${RESET}\n"
             content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
             for zone_data in "${LIVE_THERMAL_ZONES[@]}"; do
-                IFS='|' read -r zone temp type <<< "$zone_data"
+                IFS='|' read -r zone temp type <<<"$zone_data"
                 if [[ -n "$temp" && "$temp" != "-" ]]; then
                     local temp_color
                     temp_color=$(_ui_threshold_color "$temp" "$TEMP_WARN" "$TEMP_CRIT")
@@ -1219,7 +1255,7 @@ build_sensors_panel() {
         content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
         local current_chip=""
         for temp_data in "${LIVE_ALL_TEMPS[@]}"; do
-            IFS='|' read -r chip sensor temp <<< "$temp_data"
+            IFS='|' read -r chip sensor temp <<<"$temp_data"
             if [[ "$chip" != "$current_chip" ]]; then
                 current_chip="$chip"
                 content+="  ${CLR_ACCENT}$chip${RESET}\n"
@@ -1236,7 +1272,7 @@ build_sensors_panel() {
         content+="${CLR_SUBHEADER}Fan Speeds${RESET}\n"
         content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
         for fan_data in "${LIVE_FAN_SPEEDS[@]}"; do
-            IFS='|' read -r fan rpm <<< "$fan_data"
+            IFS='|' read -r fan rpm <<<"$fan_data"
             local fan_color="$CLR_INFO"
             local rpm_int=${rpm:-0}
             if [[ $rpm_int -eq 0 ]]; then
@@ -1256,7 +1292,7 @@ build_sensors_panel() {
         content+="${CLR_SUBHEADER}Thermal Zones${RESET}\n"
         content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
         for zone_data in "${LIVE_THERMAL_ZONES[@]}"; do
-            IFS='|' read -r zone temp type <<< "$zone_data"
+            IFS='|' read -r zone temp type <<<"$zone_data"
             if [[ -n "$temp" && "$temp" != "-" ]]; then
                 local temp_color
                 temp_color=$(_ui_threshold_color "$temp" "$TEMP_WARN" "$TEMP_CRIT")
@@ -1272,28 +1308,28 @@ build_sensors_panel() {
     content+="${CLR_SUBHEADER}System Summary (via inxi)${RESET}\n"
     content+="${CLR_BORDER}────────────────────────────────────────${RESET}\n"
     local sensor_details
-    sensor_details=$(get_category_content 9 | tail -n +2 | head -15 | \
+    sensor_details=$(get_category_content 9 | tail -n +2 | head -15 |
         awk -F',' '{if(NF>=2) printf "  \033[38;5;245m%-12s\033[0m %s\n", $1":", $2}')
     content+="$sensor_details"
 
-    local panel_height=$((TERM_ROWS - 12))  # HACK: Force min height to push footer down
+    local panel_height=$((TERM_ROWS - 12)) # HACK: Force min height to push footer down
     echo -e "$content" | gum_exec_style --no-strip-ansi --border rounded --border-foreground 196 \
         --width "$PANEL_WIDTH" --padding "1" --height "$panel_height"
 }
 
 build_main_panel() {
     case "$CURRENT_CATEGORY" in
-        0) build_system_panel ;;
-        1) build_motherboard_panel ;;
-        2) build_cpu_panel ;;
-        3) build_memory_panel ;;
-        4) build_storage_panel ;;
-        5) build_graphics_panel ;;
-        6) build_audio_panel ;;
-        7) build_network_panel ;;
-        8) build_power_panel ;;
-        9) build_sensors_panel ;;
-        *) build_system_panel ;;
+    0) build_system_panel ;;
+    1) build_motherboard_panel ;;
+    2) build_cpu_panel ;;
+    3) build_memory_panel ;;
+    4) build_storage_panel ;;
+    5) build_graphics_panel ;;
+    6) build_audio_panel ;;
+    7) build_network_panel ;;
+    8) build_power_panel ;;
+    9) build_sensors_panel ;;
+    *) build_system_panel ;;
     esac
 }
 
@@ -1411,53 +1447,95 @@ main_loop() {
         # Non-blocking read with timeout for sensor refresh
         if read -rsn1 -t "$REFRESH_INTERVAL" key; then
             case "$key" in
-                $'\x1b')  # Escape sequence
-                    read -rsn2 -t 0.1 key2
-                    case "$key2" in
-                        '[A') nav_up; compose_layout ;;    # Up arrow
-                        '[B') nav_down; compose_layout ;;  # Down arrow
-                    esac
-                    ;;
-                'k'|'K') nav_up; compose_layout ;;
-                'j'|'J') nav_down; compose_layout ;;
-                '1') jump_to_category 0; compose_layout ;;  # System
-                '2') jump_to_category 1; compose_layout ;;  # Motherboard
-                '3') jump_to_category 2; compose_layout ;;  # CPU
-                '4') jump_to_category 3; compose_layout ;;  # Memory
-                '5') jump_to_category 4; compose_layout ;;  # Storage
-                '6') jump_to_category 5; compose_layout ;;  # Graphics
-                '7') jump_to_category 6; compose_layout ;;  # Audio
-                '8') jump_to_category 7; compose_layout ;;  # Network
-                '9') jump_to_category 8; compose_layout ;;  # Power
-                '0') jump_to_category 9; compose_layout ;;  # Sensors
-                'a'|'A')
-                    toggle_auto_refresh
+            $'\x1b') # Escape sequence
+                read -rsn2 -t 0.1 key2
+                case "$key2" in
+                '[A')
+                    nav_up
                     compose_layout
-                    ;;
-                'r'|'R')
-                    cursor_show
-                    clear
-                    gum spin --spinner dot --title "Refreshing system data..." -- \
-                        bash -c 'sleep 0.3'
-                    refresh_inxi_data
-                    refresh_live_metrics
-                    log_structured info "Manual refresh" timestamp "$(date -Iseconds)"
-                    cursor_hide
+                    ;; # Up arrow
+                '[B')
+                    nav_down
                     compose_layout
-                    ;;
-                'l'|'L')
-                    cursor_show
-                    log_show 2>/dev/null || gum_exec_style --foreground 245 "No log entries yet"
-                    read -rsn1 -p "Press any key to continue..."
-                    cursor_hide
-                    compose_layout
-                    ;;
-                'q'|'Q')
-                    cursor_show
-                    log_structured info "Dashboard closed" session_duration "$(ps -o etime= -p $$)"
-                    gum_exec_style --foreground 39 "Goodbye!"
-                    exit 0
-                    ;;
+                    ;; # Down arrow
+                esac
+                ;;
+            'k' | 'K')
+                nav_up
+                compose_layout
+                ;;
+            'j' | 'J')
+                nav_down
+                compose_layout
+                ;;
+            '1')
+                jump_to_category 0
+                compose_layout
+                ;; # System
+            '2')
+                jump_to_category 1
+                compose_layout
+                ;; # Motherboard
+            '3')
+                jump_to_category 2
+                compose_layout
+                ;; # CPU
+            '4')
+                jump_to_category 3
+                compose_layout
+                ;; # Memory
+            '5')
+                jump_to_category 4
+                compose_layout
+                ;; # Storage
+            '6')
+                jump_to_category 5
+                compose_layout
+                ;; # Graphics
+            '7')
+                jump_to_category 6
+                compose_layout
+                ;; # Audio
+            '8')
+                jump_to_category 7
+                compose_layout
+                ;; # Network
+            '9')
+                jump_to_category 8
+                compose_layout
+                ;; # Power
+            '0')
+                jump_to_category 9
+                compose_layout
+                ;; # Sensors
+            'a' | 'A')
+                toggle_auto_refresh
+                compose_layout
+                ;;
+            'r' | 'R')
+                cursor_show
+                clear
+                gum spin --spinner dot --title "Refreshing system data..." -- \
+                    bash -c 'sleep 0.3'
+                refresh_inxi_data
+                refresh_live_metrics
+                log_structured info "Manual refresh" timestamp "$(date -Iseconds)"
+                cursor_hide
+                compose_layout
+                ;;
+            'l' | 'L')
+                cursor_show
+                log_show 2>/dev/null || gum_exec_style --foreground 245 "No log entries yet"
+                read -rsn1 -p "Press any key to continue..."
+                cursor_hide
+                compose_layout
+                ;;
+            'q' | 'Q')
+                cursor_show
+                log_structured info "Dashboard closed" session_duration "$(ps -o etime= -p $$)"
+                gum_exec_style --foreground 39 "Goodbye!"
+                exit 0
+                ;;
             esac
         else
             # Timeout - refresh sensors if auto-refresh enabled
@@ -1466,7 +1544,7 @@ main_loop() {
                 TERM_ROWS=$(tput lines)
                 TERM_COLS=$(tput cols)
                 PANEL_WIDTH=$((TERM_COLS - NAV_PANEL_WIDTH - 8))
-                
+
                 current_time=$(date +%s)
                 if [[ $((current_time - last_refresh_time)) -ge $REFRESH_INTERVAL ]]; then
                     refresh_live_metrics
@@ -1507,7 +1585,7 @@ init_dashboard() {
     gum_exec_style --foreground 245 "Loading system information..."
 
     refresh_inxi_data
-    refresh_dmi_data    # Static DMI data (BIOS, motherboard) - only needs to run once
+    refresh_dmi_data # Static DMI data (BIOS, motherboard) - only needs to run once
     refresh_live_metrics
 
     log_structured info "Dashboard started" terminal "${TERM_COLS}x${TERM_ROWS}" auto_refresh "$AUTO_REFRESH"
