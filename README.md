@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" width="200" alt="Funny Gums Logo">
+</p>
+
 # Funny Gums 🚀
 
 **Modular, Hierarchical Bash Library for Stunning Terminal UIs.**
