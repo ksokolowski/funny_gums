@@ -1,22 +1,23 @@
-<img src="assets/funny_gums.jpg" align="right" width="350" alt="Funny Gums Main Logo">
-
-# Funny Gums 🚀
-
-**Modular, Hierarchical Bash Library for Stunning Terminal UIs.**
-
-Funny Gums is a professional-grade Bash toolkit designed to build complex, responsive, and visually rich terminal applications. It bridges the gap between simple shell scripts and full-blown TUIs by providing a layered architecture powered by [gum](https://github.com/charmbracelet/gum).
-
----
-
-## Key Features ✨
-
-- 🧱 **3-Tier Architecture**: Core foundational utilities, generic UI widgets, and domain-specific system modules.
-- 🎨 **Rich Aesthetics**: 256-color support, neon palettes, and curated visual styles.
-- 🧪 **Robust Testing**: 300+ automated unit tests ensuring stability across shell environments.
-- 🎭 **Emoji Awareness**: Sophisticated 3-tier emoji degradation logic (VS16/ZWJ support).
-- ⚙️ **Hardware Metrics**: Integrated wrappers for `inxi`, `nvidia-smi`, `smartctl`, and more.
-
----
+<table>
+  <tr>
+    <td valign="top">
+      <h1>Funny Gums 🚀</h1>
+      <p><strong>Modular, Hierarchical Bash Library for Stunning Terminal UIs.</strong></p>
+      <p>Funny Gums is a professional-grade Bash toolkit designed to build complex, responsive, and visually rich terminal applications. It bridges the gap between simple shell scripts and full-blown TUIs by providing a layered architecture powered by <a href="https://github.com/charmbracelet/gum">gum</a>.</p>
+      <h3>Key Features ✨</h3>
+      <ul>
+        <li>🧱 <strong>3-Tier Architecture</strong>: Core foundational utilities, generic UI widgets, and domain-specific system modules.</li>
+        <li>🎨 <strong>Rich Aesthetics</strong>: 256-color support, neon palettes, and curated visual styles.</li>
+        <li>🧪 <strong>Robust Testing</strong>: 300+ automated unit tests ensuring stability across shell environments.</li>
+        <li>🎭 <strong>Emoji Awareness</strong>: Sophisticated 3-tier emoji degradation logic (VS16/ZWJ support).</li>
+        <li>⚙️ <strong>Hardware Metrics</strong>: Integrated wrappers for <code>inxi</code>, <code>nvidia-smi</code>, <code>smartctl</code>, and more.</li>
+      </ul>
+    </td>
+    <td valign="top" width="350">
+      <img src="assets/funny_gums.jpg" alt="Funny Gums Main Logo">
+    </td>
+  </tr>
+</table>
 
 ## Quick Start 🏎️
 
@@ -149,15 +150,47 @@ log_structured info "Processing" file "data.csv" rows 100
 log_fatal "Application stopped"
 ```
 
-## <img src="assets/logo.png" width="32" align="center"> Examples
+## Examples
 
-| Script | Description |
-|--------|-------------|
-| [openrgb_fix.sh](examples/openrgb_fix.sh) | Multi-step dashboard with progress tracking |
-| [git_commit.sh](examples/git_commit.sh) | Interactive conventional commit helper |
-| [csv_viewer.sh](examples/csv_viewer.sh) | CSV data explorer with table/filter |
-| [markdown_preview.sh](examples/markdown_preview.sh) | Markdown file preview |
-| [system_dashboard.sh](examples/system_dashboard.sh) | System info dashboard |
+<table>
+  <tr>
+    <td valign="top">
+      <table>
+        <thead>
+          <tr>
+            <th>Script</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="examples/openrgb_fix.sh">openrgb_fix.sh</a></td>
+            <td>Multi-step dashboard with progress tracking</td>
+          </tr>
+          <tr>
+            <td><a href="examples/git_commit.sh">git_commit.sh</a></td>
+            <td>Interactive conventional commit helper</td>
+          </tr>
+          <tr>
+            <td><a href="examples/csv_viewer.sh">csv_viewer.sh</a></td>
+            <td>CSV data explorer with table/filter</td>
+          </tr>
+          <tr>
+            <td><a href="examples/markdown_preview.sh">markdown_preview.sh</a></td>
+            <td>Markdown file preview</td>
+          </tr>
+          <tr>
+            <td><a href="examples/system_dashboard.sh">system_dashboard.sh</a></td>
+            <td>System info dashboard</td>
+          </tr>
+        </tbody>
+      </table>
+    </td>
+    <td valign="top" width="200">
+      <img src="assets/logo.png" alt="Funny Gums Secondary Logo">
+    </td>
+  </tr>
+</table>
 
 ## Terminal-Aware Emoji System
 
