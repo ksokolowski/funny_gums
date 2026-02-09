@@ -69,7 +69,7 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 [![Tests](https://github.com/ksokolowski/funny_gums/actions/workflows/test.yml/badge.svg)](https://github.com/ksokolowski/funny_gums/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/funnygums)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/styledconsole)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/ksokolowski?label=Sponsor&logo=github)](https://github.com/sponsors/ksokolowski)
 
 A modular Bash library providing terminal UI components powered by [gum](https://github.com/charmbracelet/gum) from [Charm](https://charm.sh).
@@ -311,7 +311,7 @@ If you find Funny Gums useful, consider supporting its development:
 | Platform        | Link                                                                       |
 | --------------- | -------------------------------------------------------------------------- |
 | GitHub Sponsors | [github.com/sponsors/ksokolowski](https://github.com/sponsors/ksokolowski) |
-| Ko-fi           | [ko-fi.com/funnygums](https://ko-fi.com/funnygums)                         |
+| Ko-fi           | [ko-fi.com/styledconsole](https://ko-fi.com/styledconsole)                 |
 
 ## License
 
