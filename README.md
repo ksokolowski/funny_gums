@@ -14,7 +14,7 @@
       </ul>
     </td>
     <td valign="top" width="350">
-      <img src="assets/funny_gums.jpg" alt="Funny Gums Main Logo">
+      <img src="assets/funny_gums.png" alt="Funny Gums Main Logo">
     </td>
   </tr>
 </table>
