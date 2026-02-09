@@ -56,7 +56,7 @@ sudo_auth_styled() {
         # Get password with gum (input width aligned with frame)
         # Visual width calculation: frame width - padding/border (~4 chars)
         local input_width=$((width - 4))
-        
+
         local password
         password=$(gum input --password --placeholder "Enter sudo password..." \
             --prompt "🔑 " --prompt.foreground 214 \

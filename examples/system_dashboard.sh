@@ -220,11 +220,11 @@ check_terminal_size() {
 refresh_inxi_data() {
     # Ensure we have sudo privileges for complete data
     if ! sudo_auth_styled; then
-         # Fallback or exit if sudo fails? 
-         # inxi works without sudo but shows less info.
-         # But other parts might need it.
-         # The user's specific request implies they want the prompt HERE.
-         :
+        # Fallback or exit if sudo fails?
+        # inxi works without sudo but shows less info.
+        # But other parts might need it.
+        # The user's specific request implies they want the prompt HERE.
+        :
     fi
     INXI_CACHE=$(sudo inxi -Fxz -c0 2>/dev/null)
 }

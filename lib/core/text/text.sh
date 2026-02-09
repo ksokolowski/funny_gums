@@ -572,7 +572,7 @@ gum_adjusted_width() {
 gum_adjusted_width_ref() {
     local text="$1"
     local target_width="$2"
-    
+
     local adjustment
     adjustment=$(gum_width_adjustment "$text")
     printf -v "$3" '%d' $((target_width + adjustment))
