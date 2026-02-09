@@ -14,7 +14,7 @@
       </ul>
     </td>
     <td valign="top" width="350">
-      <img src="assets/funny_gums.png" alt="Funny Gums Main Logo">
+      <img src="assets/funny_gums.webp" alt="Funny Gums Main Logo">
     </td>
   </tr>
 </table>
@@ -217,7 +217,7 @@ log_fatal "Application stopped"
       </table>
     </td>
     <td valign="top" width="200">
-      <img src="assets/logo.png" alt="Funny Gums Secondary Logo">
+      <img src="assets/logo.webp" alt="Funny Gums Secondary Logo">
     </td>
   </tr>
 </table>
