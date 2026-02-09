@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/logo.png" width="200" alt="Funny Gums Logo">
-</p>
+<img src="assets/funny_gums.jpg" align="right" width="350" alt="Funny Gums Main Logo">
 
 # Funny Gums 🚀
 
@@ -148,9 +146,10 @@ cat README.md | ui_format | ui_pager
 log_init "/tmp/myapp.log"
 log_info "Application started"
 log_structured info "Processing" file "data.csv" rows 100
+log_fatal "Application stopped"
 ```
 
-## Examples
+## <img src="assets/logo.png" width="32" align="center"> Examples
 
 | Script | Description |
 |--------|-------------|
