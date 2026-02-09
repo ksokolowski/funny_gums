@@ -62,7 +62,7 @@ echo "  Duration: ${DURATION}ms"
 # Use different thresholds for CI vs local
 THRESHOLD=1000
 if [[ -n "${CI:-}" ]] || [[ -n "${GITHUB_ACTIONS:-}" ]]; then
-    THRESHOLD=2000  # CI runners are slower
+    THRESHOLD=2000 # CI runners are slower
 fi
 
 ((TESTS_RUN++))
