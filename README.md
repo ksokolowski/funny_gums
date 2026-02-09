@@ -102,29 +102,56 @@ sudo apt install gum jq
 
 ## Installation
 
-Clone the repository:
+### 1. Clone the Repository
+
 ```bash
+# Clone to your preferred location
 git clone https://github.com/ksokolowski/funny_gums.git
+cd funny_gums
 ```
 
-## Usage
+### 2. Verify Dependencies
 
-### Source all modules at once
 ```bash
+# Check if gum is available
+which gum || echo "⚠️  gum not found - install it first!"
+
+# Check if jq is available (needed for system modules)
+which jq || echo "⚠️  jq not found - install it first!"
+```
+
+### 3. Try an Example
+
+```bash
+# Run a simple example to verify everything works
+bash examples/markdown_preview.sh README.md
+```
+
+### 4. Use in Your Scripts
+
+You have two options:
+
+**Option A: Source everything** (easiest, loads all modules)
+```bash
+#!/usr/bin/env bash
 source /path/to/funny_gums/funny_gums.sh
+
+ui_box "Hello" "Funny Gums is ready!"
 ```
 
-### Source individual modules
+**Option B: Source specific modules** (faster, minimal footprint)
 ```bash
-# Core utils
-source /path/to/funny_gums/lib/core/term/colors.sh
-source /path/to/funny_gums/lib/core/text/text.sh
+#!/usr/bin/env bash
+source /path/to/funny_gums/lib/core/colors.sh
+source /path/to/funny_gums/lib/ui/ui.sh
 
-# UI components
-source /path/to/funny_gums/lib/ui/layout/ui.sh
+echo "${GREEN}Success!${RESET}"
+ui_confirm "Continue?" && echo "Let's go!"
 ```
 
-### Quick examples
+## Quick Examples
+
+Common patterns and use cases:
 
 ```bash
 # Colors
@@ -304,6 +331,10 @@ This library is powered by [gum](https://github.com/charmbracelet/gum), part of 
 - **[lipgloss](https://github.com/charmbracelet/lipgloss)** - Style definitions for terminal apps
 - **[bubbles](https://github.com/charmbracelet/bubbles)** - TUI components for bubbletea
 
+## Related Projects
+
+If you work with Python, check out **[StyledConsole](https://github.com/ksokolowski/StyledConsole)** - a modern Python library for elegant terminal output with rich formatting, tables, panels, and gradients. It's like Funny Gums' sophisticated cousin for Python! 🐍✨
+
 ## Support
 
 If you find Funny Gums useful, consider supporting its development:
@@ -312,6 +343,8 @@ If you find Funny Gums useful, consider supporting its development:
 | --------------- | -------------------------------------------------------------------------- |
 | GitHub Sponsors | [github.com/sponsors/ksokolowski](https://github.com/sponsors/ksokolowski) |
 | Ko-fi           | [ko-fi.com/styledconsole](https://ko-fi.com/styledconsole)                 |
+
+Your support helps maintain both Funny Gums and [StyledConsole](https://github.com/ksokolowski/StyledConsole)!
 
 ## License
 
