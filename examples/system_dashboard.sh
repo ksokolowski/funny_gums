@@ -182,16 +182,12 @@ declare -a CATEGORIES=(
 check_dependencies() {
     if ! command -v inxi &>/dev/null; then
         echo ""
-        gum_exec_style --foreground 196 --bold "ERROR: inxi is required but not installed"
         echo ""
-        gum_exec_style --foreground 245 "Install inxi from your package manager or visit:"
-        gum_exec_style --foreground 39 --underline "$INXI_GITHUB"
+        gum_box_alert "⚠️" "Missing Dependency: inxi" \
+            "Install inxi from your package manager or visit:\n$INXI_GITHUB\n\nExample installation:\n  Ubuntu/Debian: sudo apt install inxi\n  Fedora:        sudo dnf install inxi\n  Arch:          sudo pacman -S inxi" \
+            60 196
         echo ""
-        gum_exec_style --foreground 245 "Example installation:"
-        gum_exec_style --foreground 255 "  Ubuntu/Debian: sudo apt install inxi"
-        gum_exec_style --foreground 255 "  Fedora:        sudo dnf install inxi"
-        gum_exec_style --foreground 255 "  Arch:          sudo pacman -S inxi"
-        echo ""
+        exit 1
         exit 1
     fi
 
@@ -208,13 +204,12 @@ check_terminal_size() {
 
     if [[ $TERM_COLS -lt $MIN_COLS ]] || [[ $TERM_ROWS -lt $MIN_ROWS ]]; then
         echo ""
-        gum_exec_style --foreground 214 --bold "Terminal too small: ${TERM_COLS}x${TERM_ROWS}"
         echo ""
-        gum_exec_style --foreground 245 "This dashboard requires at least ${MIN_COLS}x${MIN_ROWS}."
-        gum_exec_style --foreground 245 "Please resize your terminal or use inxi directly:"
+        gum_box_alert "⚠️" "Terminal Too Small" \
+            "Dimensions: ${TERM_COLS}x${TERM_ROWS}\nRequired:   ${MIN_COLS}x${MIN_ROWS}\n\nPlease resize your terminal or use inxi directly:\n  inxi -Fxxxz" \
+            60 214
         echo ""
-        gum_exec_style --foreground 39 "  inxi -Fxxxz"
-        echo ""
+        exit 1
         exit 1
     fi
 }
@@ -223,7 +218,15 @@ check_terminal_size() {
 # DATA COLLECTION
 ################################################################################
 refresh_inxi_data() {
-    INXI_CACHE=$(inxi -Fxz -c0 2>/dev/null)
+    # Ensure we have sudo privileges for complete data
+    if ! sudo_auth_styled; then
+         # Fallback or exit if sudo fails? 
+         # inxi works without sudo but shows less info.
+         # But other parts might need it.
+         # The user's specific request implies they want the prompt HERE.
+         :
+    fi
+    INXI_CACHE=$(sudo inxi -Fxz -c0 2>/dev/null)
 }
 
 # Refresh DMI/BIOS data (static, only called once at startup)

@@ -106,6 +106,34 @@ gum_box_visual() {
         --margin "$GUM_MARGIN"
 }
 
+# Standardized alert box with icon and consistent width
+# Usage: gum_box_alert "icon" "title" "text" [width] [color]
+gum_box_alert() {
+    local icon="${1:-⚠️}"
+    local title="${2:-Alert}"
+    local text="${3:-}"
+    local width="${4:-60}"
+    local color="${5:-214}" # Default orange/gold
+
+    local content="$icon $title"
+    [[ -n "$text" ]] && content+="\n$text"
+
+    # Use gum_box_visual logic but with specific styling
+    # Start with visual width calculation if available
+    if declare -f visual_width >/dev/null 2>&1; then
+        local adjusted_width
+        gum_adjusted_width_ref "$content" "$width" adjusted_width
+        width="$adjusted_width"
+    fi
+
+    echo -e "$content" | gum_exec_style \
+        --width "$width" \
+        --border rounded \
+        --border-foreground "$color" \
+        --padding "0 2" \
+        --margin "$GUM_MARGIN"
+}
+
 # Pre-pad multiline content for proper gum alignment
 # Pads each line to target visual width, compensating for VS16/wide chars
 # Usage: content=$(gum_prepad_content "$content" inner_width)

@@ -566,3 +566,14 @@ gum_adjusted_width() {
 
     echo $((target_width + adjustment))
 }
+
+# Calculate adjusted width for gum style command (sets variable)
+# Usage: gum_adjusted_width_ref "text" target_width var_name
+gum_adjusted_width_ref() {
+    local text="$1"
+    local target_width="$2"
+    
+    local adjustment
+    adjustment=$(gum_width_adjustment "$text")
+    printf -v "$3" '%d' $((target_width + adjustment))
+}

@@ -45,19 +45,18 @@ sudo_auth_styled() {
 
     local max_attempts=3
     local attempt=1
-    local width_arg=""
-    [[ -n "$SUDO_FRAME_WIDTH" ]] && width_arg="--width $SUDO_FRAME_WIDTH"
+    local width="${SUDO_FRAME_WIDTH:-60}"
+    local width_arg="--width $width"
 
     while ((attempt <= max_attempts)); do
-        # Show styled prompt
-        # shellcheck disable=SC2086
-        gum style --border rounded --border-foreground 214 --padding "0 2" $width_arg \
-            "🔐 Sudo authentication required"
+        # Show styled prompt using standardized alert box
+        gum_box_alert "🔐" "Sudo authentication required" "" "$width" "214"
         echo ""
 
-        # Get password with gum (input width slightly less than frame)
-        local input_width=40
-        [[ -n "$SUDO_FRAME_WIDTH" ]] && input_width=$((SUDO_FRAME_WIDTH - 10))
+        # Get password with gum (input width aligned with frame)
+        # Visual width calculation: frame width - padding/border (~4 chars)
+        local input_width=$((width - 4))
+        
         local password
         password=$(gum input --password --placeholder "Enter sudo password..." \
             --prompt "🔑 " --prompt.foreground 214 \
