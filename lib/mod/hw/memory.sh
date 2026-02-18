@@ -11,8 +11,7 @@ _SYSTEM_MEMORY_LOADED=1
 get_memory_usage_live() {
     local total_kb available_kb used_kb percent
 
-    total_kb=$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)
-    available_kb=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo)
+    read -r total_kb available_kb < <(awk '/^MemTotal:/{t=$2} /^MemAvailable:/{a=$2} END{print t,a}' /proc/meminfo)
 
     used_kb=$((total_kb - available_kb))
 
@@ -31,8 +30,7 @@ get_memory_usage_live() {
 get_swap_usage_live() {
     local total_kb free_kb used_kb percent
 
-    total_kb=$(awk '/^SwapTotal:/ {print $2}' /proc/meminfo)
-    free_kb=$(awk '/^SwapFree:/ {print $2}' /proc/meminfo)
+    read -r total_kb free_kb < <(awk '/^SwapTotal:/{t=$2} /^SwapFree:/{f=$2} END{print t,f}' /proc/meminfo)
 
     if [[ -z "$total_kb" ]] || [[ "$total_kb" -eq 0 ]]; then
         echo "0 0 0"

@@ -56,12 +56,9 @@ get_physical_drives() {
 get_drive_partitions() {
     local drive="$1"
 
-    lsblk -b -o NAME,SIZE,FSTYPE,MOUNTPOINT -n "/dev/$drive" 2>/dev/null |
+    lsblk -r -b -o NAME,SIZE,FSTYPE,MOUNTPOINT -n "/dev/$drive" 2>/dev/null |
         tail -n +2 | while read -r name size fstype mountpoint; do
         [[ -z "$name" ]] && continue
-
-        # Clean partition name (remove tree characters)
-        name=$(echo "$name" | sed 's/[├└─│ ]//g')
 
         # Get used space if mounted
         local used=0

@@ -7,8 +7,6 @@ _SYSTEM_SENSORS_LOADED=1
 
 # Check if lm-sensors is installed
 # Usage: sensors_available && echo "sensors installed"
-# Check if lm-sensors is installed
-# Usage: sensors_available && echo "sensors installed"
 sensors_available() {
     command -v sensors &>/dev/null
 }
@@ -202,16 +200,7 @@ sensors_get_temp_by_pci_id() {
 
 # Legacy functions kept for compatibility but redirected or updated
 sensors_get_cpu_temp() { sensors_get_cpu_temp_smart; }
-sensors_get_amd_gpu_temp() {
-    sensors_available || return 1
-    # Try edge then junction
-    local temp
-    temp=$(echo "${_SENSORS_CACHE:-$(sensors 2>/dev/null)}" | grep -m1 "edge:" | grep -oP '\+\K[0-9]+\.[0-9]+')
-    if _is_valid_temp "$temp"; then
-        echo "$temp"
-        return
-    fi
-}
+sensors_get_amd_gpu_temp() { sensors_get_amd_edge_temp; }
 
 # AMD GPU edge temperature (stub for compatibility)
 # Usage: temp=$(sensors_get_amd_edge_temp)

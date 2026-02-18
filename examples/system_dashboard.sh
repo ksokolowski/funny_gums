@@ -75,6 +75,16 @@ source "$LIB_DIR/core/sh/gum_wrapper.sh"
 detect_terminal_mode
 
 ################################################################################
+# TEMPORARY DIRECTORY (parallel data fetching — prefer RAM disk)
+################################################################################
+if [[ -d /dev/shm ]]; then
+    TMP_DIR=$(mktemp -d -p /dev/shm -t funny_gums_dashboard.XXXXXX)
+else
+    TMP_DIR=$(mktemp -d -t funny_gums_dashboard.XXXXXX)
+fi
+trap 'rm -rf "$TMP_DIR"' EXIT
+
+################################################################################
 # STATE VARIABLES
 ################################################################################
 CURRENT_CATEGORY=0    # Currently selected category index (0-7)
@@ -233,16 +243,53 @@ refresh_dmi_data() {
 }
 
 refresh_live_metrics() {
-    # CPU usage (this takes ~100ms due to sampling)
-    LIVE_CPU_PERCENT=$(get_cpu_usage_live)
+    # 1. Start background jobs for slow/independent data fetches
+    # CPU Usage (sleeps 0.1s internally)
+    (get_cpu_usage_live >"$TMP_DIR/cpu_usage") &
+    local pid_cpu=$!
 
-    # Memory (raw + pre-formatted)
-    read -r LIVE_MEM_USED_KB LIVE_MEM_TOTAL_KB LIVE_MEM_PERCENT <<<"$(get_memory_usage_live)"
+    # Sensors (if available) — populates cache for all subsequent temp/fan queries
+    local pid_sensors=""
+    if sensors_available; then
+        (sensors >"$TMP_DIR/sensors" 2>/dev/null) &
+        pid_sensors=$!
+    fi
+
+    # Disk Usage
+    (get_root_disk_usage_live >"$TMP_DIR/disk_root") &
+    local pid_disk=$!
+
+    # Memory/Swap
+    (get_memory_usage_live >"$TMP_DIR/mem") &
+    local pid_mem=$!
+
+    (get_swap_usage_live >"$TMP_DIR/swap") &
+    local pid_swap=$!
+
+    # 2. Wait for background jobs
+    wait "$pid_cpu"
+    [[ -n "$pid_sensors" ]] && wait "$pid_sensors"
+    wait "$pid_disk"
+    wait "$pid_mem"
+    wait "$pid_swap"
+
+    # 3. Read results and populate caches
+    LIVE_CPU_PERCENT=$(<"$TMP_DIR/cpu_usage")
+
+    if [[ -n "$pid_sensors" ]]; then
+        _SENSORS_CACHE=$(<"$TMP_DIR/sensors")
+    fi
+
+    local disk_used disk_total
+    read -r disk_used disk_total LIVE_DISK_PERCENT <<<"$(<"$TMP_DIR/disk_root")"
+    LIVE_DISK_USED=$(format_bytes "$disk_used")
+    LIVE_DISK_TOTAL=$(format_bytes "$disk_total")
+
+    read -r LIVE_MEM_USED_KB LIVE_MEM_TOTAL_KB LIVE_MEM_PERCENT <<<"$(<"$TMP_DIR/mem")"
     LIVE_MEM_USED_HR=$(format_kb "$LIVE_MEM_USED_KB")
     LIVE_MEM_TOTAL_HR=$(format_kb "$LIVE_MEM_TOTAL_KB")
 
-    # Swap (raw + pre-formatted)
-    read -r LIVE_SWAP_USED_KB LIVE_SWAP_TOTAL_KB LIVE_SWAP_PERCENT <<<"$(get_swap_usage_live)"
+    read -r LIVE_SWAP_USED_KB LIVE_SWAP_TOTAL_KB LIVE_SWAP_PERCENT <<<"$(<"$TMP_DIR/swap")"
     if [[ "$LIVE_SWAP_TOTAL_KB" -gt 0 ]]; then
         LIVE_SWAP_USED_HR=$(format_kb "$LIVE_SWAP_USED_KB")
         LIVE_SWAP_TOTAL_HR=$(format_kb "$LIVE_SWAP_TOTAL_KB")
@@ -251,13 +298,7 @@ refresh_live_metrics() {
         LIVE_SWAP_TOTAL_HR=""
     fi
 
-    # Root disk
-    local disk_used disk_total
-    read -r disk_used disk_total LIVE_DISK_PERCENT <<<"$(get_root_disk_usage_live)"
-    LIVE_DISK_USED=$(format_bytes "$disk_used")
-    LIVE_DISK_TOTAL=$(format_bytes "$disk_total")
-
-    # Temperatures
+    # 4. Dependent/fast calculations (sensors cache is now populated from step 3)
     LIVE_CPU_TEMP=$(get_cpu_temp_live)
     LIVE_GPU_TEMP=$(get_gpu_temp_live)
 

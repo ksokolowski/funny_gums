@@ -94,21 +94,34 @@ inxi_parse_storage_csv() {
 
 inxi_parse_partition_csv() {
     echo "ID,Size,Used,FS,Device"
-    inxi_get_section "Partition" | sed '1d' | sed 's/^[[:space:]]*//' | while read -r line; do
-        if [[ $line =~ ^ID-([0-9]+):[[:space:]](.*)$ ]]; then
-            # ID-1: / size: 1.83 TiB used: 384.46 GiB (20.5%) fs: ext4 dev: /dev/nvme1n1p2
-            id="${BASH_REMATCH[1]}"
-            rest="${BASH_REMATCH[2]}"
+    # Single awk pass: skips header, strips leading whitespace, extracts all fields
+    inxi_get_section "Partition" | awk '
+        NR > 1 {
+            sub(/^[[:space:]]+/, "")
+            if ($0 ~ /^ID-[0-9]+:/) {
+                # $1="ID-N:", $2=mountpoint; extract ID digits
+                id = $1; gsub(/[^0-9]/, "", id)
+                mnt = $2
 
-            size=$(echo "$rest" | grep -oP "size: \K[^ ]+ [^ ]+")
-            used=$(echo "$rest" | grep -oP "used: \K[^ ]+ [^ ]+ \([^)]+\)")
-            fs=$(echo "$rest" | grep -oP "fs: \K[^ ]+")
-            dev=$(echo "$rest" | grep -oP "dev: \K[^ ]+")
-            mnt=$(echo "$rest" | awk '{print $1}')
+                # Build rest: everything after "ID-N: <mnt> "
+                rest = $0
+                sub(/^ID-[0-9]+:[[:space:]]+[^ ]+[[:space:]]+/, "", rest)
 
-            echo "$mnt ($id),$size,$used,$fs,$dev"
-        fi
-    done
+                size = ""; used = ""; fs = ""; dev = ""
+
+                if (match(rest, /size: [^ ]+ [^ ]+/))
+                    size = substr(rest, RSTART + 6, RLENGTH - 6)
+                if (match(rest, /used: [^ ]+ [^ ]+ \([^)]+\)/))
+                    used = substr(rest, RSTART + 6, RLENGTH - 6)
+                if (match(rest, /fs: [^ ]+/))
+                    fs = substr(rest, RSTART + 4, RLENGTH - 4)
+                if (match(rest, /dev: [^ ]+/))
+                    dev = substr(rest, RSTART + 5, RLENGTH - 5)
+
+                print mnt " (" id ")," size "," used "," fs "," dev
+            }
+        }
+    '
 }
 
 inxi_parse_sensors_csv() {

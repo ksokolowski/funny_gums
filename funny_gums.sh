@@ -6,10 +6,10 @@
 #   source /path/to/funny_gums.sh
 #
 # Or source individual modules from lib/ as needed:
-#   source /path/to/lib/core/colors.sh      # ANSI colors
-#   source /path/to/lib/ui/ui.sh            # All UI components
-#   source /path/to/lib/system/system.sh    # All system monitoring
-#   source /path/to/lib/dashboard/dashboard.sh
+#   source /path/to/lib/core/term/colors.sh     # ANSI colors
+#   source /path/to/lib/ui/layout/ui.sh         # All UI components
+#   source /path/to/lib/mod/os/system.sh        # All system monitoring
+#   source /path/to/lib/app/dashboard.sh        # Dashboard orchestration
 #
 # shellcheck disable=SC1091
 
