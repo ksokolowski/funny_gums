@@ -31,4 +31,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Color-coded thresholds for system metrics
 - Auto-refresh dashboard with keyboard navigation
 
+## [Unreleased]
+
+### Fixes
+- Fix awk variable passing and guard against empty/zero denominators to avoid awk syntax errors (lib/mod/os/power.sh)
+- Make inxi section matching safe by passing `section` into awk via `-v` (lib/mod/os/inxi.sh)
+- Ensure dashboard background jobs inherit mocked functions during tests to restore parallel timing (examples/system_dashboard.sh)
+
+
 [1.0.0]: https://github.com/ksokolowski/funny_gums/releases/tag/v1.0.0
