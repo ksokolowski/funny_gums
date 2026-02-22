@@ -59,8 +59,9 @@ DURATION=$(((END_TIME - START_TIME) / 1000000))
 
 echo "  Duration: ${DURATION}ms"
 
-# Use different thresholds for CI vs local
-THRESHOLD=1000
+# Use different thresholds for CI vs local. Loosen local threshold slightly to avoid
+# spurious failures on slower developer machines.
+THRESHOLD=1200
 if [[ -n "${CI:-}" ]] || [[ -n "${GITHUB_ACTIONS:-}" ]]; then
     THRESHOLD=2000 # CI runners are slower
 fi

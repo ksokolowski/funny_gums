@@ -264,15 +264,19 @@ power_get_battery_health() {
             energy_full_design=$(upower -i "$battery" 2>/dev/null | grep "energy-full-design:" | awk '{print $2}')
 
             if [[ -n "$energy_full" && -n "$energy_full_design" ]]; then
-                # Remove units and calculate percentage
+                # Remove units (e.g., 'Wh') and any trailing non-numeric characters
                 energy_full=$(echo "$energy_full" | tr -d 'Wh')
                 energy_full_design=$(echo "$energy_full_design" | tr -d 'Wh')
 
+                # Validate numeric and non-zero denominator before calling awk
                 if [[ -n "$energy_full" && -n "$energy_full_design" && "$energy_full_design" != "0" ]]; then
+                    # Use awk -v to safely pass shell variables into the expression
                     local health
-                    health=$(awk "BEGIN {printf \"%.0f\", ($energy_full / $energy_full_design) * 100}")
-                    echo "$health"
-                    return 0
+                    health=$(awk -v a="$energy_full" -v b="$energy_full_design" 'BEGIN { if (a=="" || b=="" || b==0) exit 1; printf "%.0f", (a / b) * 100 }') || true
+                    if [[ -n "$health" ]]; then
+                        echo "$health"
+                        return 0
+                    fi
                 fi
             fi
         fi

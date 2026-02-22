@@ -19,7 +19,8 @@ inxi_cache_data() {
 inxi_get_section() {
     local section="$1"
     # Matches lines starting with the section name until the next line starting with a capital letter followed by a colon
-    echo "$INXI_CACHE" | awk "/^$section:/{flag=1; print \$0; next} /^[A-Z][a-zA-Z]*:/{flag=0} flag"
+    # Use -v to pass the section safely into awk to avoid regex injection or syntax errors
+    echo "$INXI_CACHE" | awk -v sec="$section" '$0 ~ ("^" sec ":") {flag=1; print $0; next} /^[A-Z][a-zA-Z]*:/{flag=0} flag'
 }
 
 # Parse a section and return key-value pairs in CSV format

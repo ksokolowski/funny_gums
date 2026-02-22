@@ -244,26 +244,45 @@ refresh_dmi_data() {
 
 refresh_live_metrics() {
     # 1. Start background jobs for slow/independent data fetches
+    # Use `bash -c` with `declare -f` so caller-defined (mock) functions
+    # are available inside the backgrounded bash invocation. This helps
+    # tests that redefine functions at runtime to verify parallelism.
+
     # CPU Usage (sleeps 0.1s internally)
-    (get_cpu_usage_live >"$TMP_DIR/cpu_usage") &
+    (
+        eval "$(declare -f get_cpu_usage_live 2>/dev/null)"
+        get_cpu_usage_live >"$TMP_DIR/cpu_usage"
+    ) &
     local pid_cpu=$!
 
     # Sensors (if available) — populates cache for all subsequent temp/fan queries
     local pid_sensors=""
     if sensors_available; then
-        (sensors >"$TMP_DIR/sensors" 2>/dev/null) &
+        (
+            eval "$(declare -f sensors 2>/dev/null)"
+            sensors >"$TMP_DIR/sensors" 2>/dev/null
+        ) &
         pid_sensors=$!
     fi
 
     # Disk Usage
-    (get_root_disk_usage_live >"$TMP_DIR/disk_root") &
+    (
+        eval "$(declare -f get_root_disk_usage_live 2>/dev/null)"
+        get_root_disk_usage_live >"$TMP_DIR/disk_root"
+    ) &
     local pid_disk=$!
 
     # Memory/Swap
-    (get_memory_usage_live >"$TMP_DIR/mem") &
+    (
+        eval "$(declare -f get_memory_usage_live 2>/dev/null)"
+        get_memory_usage_live >"$TMP_DIR/mem"
+    ) &
     local pid_mem=$!
 
-    (get_swap_usage_live >"$TMP_DIR/swap") &
+    (
+        eval "$(declare -f get_swap_usage_live 2>/dev/null)"
+        get_swap_usage_live >"$TMP_DIR/swap"
+    ) &
     local pid_swap=$!
 
     # 2. Wait for background jobs

@@ -22,11 +22,14 @@
 ## Quick Start 🏎️
 
 ### 1. Install Dependencies
-Funny Gums requires `gum`. Most systems also benefit from `inxi` and `lm-sensors`.
-
 ```bash
-# Ubuntu/Debian
-sudo apt install gum inxi lm-sensors
+# Ubuntu/Debian - Add Charm repository for latest gum
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+sudo apt update && sudo apt install gum jq
+
+# For other systems: https://github.com/charmbracelet/gum#installation
 ```
 
 ### 2. Write Your First Script
@@ -91,18 +94,61 @@ A modular Bash library providing terminal UI components powered by [gum](https:/
 
 - **Bash** 4.0+
 - **[gum](https://github.com/charmbracelet/gum)** - Required for UI components
-- **jq** - Required for efficient JSON parsing (system modules)
-- **Standard Utils** - awk, sed, grep, date (usually pre-installed)
+- **jq** - Required for efficient JSON parsing
+- **Standard Utils** - awk, sed, grep, date, tput (usually pre-installed)
 
-Install dependencies:
-```bash
-# Ubuntu / Debian
-sudo apt install gum jq
-```
+**Development (for contributors):**
+- **shellcheck** - Bash linting
+- **shfmt** - Code formatting
+
+**Optional (for system monitoring modules):**
+- **inxi** - System information
+- **lm-sensors** - Hardware monitoring (provides `sensors` command)
+- **smartmontools** - Storage health (provides `smartctl` command)
+- **hdparm** - Disk performance metrics
+- **dmidecode** - Hardware details
+- **acpi** - Power management info
 
 ## Installation
 
-### 1. Clone the Repository
+### 1. Install Dependencies
+
+#### Ubuntu/Debian
+
+**Install gum from Charm's official repository (recommended):**
+```bash
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+sudo apt update && sudo apt install gum jq
+```
+
+**Optional system monitoring tools:**
+```bash
+sudo apt install inxi lm-sensors smartmontools hdparm dmidecode
+```
+
+**Development dependencies (for contributing):**
+```bash
+sudo apt install shellcheck shfmt
+```
+
+#### Other Operating Systems
+
+For macOS, Arch, Fedora, and other systems, see the official [gum installation guide](https://github.com/charmbracelet/gum#installation).
+
+```bash
+# macOS (Homebrew)
+brew install gum jq
+
+# Arch Linux
+pacman -S gum jq
+
+# From source
+go install github.com/charmbracelet/gum@latest
+```
+
+### 2. Clone the Repository
 
 ```bash
 # Clone to your preferred location
@@ -110,24 +156,21 @@ git clone https://github.com/ksokolowski/funny_gums.git
 cd funny_gums
 ```
 
-### 2. Verify Dependencies
+### 3. Verify Dependencies
 
 ```bash
-# Check if gum is available
-which gum || echo "⚠️  gum not found - install it first!"
-
-# Check if jq is available (needed for system modules)
-which jq || echo "⚠️  jq not found - install it first!"
+# Use the built-in dependency checker
+make deps
 ```
 
-### 3. Try an Example
+### 4. Try an Example
 
 ```bash
 # Run a simple example to verify everything works
 bash examples/markdown_preview.sh README.md
 ```
 
-### 4. Use in Your Scripts
+### 5. Use in Your Scripts
 
 You have two options:
 

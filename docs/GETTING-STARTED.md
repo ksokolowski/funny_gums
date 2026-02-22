@@ -4,34 +4,58 @@ This guide will help you set up Funny Gums and write your first terminal UI scri
 
 ## Prerequisites 🛠️
 
-### Required: gum
-Funny Gums requires [gum](https://github.com/charmbracelet/gum), a terminal UI toolkit from Charm.
+### Required Dependencies
+
+Funny Gums requires the following core dependencies:
+
+- **[gum](https://github.com/charmbracelet/gum)** - Terminal UI toolkit from Charm
+- **jq** - JSON processor (used by system modules)
+- **Bash 4.0+** and standard utils (awk, sed, grep, date, tput)
 
 **Installation:**
 
 ```bash
-# macOS (Homebrew)
-brew install gum
-
-# Arch Linux
-pacman -S gum
-
-# Debian/Ubuntu (via Charm apt repo)
+# Ubuntu/Debian (via Charm apt repo - recommended)
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
 echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
-sudo apt update && sudo apt install gum
+sudo apt update && sudo apt install gum jq
 
-# From source
+# macOS (Homebrew)
+brew install gum jq
+
+# Arch Linux
+pacman -S gum jq
+
+# Fedora
+sudo dnf install jq
+# For gum on Fedora, see: https://github.com/charmbracelet/gum#installation
+
+# From source (gum only)
 go install github.com/charmbracelet/gum@latest
+```
+
+### Development Dependencies
+
+If you plan to contribute to Funny Gums, install:
+
+```bash
+# Ubuntu/Debian
+sudo apt install shellcheck shfmt
+
+# macOS
+brew install shellcheck shfmt
+
+# Arch Linux
+pacman -S shellcheck shfmt
 ```
 
 ### Optional: System Monitoring Tools
 
-For full functionality of the system monitoring modules:
+For full functionality of the system monitoring modules (`lib/mod/*`):
 
 ```bash
-# Debian/Ubuntu
+# Ubuntu/Debian
 sudo apt install inxi lm-sensors smartmontools hdparm dmidecode acpi
 
 # Arch Linux
@@ -49,6 +73,14 @@ Clone or download Funny Gums to your project:
 git clone https://github.com/yourusername/funny_gums.git
 cd funny_gums
 ```
+
+Verify all dependencies are installed:
+
+```bash
+make deps
+```
+
+This will check for all required, development, and optional dependencies.
 
 ## Basic Usage
 
