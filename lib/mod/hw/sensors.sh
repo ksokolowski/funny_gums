@@ -13,12 +13,32 @@ sensors_available() {
 
 # Cache variable for sensors output
 _SENSORS_CACHE=""
+_SENSORS_CACHE_TIME=0
 
 # Update sensors cache
 # Usage: sensors_update_cache
 sensors_update_cache() {
     sensors_available || return 1
     _SENSORS_CACHE=$(sensors 2>/dev/null)
+    _SENSORS_CACHE_TIME=$(date +%s)
+}
+
+# Invalidate sensors cache (forces re-read on next access)
+# Usage: sensors_invalidate_cache
+sensors_invalidate_cache() {
+    _SENSORS_CACHE=""
+    _SENSORS_CACHE_TIME=0
+}
+
+# Get sensors output, refreshing cache if stale (older than 5 seconds)
+# Usage: output=$(_sensors_get_cached)
+_sensors_get_cached() {
+    local now
+    now=$(date +%s)
+    if [[ -z "$_SENSORS_CACHE" ]] || ((now - _SENSORS_CACHE_TIME > 5)); then
+        sensors_update_cache || return 1
+    fi
+    echo "$_SENSORS_CACHE"
 }
 
 # Validate temperature value
@@ -43,7 +63,7 @@ _is_valid_temp() {
 sensors_get_cpu_temp_smart() {
     sensors_available || return 1
     local output
-    output="${_SENSORS_CACHE:-$(sensors 2>/dev/null)}"
+    output="$(_sensors_get_cached)"
 
     local temp=""
 
@@ -77,7 +97,7 @@ sensors_get_temp_by_adapter() {
 
     local output
     # extraction: match adapter block, stop at next adapter (empty line usually) or end
-    output=$(echo "${_SENSORS_CACHE:-$(sensors 2>/dev/null)}" | sed -n "/^${adapter}/,/^$/p")
+    output=$(echo "$(_sensors_get_cached)" | sed -n "/^${adapter}/,/^$/p")
 
     local temp=""
 
@@ -125,7 +145,7 @@ sensors_get_ram_temps() {
             fi
             current_chip="" # Reset for next
         fi
-    done <<<"${_SENSORS_CACHE:-$(sensors 2>/dev/null)}"
+    done <<<"$(_sensors_get_cached)"
 
     echo "${temps% }"
 }
@@ -151,7 +171,7 @@ sensors_get_network_temps() {
             fi
             current_chip=""
         fi
-    done <<<"${_SENSORS_CACHE:-$(sensors 2>/dev/null)}"
+    done <<<"$(_sensors_get_cached)"
 
     echo "${temps% }"
 }
@@ -207,7 +227,7 @@ sensors_get_amd_gpu_temp() { sensors_get_amd_edge_temp; }
 sensors_get_amd_edge_temp() {
     sensors_available || return 1
     local temp
-    temp=$(echo "${_SENSORS_CACHE:-$(sensors 2>/dev/null)}" | grep -m1 "edge:" | grep -oP '\+\K[0-9]+\.[0-9]+')
+    temp=$(echo "$(_sensors_get_cached)" | grep -m1 "edge:" | grep -oP '\+\K[0-9]+\.[0-9]+')
     if _is_valid_temp "$temp"; then
         echo "$temp"
         return 0
@@ -220,7 +240,7 @@ sensors_get_amd_edge_temp() {
 sensors_get_amd_junction_temp() {
     sensors_available || return 1
     local temp
-    temp=$(echo "${_SENSORS_CACHE:-$(sensors 2>/dev/null)}" | grep -m1 "junction:" | grep -oP '\+\K[0-9]+\.[0-9]+')
+    temp=$(echo "$(_sensors_get_cached)" | grep -m1 "junction:" | grep -oP '\+\K[0-9]+\.[0-9]+')
     if _is_valid_temp "$temp"; then
         echo "$temp"
         return 0
@@ -232,7 +252,7 @@ sensors_get_amd_junction_temp() {
 # Usage: all_temps=$(sensors_get_all_temps)
 sensors_get_all_temps() {
     sensors_available || return 1
-    local output="${_SENSORS_CACHE:-$(sensors 2>/dev/null)}"
+    local output="$(_sensors_get_cached)"
 
     # Parse sensors output to get: Chip|Adapter|Sensor|Temp
     # Output format required: chip|sensor|temp
@@ -266,5 +286,5 @@ sensors_get_all_temps() {
 # Usage: fan_speeds=$(sensors_get_fan_speeds)
 sensors_get_fan_speeds() {
     sensors_available || return 1
-    echo "${_SENSORS_CACHE:-$(sensors 2>/dev/null)}" | grep -i 'fan' | grep -oP '\d+ RPM' | grep -oP '\d+'
+    echo "$(_sensors_get_cached)" | grep -i 'fan' | grep -oP '\d+ RPM' | grep -oP '\d+'
 }

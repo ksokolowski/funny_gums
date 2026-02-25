@@ -301,8 +301,8 @@ SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
 # Source only what you need
-source "$LIB_DIR/core/colors.sh"
-source "$LIB_DIR/ui/ui.sh"
+source "$LIB_DIR/core/term/colors.sh"
+source "$LIB_DIR/ui/layout/ui.sh"
 
 # Your script logic here
 ui_box "My Script" "Hello, World!"

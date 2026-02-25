@@ -122,7 +122,7 @@ modulename_available() {
 # test_modulename.sh - Unit tests for modulename.sh
 
 test_file_start "modulename.sh"
-source "$PROJECT_DIR/lib/system/modulename.sh"
+source "$PROJECT_DIR/lib/mod/hw/modulename.sh"
 
 assert_var_defined "_SYSTEM_MODULENAME_LOADED"
 assert_function_exists "modulename_available"
@@ -157,7 +157,21 @@ Open an issue or submit a PR following the module implementation guidelines abov
 
 ## Version History
 
-### v1.0.0 (Current)
+### v1.0.1 (Current)
+- Fix: LICENSE corrected to Apache 2.0
+- Fix: Terminal detection logic (_is_full_terminal AND→OR)
+- Fix: Logging guard ordering and pipe exit code propagation (PIPESTATUS)
+- Fix: format_bytes inconsistent return format (int vs float)
+- Fix: Text width cache key collision, truncate_visual ANSI preservation
+- Fix: Sensors cache auto-refresh (5s TTL), storage.sh jq dependency check
+- Fix: fzf.sh warns on preview fallback, viewer.sh pipe error handling
+- Fix: Stale source paths in README, docs, and code comments
+- Fix: Misleading test_file_start names, test_emojis.sh converted to unit test
+- Fix: Dashboard parallel timing test made non-critical
+- Added missing test assertions (log_silent, log_time, UI behavioral tests)
+- Documentation accuracy pass across all docs
+
+### v1.0.0
 - Initial release
 - Core modules: colors, cursor, spinner, logging, sudo
 - UI modules: base, input, format, table, progress, gauge, storage, network

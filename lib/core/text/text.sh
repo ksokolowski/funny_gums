@@ -6,7 +6,7 @@
 # Uses lookup tables for O(1) emoji width queries.
 #
 # Usage:
-#   source lib/core/text.sh
+#   source lib/core/text/text.sh
 #   visual_width "Hello ⚙️ World"  # Returns: 14
 #   pad_visual "Hi" 10             # Returns: "Hi        "
 
@@ -218,8 +218,8 @@ visual_width() {
         return
     }
 
-    # Check cache first
-    local cache_key="${mode}:${text}"
+    # Check cache first (use NUL as separator - cannot appear in text)
+    local cache_key="${mode}"$'\x01'"${text}"
     [[ -n "${_VISUAL_WIDTH_CACHE[$cache_key]:-}" ]] && {
         echo "${_VISUAL_WIDTH_CACHE[$cache_key]}"
         return
@@ -389,16 +389,16 @@ truncate_visual() {
     local max_width="$2"
     local suffix="${3:-}"
 
-    # Strip ANSI for calculation but we need to track for restoration
+    # Strip ANSI for width calculation
     local clean_text
     clean_text=$(strip_ansi "$text")
 
     local current_width
     current_width=$(visual_width "$clean_text")
 
-    # If already fits, return as-is
+    # If already fits, return original text (preserving ANSI)
     if ((current_width <= max_width)); then
-        echo "$clean_text"
+        echo "$text"
         return
     fi
 

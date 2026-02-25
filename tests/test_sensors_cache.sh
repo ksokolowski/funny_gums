@@ -8,7 +8,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 # Source test framework
 source "$SCRIPT_DIR/framework.sh"
 
-test_file_start "sensors_cache.sh"
+test_file_start "sensors.sh (caching)"
 
 # Mock sensors command and a counter to track calls
 CALL_COUNT_FILE=$(mktemp)

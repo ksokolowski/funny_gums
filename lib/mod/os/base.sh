@@ -27,6 +27,8 @@ format_bytes() {
         4) precise=$(echo "scale=2; $bytes / 1099511627776" | bc) ;; # TiB
         *) precise=$value ;;
         esac
+        # Normalize: strip trailing zeros after decimal point (e.g., "2.0" -> "2")
+        precise="${precise%%\.0}"
         echo "$precise ${units[$unit]}"
     else
         echo "$value ${units[$unit]}"
@@ -37,5 +39,5 @@ format_bytes() {
 # Usage: human_size=$(format_kb 1234567)
 format_kb() {
     local kb="$1"
-    format_bytes $((kb * 1024))
+    format_bytes "$((kb * 1024))"
 }

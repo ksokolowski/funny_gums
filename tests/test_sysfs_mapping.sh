@@ -9,7 +9,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 # Source test framework
 source "$SCRIPT_DIR/framework.sh"
 
-test_file_start "sysfs_mapping.sh"
+test_file_start "sensors.sh (sysfs mapping)"
 
 # Source colors for mock functions
 source "$PROJECT_DIR/lib/core/term/colors.sh"

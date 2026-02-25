@@ -8,7 +8,7 @@ source "$(dirname "$0")/framework.sh"
 # Source library
 source "$(dirname "$0")/../lib/mod/os/inxi.sh"
 
-test_file_start "inxi_helper.sh"
+test_file_start "inxi.sh"
 
 # Mock inxi output
 MOCK_INXI_OUTPUT=$(

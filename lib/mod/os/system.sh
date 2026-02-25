@@ -8,10 +8,7 @@ _SYSTEM_LOADED=1
 
 _SYSTEM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source CLI tool abstraction modules first (no dependencies on other system modules)
 # Source all system submodules
-_SYSTEM_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 source "$_SYSTEM_DIR/../hw/sensors.sh"       # lm-sensors abstraction
 source "$_SYSTEM_DIR/lspci.sh"               # PCI device queries
 source "$_SYSTEM_DIR/../storage/smartctl.sh" # Drive health (SMART + NVMe)

@@ -45,10 +45,12 @@ ui_view_file() {
 
     # 3. Fallback to 'gum format' (Markdown) if applicable
     if [[ "$file" == *.md ]] || [[ "$syntax" == "markdown" ]]; then
-        cat "$file" | gum format | ui_pager
-        return 0
+        local formatted
+        formatted=$(gum format <"$file") || return 1
+        echo "$formatted" | ui_pager
+        return $?
     fi
 
     # 4. Fallback to generic pager
-    cat "$file" | ui_pager
+    ui_pager <"$file"
 }

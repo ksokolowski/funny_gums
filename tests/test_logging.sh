@@ -15,7 +15,9 @@ assert_function_exists "log_error"
 assert_function_exists "log_debug"
 assert_function_exists "log_show"
 
-# Test new logging functions
+# Test additional logging functions
+assert_function_exists "log_silent"
+assert_function_exists "log_time"
 assert_function_exists "log_structured"
 assert_function_exists "log_prefix"
 assert_function_exists "log_fatal"

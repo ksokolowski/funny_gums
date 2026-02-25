@@ -8,7 +8,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 # Source test framework
 source "$SCRIPT_DIR/framework.sh"
 
-test_file_start "gauge_float.sh"
+test_file_start "gauge.sh (float handling)"
 
 # Source modules
 source "$PROJECT_DIR/lib/core/term/colors.sh"

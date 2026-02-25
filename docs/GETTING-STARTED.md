@@ -70,7 +70,7 @@ sudo dnf install inxi lm_sensors smartmontools hdparm dmidecode acpi
 Clone or download Funny Gums to your project:
 
 ```bash
-git clone https://github.com/yourusername/funny_gums.git
+git clone https://github.com/ksokolowski/funny_gums.git
 cd funny_gums
 ```
 

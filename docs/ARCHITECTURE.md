@@ -45,12 +45,7 @@ funny_gums/
     ├── GETTING-STARTED.md
     ├── ARCHITECTURE.md
     ├── EXAMPLES.md
-    ├── ROADMAP.md
-    └── api/
-        ├── core.md
-        ├── ui.md
-        ├── system.md
-        └── cli-tools.md
+    └── ROADMAP.md
 ```
 
 ## Module Dependency Chain
@@ -60,9 +55,9 @@ Level 0: lib/core/*           (no dependencies)
     │
     ├── Level 1: lib/ui/*     (depends on core/colors)
     │
-    ├── Level 1: lib/dashboard/*  (depends on core/colors, cursor, spinner)
+    ├── Level 1: lib/app/*     (depends on core/colors, cursor, spinner)
     │
-    └── Level 2: lib/system/* (depends on core/colors for ANSI functions)
+    └── Level 2: lib/mod/*    (depends on core/colors for ANSI functions)
 ```
 
 ### Core Modules (Level 0)
@@ -147,7 +142,7 @@ source lib/core/term/colors.sh
 source lib/ui/layout/ui.sh
 
 # Specific system module
-source lib/system/cpu.sh
+source lib/mod/hw/cpu.sh
 
 # All system modules
 source lib/mod/os/system.sh
@@ -166,7 +161,7 @@ source funny_gums.sh
 - **Underscore prefix:** `_ui_build_bar()`, `_ui_threshold_color()`
 
 ### System Getters
-- **get_* pattern:** `get_cpu_temp()`, `get_memory_info()`
+- **get_* pattern:** `get_cpu_temp_live()`, `get_memory_usage_live()`
 - **CLI tool prefixed:** `sensors_get_cpu_temp()`, `hdparm_get_model()`
 
 ## Variable Naming Conventions
@@ -184,7 +179,7 @@ Modules use portable path resolution to find their directory:
 
 ```bash
 _MODULE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$_MODULE_DIR/../core/colors.sh"
+source "$_MODULE_DIR/../core/term/colors.sh"
 ```
 
 ## Testing Pattern

@@ -34,6 +34,9 @@ get_root_disk_usage_live() {
 # Usage: get_physical_drives
 # Returns: Lines of "device|size_bytes|model|type" (type: ssd/hdd/nvme)
 get_physical_drives() {
+    # Requires jq for JSON parsing
+    command -v jq &>/dev/null || return 1
+
     # One-pass JSON parsing with jq for efficiency
     # Ignores types: loop, zram, rom (sr*)
     lsblk -J -b -d -o NAME,SIZE,MODEL,ROTA,TRAN,TYPE 2>/dev/null | jq -r '

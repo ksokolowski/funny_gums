@@ -66,3 +66,18 @@ assert_function_exists "ui_file_all"
 # Test enhanced spin functions
 assert_function_exists "ui_spin_type"
 assert_function_exists "ui_spin_output"
+
+# Behavioral tests: ui_format functions accept string input
+if command -v gum &>/dev/null; then
+    # Test ui_format with markdown input
+    result=$(ui_format "# Test" 2>/dev/null) || true
+    assert_not_empty "$result" "ui_format should produce output from markdown string"
+
+    # Test ui_format_code with code input
+    result=$(ui_format_code "echo hello" 2>/dev/null) || true
+    assert_not_empty "$result" "ui_format_code should produce output from code string"
+
+    # Test ui_box produces output
+    result=$(ui_box "Test message" 2>/dev/null) || true
+    assert_not_empty "$result" "ui_box should produce output"
+fi

@@ -8,7 +8,7 @@ source "$(dirname "$0")/framework.sh"
 # Source library
 source "$(dirname "$0")/../funny_gums.sh"
 
-test_file_start "enhancements.sh"
+test_file_start "funny_gums.sh (enhancements)"
 
 # 1. Test ui_version_check
 it_version_check() {

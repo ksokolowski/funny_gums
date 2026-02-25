@@ -350,9 +350,9 @@ EMOJI_FAMILY="👨‍👩‍👧"           # Family (ZWJ)
 ################################################################################
 # USAGE NOTES
 ################################################################################
-# VS16 emojis throughout this file are SAFE when using lib/core/text.sh
+# VS16 emojis throughout this file are SAFE when using lib/core/text/text.sh
 # for width calculation:
-#   source lib/core/text.sh
+#   source lib/core/text/text.sh
 #   gum_exec_style_visual "Text with ⚙️" 60
 #
 # The hybrid width detection provides proper alignment in gum frames.
@@ -360,7 +360,7 @@ EMOJI_FAMILY="👨‍👩‍👧"           # Family (ZWJ)
 ################################################################################
 # USAGE EXAMPLES
 ################################################################################
-# source lib/core/emojis.sh
+# source lib/core/text/emojis.sh
 #
 # # Status indicators
 # echo "$EMOJI_SUCCESS Task completed"

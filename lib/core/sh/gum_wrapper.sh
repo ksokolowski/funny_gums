@@ -51,7 +51,7 @@ gum_confirm() {
 ################################################################################
 # VISUAL WIDTH-AWARE FUNCTIONS
 # These functions compensate for VS16/ZWJ emoji width differences
-# Requires: source lib/core/text.sh (for visual_width functions)
+# Requires: source lib/core/text/text.sh (for visual_width functions)
 ################################################################################
 
 # Execute gum style with visual width compensation

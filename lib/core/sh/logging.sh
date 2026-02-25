@@ -2,12 +2,12 @@
 # logging.sh - Logging functions using gum
 # Source this file for structured logging with gum
 
-_LOGGING_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$_LOGGING_DIR/gum_wrapper.sh"
-
 # Prevent multiple sourcing
 [[ -n "${_LOGGING_SH_LOADED:-}" ]] && return 0
 _LOGGING_SH_LOADED=1
+
+_LOGGING_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_LOGGING_DIR/gum_wrapper.sh"
 
 # Default log file (can be overridden before sourcing)
 : "${LOG_FILE:=/tmp/gum_script.log}"
@@ -23,6 +23,7 @@ log_init() {
 # Log info level
 log_info() {
     gum_exec log --level info "$@" 2>&1 | tee -a "$LOG_FILE"
+    return "${PIPESTATUS[0]}"
 }
 
 # Log info to file only (no console output)
@@ -33,21 +34,24 @@ log_silent() {
 # Log warning level
 log_warn() {
     gum_exec log --level warn "$@" 2>&1 | tee -a "$LOG_FILE"
+    return "${PIPESTATUS[0]}"
 }
 
 # Log error level
 log_error() {
     gum_exec log --level error "$@" 2>&1 | tee -a "$LOG_FILE"
+    return "${PIPESTATUS[0]}"
 }
 
 # Log debug level (only if VERBOSE=true)
 log_debug() {
-    $VERBOSE && gum_exec log --level debug "$@" 2>&1 | tee -a "$LOG_FILE"
+    $VERBOSE && gum_exec log --level debug "$@" 2>&1 | tee -a "$LOG_FILE" && return "${PIPESTATUS[0]}"
 }
 
 # Log with timestamp
 log_time() {
     gum_exec log --time rfc3339 --level info "$@" 2>&1 | tee -a "$LOG_FILE"
+    return "${PIPESTATUS[0]}"
 }
 
 # Structured log with key-value pairs
@@ -58,6 +62,7 @@ log_structured() {
     local msg="$2"
     shift 2
     gum_exec log --structured --level "$level" "$msg" "$@" 2>&1 | tee -a "$LOG_FILE"
+    return "${PIPESTATUS[0]}"
 }
 
 # Log with custom prefix
@@ -67,12 +72,14 @@ log_prefix() {
     local level="$2"
     shift 2
     gum_exec log --prefix "$prefix" --level "$level" "$@" 2>&1 | tee -a "$LOG_FILE"
+    return "${PIPESTATUS[0]}"
 }
 
 # Log fatal (error level with "FATAL" styling - exits script)
 # Usage: log_fatal "Critical error occurred"
 log_fatal() {
     gum_exec log --level fatal "$@" 2>&1 | tee -a "$LOG_FILE"
+    # Always exits regardless of gum exit code
     exit 1
 }
 

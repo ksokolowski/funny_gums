@@ -68,10 +68,10 @@ lib/
 ---
 
 ## License 📜
-MIT License. See [LICENSE](LICENSE) for details.
+Apache License 2.0. See [LICENSE](LICENSE) for details.
 
 [![Tests](https://github.com/ksokolowski/funny_gums/actions/workflows/test.yml/badge.svg)](https://github.com/ksokolowski/funny_gums/actions/workflows/test.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/styledconsole)
 [![GitHub Sponsors](https://img.shields.io/github/sponsors/ksokolowski?label=Sponsor&logo=github)](https://github.com/sponsors/ksokolowski)
 
@@ -185,8 +185,8 @@ ui_box "Hello" "Funny Gums is ready!"
 **Option B: Source specific modules** (faster, minimal footprint)
 ```bash
 #!/usr/bin/env bash
-source /path/to/funny_gums/lib/core/colors.sh
-source /path/to/funny_gums/lib/ui/ui.sh
+source /path/to/funny_gums/lib/core/term/colors.sh
+source /path/to/funny_gums/lib/ui/layout/ui.sh
 
 echo "${GREEN}Success!${RESET}"
 ui_confirm "Continue?" && echo "Let's go!"
@@ -278,7 +278,7 @@ VS16 emojis (like ⚠️ ⚙️ 🌡️) cause alignment issues in GNOME Termina
 **Usage:** Simply use the `$EMOJI_*` variables - they auto-adapt to the terminal:
 
 ```bash
-source lib/core/emojis.sh
+source lib/core/text/emojis.sh
 
 echo "$EMOJI_WARNING Config missing"   # ⚠️ or 🟡 or [!]
 echo "$EMOJI_CPU Processing..."        # ⚙️ or 🔧 or [*]
@@ -357,13 +357,13 @@ funny_gums/
 Funny Gums includes proper handling for VS16 (Variation Selector 16) emojis like ⚙️, ▶️, and ZWJ sequences like 👨‍💻. The library automatically detects modern terminals and calculates correct visual widths for emoji-aware text processing.
 
 ```bash
-source lib/core/text.sh
+source lib/core/text/text.sh
 detect_terminal_mode          # Detects "modern" or "legacy"
-visual_width "Hello ⚙️"       # Returns: 9 (5 + 1 + 2 + VS16)
+visual_width "Hello ⚙️"       # Returns: 8 (5 + 1 + 2, VS16 is zero-width)
 pad_visual "✅ Done" 15       # Pads to visual width 15
 ```
 
-Modern terminals supported: Kitty, WezTerm, iTerm, Alacritty, Ghostty, GNOME Terminal 6003+
+Full support: Kitty, WezTerm, iTerm, Alacritty, Ghostty. Compatible (auto-fallback): GNOME Terminal, Tilix, VS Code
 
 ## Built on Charm
 
@@ -391,4 +391,4 @@ Your support helps maintain both Funny Gums and [StyledConsole](https://github.c
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+Apache License 2.0 - see [LICENSE](LICENSE) for details.

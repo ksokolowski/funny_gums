@@ -46,8 +46,8 @@ ui_fzf_select() {
         # Run fzf, consuming stdin
         selection=$(fzf "${fzf_opts[@]}")
     else
-        # Fallback to gum filter
-        # Note: gum filter doesn't support previews, so that arg is ignored
+        # Fallback to gum filter (preview not supported, warn if requested)
+        [[ -n "$preview_cmd" ]] && echo "Warning: fzf not found, preview not available in gum filter fallback" >&2
         selection=$(gum filter --placeholder="$prompt" --height=20)
     fi
 

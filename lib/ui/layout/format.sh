@@ -2,11 +2,11 @@
 # format.sh - Text formatting and rendering functions using gum
 # shellcheck disable=SC2034
 
-_UI_FORMAT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$_UI_FORMAT_DIR/../../core/sh/gum_wrapper.sh"
-
 [[ -n "${_UI_FORMAT_LOADED:-}" ]] && return 0
 _UI_FORMAT_LOADED=1
+
+_UI_FORMAT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$_UI_FORMAT_DIR/../../core/sh/gum_wrapper.sh"
 
 # Format/render markdown text
 # Usage: echo "# Title" | ui_format

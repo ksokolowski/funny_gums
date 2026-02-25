@@ -7,7 +7,7 @@
 #   - legacy: Basic terminals with limited emoji support
 #
 # Usage:
-#   source lib/core/terminal.sh
+#   source lib/core/term/terminal.sh
 #   detect_terminal_capability
 #   if [[ "$TERMINAL_CAPABILITY" == "full" ]]; then
 #       echo "Full VS16 emoji support"
@@ -44,9 +44,11 @@ TERMINAL_MODE="" # Backward compat alias
 # Check if terminal has full VS16/ZWJ support
 # Returns: 0 if full support, 1 otherwise
 _is_full_terminal() {
-    # Check TERM for known modern terminal types
-    [[ "${TERM:-}" =~ (kitty|wezterm|alacritty|ghostty|xterm-256color) ]] &&
-        [[ "${TERM_PROGRAM:-}" =~ (iTerm\.app|WezTerm|Alacritty|ghostty|kitty|Apple_Terminal) ]] && return 0
+    # Check TERM_PROGRAM for known modern terminal applications
+    [[ "${TERM_PROGRAM:-}" =~ (iTerm\.app|WezTerm|Alacritty|ghostty|kitty|Apple_Terminal) ]] && return 0
+
+    # Check TERM for known modern terminal types (excluding generic xterm-256color)
+    [[ "${TERM:-}" =~ ^(kitty|wezterm|alacritty|ghostty)(-|$) ]] && return 0
 
     # Check terminal-specific environment variables
     [[ -n "${KITTY_WINDOW_ID:-}" ]] && return 0
