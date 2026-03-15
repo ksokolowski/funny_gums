@@ -17,7 +17,7 @@
 
 ### Tests are possible
 - Custom assertion framework works
-- 370+ tests provide confidence
+- 380+ tests provide confidence
 - Shellcheck catches many issues early
 
 ## The Bad

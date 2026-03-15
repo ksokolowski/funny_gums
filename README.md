@@ -8,7 +8,7 @@
       <ul>
         <li>🧱 <strong>3-Tier Architecture</strong>: Core foundational utilities, generic UI widgets, and domain-specific system modules.</li>
         <li>🎨 <strong>Rich Aesthetics</strong>: 256-color support, neon palettes, and curated visual styles.</li>
-        <li>🧪 <strong>Robust Testing</strong>: 300+ automated unit tests ensuring stability across shell environments.</li>
+        <li>🧪 <strong>Robust Testing</strong>: 380+ automated unit tests ensuring stability across shell environments.</li>
         <li>🎭 <strong>Emoji Awareness</strong>: Sophisticated 3-tier emoji degradation logic (VS16/ZWJ support).</li>
         <li>⚙️ <strong>Hardware Metrics</strong>: Integrated wrappers for <code>inxi</code>, <code>nvidia-smi</code>, <code>smartctl</code>, and more.</li>
       </ul>
