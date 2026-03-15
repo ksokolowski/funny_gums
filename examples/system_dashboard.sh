@@ -361,6 +361,8 @@ refresh_live_metrics() {
         if [[ -n "$vram_used" && -n "$vram_total" ]]; then
             LIVE_GPU_VRAM_USED="${vram_used} MiB"
             LIVE_GPU_VRAM_TOTAL="${vram_total} MiB"
+            LIVE_GPU_VRAM_USED_RAW="$vram_used"
+            LIVE_GPU_VRAM_TOTAL_RAW="$vram_total"
         fi
         # GPU clock speeds
         local gpu_clk mem_clk
@@ -376,6 +378,9 @@ refresh_live_metrics() {
         if [[ -n "$vram_used" && -n "$vram_total" ]]; then
             LIVE_GPU_VRAM_USED=$(format_bytes "$vram_used")
             LIVE_GPU_VRAM_TOTAL=$(format_bytes "$vram_total")
+            # Store raw bytes, convert to MiB for consistent percentage calculation
+            LIVE_GPU_VRAM_USED_RAW=$((vram_used / 1048576))
+            LIVE_GPU_VRAM_TOTAL_RAW=$((vram_total / 1048576))
         fi
     fi
 
@@ -500,10 +505,10 @@ get_category_content() {
                 echo "Power Source,Battery"
             fi
             if power_has_battery; then
-                echo "Battery Level,${POWER_BATTERY_PERCENT:-?}%"
-                echo "Battery Status,${POWER_BATTERY_STATUS:-Unknown}"
-                [[ -n "${POWER_BATTERY_TIME:-}" ]] && echo "Time Remaining,$POWER_BATTERY_TIME"
-                [[ -n "${POWER_BATTERY_HEALTH:-}" ]] && echo "Battery Health,$POWER_BATTERY_HEALTH%"
+                echo "Battery Level,${LIVE_BATTERY_PERCENT:-?}%"
+                echo "Battery Status,${LIVE_BATTERY_STATUS:-Unknown}"
+                [[ -n "${LIVE_BATTERY_TIME:-}" ]] && echo "Time Remaining,$LIVE_BATTERY_TIME"
+                [[ -n "${LIVE_BATTERY_HEALTH:-}" ]] && echo "Battery Health,$LIVE_BATTERY_HEALTH%"
             else
                 echo "Battery,Not present"
             fi
@@ -944,12 +949,11 @@ build_graphics_panel() {
 
     # VRAM Usage
     if [[ -n "$LIVE_GPU_VRAM_USED" && -n "$LIVE_GPU_VRAM_TOTAL" ]]; then
-        # Extract numeric values for percentage calculation
-        local vram_used_val vram_total_val vram_pct
-        vram_used_val=$(echo "$LIVE_GPU_VRAM_USED" | grep -oE '[0-9]+' | head -1)
-        vram_total_val=$(echo "$LIVE_GPU_VRAM_TOTAL" | grep -oE '[0-9]+' | head -1)
-        if [[ -n "$vram_total_val" && "$vram_total_val" -gt 0 ]]; then
-            vram_pct=$((vram_used_val * 100 / vram_total_val))
+        # Extract numeric MiB values for percentage calculation
+        # Both NVIDIA and AMD paths must store raw MiB values in LIVE_GPU_VRAM_*_RAW
+        local vram_pct
+        if [[ -n "${LIVE_GPU_VRAM_USED_RAW:-}" && -n "${LIVE_GPU_VRAM_TOTAL_RAW:-}" && "${LIVE_GPU_VRAM_TOTAL_RAW:-0}" -gt 0 ]]; then
+            vram_pct=$((LIVE_GPU_VRAM_USED_RAW * 100 / LIVE_GPU_VRAM_TOTAL_RAW))
             local vram_gauge
             vram_gauge=$(ui_gauge_colored "$vram_pct" 100 25 "VRAM" "$RESOURCE_WARN" "$RESOURCE_CRIT")
             content+="  $vram_gauge  ${CLR_GPU}$LIVE_GPU_VRAM_USED${RESET} / ${CLR_DIM}$LIVE_GPU_VRAM_TOTAL${RESET}\n"

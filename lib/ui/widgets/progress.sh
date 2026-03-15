@@ -38,27 +38,11 @@ ui_spin_output() {
 # Join text horizontally
 # Usage: ui_join_h "text1" "text2"
 ui_join_h() {
-    local result=""
-    for text in "$@"; do
-        if [[ -z "$result" ]]; then
-            result="$text"
-        else
-            result=$(gum_exec join --horizontal "$result" "$text")
-        fi
-    done
-    echo "$result"
+    gum_exec join --horizontal "$@"
 }
 
 # Join text vertically
 # Usage: ui_join_v "text1" "text2"
 ui_join_v() {
-    local result=""
-    for text in "$@"; do
-        if [[ -z "$result" ]]; then
-            result="$text"
-        else
-            result=$(gum_exec join --vertical "$result" "$text")
-        fi
-    done
-    echo "$result"
+    gum_exec join --vertical "$@"
 }

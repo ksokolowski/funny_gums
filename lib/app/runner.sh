@@ -28,7 +28,7 @@ runner_exec() {
     shift
 
     # Skip disabled steps
-    if ! ${DASHBOARD_ENABLED[$idx]}; then
+    if [[ "${DASHBOARD_ENABLED[$idx]}" != "true" ]]; then
         dashboard_step_skip "$idx"
         return 0
     fi
@@ -37,6 +37,9 @@ runner_exec() {
 
     # Mark step as running
     dashboard_step_start "$idx"
+
+    # Ensure cleanup on interrupt
+    trap 'runner_cleanup' INT TERM
 
     # Run command in background
     "$@" >>"$LOG_FILE" 2>&1 &
@@ -53,6 +56,9 @@ runner_exec() {
     wait "$RUNNER_CMD_PID"
     local rc=$?
     RUNNER_CMD_PID=""
+
+    # Restore default signal handlers
+    trap - INT TERM
 
     # Update dashboard
     if ((rc == 0)); then

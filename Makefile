@@ -34,7 +34,7 @@ test-%:
 
 # Lint all scripts with shellcheck
 lint:
-	@shellcheck --severity=error funny_gums.sh lib/**/*.sh examples/*.sh tests/*.sh
+	@find lib -name '*.sh' -print0 | xargs -0 shellcheck --severity=error funny_gums.sh examples/*.sh tests/*.sh
 
 # Run both lint and tests (mirrors CI)
 check: lint format-check test
@@ -49,5 +49,5 @@ format-check:
 
 # Clean generated files
 clean:
-	@rm -f tests/*.log
+	@rm -f tests/*.log /tmp/test_gum_log_*.log /tmp/test_runner_*.log
 	@echo "Cleaned"

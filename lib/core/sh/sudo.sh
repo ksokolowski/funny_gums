@@ -89,8 +89,7 @@ sudo_auth_styled() {
 # Usage: sudo_keepalive_start [interval_seconds]
 sudo_keepalive_start() {
     local interval="${1:-50}"
-    (while true; do
-        sudo -n true
+    (while sudo -n true 2>/dev/null; do
         sleep "$interval"
     done) &
     SUDO_KEEPALIVE_PID=$!

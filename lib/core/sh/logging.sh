@@ -45,7 +45,7 @@ log_error() {
 
 # Log debug level (only if VERBOSE=true)
 log_debug() {
-    $VERBOSE && gum_exec log --level debug "$@" 2>&1 | tee -a "$LOG_FILE" && return "${PIPESTATUS[0]}"
+    [[ "$VERBOSE" == "true" ]] && gum_exec log --level debug "$@" 2>&1 | tee -a "$LOG_FILE" && return "${PIPESTATUS[0]}"
 }
 
 # Log with timestamp

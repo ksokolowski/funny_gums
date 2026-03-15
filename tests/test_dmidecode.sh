@@ -104,13 +104,11 @@ EOF
 
     # Expected: includes "6000 MT/s"
     # Format: slot|channel|size|type|speed|mfr|configured_speed
-    if echo "$result" | grep -q "6000 MT/s"; then
-        echo "  ${GREEN}✓${RESET} dmidecode_get_memory_info parses Configured Memory Speed"
-    else
-        echo "  ${RED}✗${RESET} Failed to parse Configured Speed. Result: $result"
-        # Manually signal failure since we can't easily increment global counter without scope issues
-        exit 1
-    fi
+    assert_contains "6000 MT/s" "$result" "dmidecode_get_memory_info parses Configured Memory Speed"
+
+    # Restore original functions to avoid mock leaking to subsequent tests
+    unset -f sudo
+    unset -f dmidecode_available
 }
 
 test_memory_speed_parsing

@@ -84,4 +84,4 @@ it_parses_cpu_section
 it_parses_partition_section
 it_parses_memory_info
 
-print_summary
+# Note: print_summary is called by run_tests.sh, not here

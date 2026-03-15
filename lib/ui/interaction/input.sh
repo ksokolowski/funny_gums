@@ -31,7 +31,7 @@ ui_choose_multi() {
 # Usage: result=$(ui_choose_with_header "Select an option:" "Opt1" "Opt2")
 ui_choose_with_header() {
     local header="$1"
-    shift
+    shift || true
     gum_exec choose --header "$header" "$@"
 }
 
@@ -115,7 +115,7 @@ ui_write_ext() {
 # Usage: result=$(ui_choose_limit 2 "opt1" "opt2" "opt3" "opt4")
 ui_choose_limit() {
     local limit=$1
-    shift
+    shift || true
     gum_exec choose --limit "$limit" "$@"
 }
 
@@ -123,7 +123,7 @@ ui_choose_limit() {
 # Usage: result=$(ui_choose_selected "opt2,opt3" "opt1" "opt2" "opt3" "opt4")
 ui_choose_selected() {
     local selected="$1"
-    shift
+    shift || true
     gum_exec choose --selected "$selected" "$@"
 }
 
@@ -131,7 +131,7 @@ ui_choose_selected() {
 # Usage: result=$(ui_choose_height 5 "opt1" "opt2" ... "opt20")
 ui_choose_height() {
     local height=$1
-    shift
+    shift || true
     gum_exec choose --height "$height" "$@"
 }
 
@@ -139,7 +139,7 @@ ui_choose_height() {
 # Usage: result=$(echo -e "item1\nitem2" | ui_filter_header "Search items:")
 ui_filter_header() {
     local header="$1"
-    shift
+    shift || true
     gum_exec filter --header "$header" "$@"
 }
 

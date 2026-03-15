@@ -52,7 +52,6 @@ spinner_reset() {
 }
 
 # Get current spinner frame
-# Get current spinner frame
 spinner_frame() {
     local frame_idx=$((SPINNER_IDX % ${#SPINNER_FRAMES[@]}))
     echo "${SPINNER_FRAMES[$frame_idx]}"
@@ -67,7 +66,7 @@ spinner_frame_ref() {
 
 # Advance spinner to next frame
 spinner_next() {
-    ((SPINNER_IDX++))
+    SPINNER_IDX=$((SPINNER_IDX + 1))
 }
 
 # Get frame and advance (convenience function)

@@ -10,6 +10,11 @@ _SYSTEM_BASE_LOADED=1
 # Returns: "1.2 GiB"
 format_bytes() {
     local bytes="$1"
+    # Validate input is a non-empty integer
+    if [[ -z "$bytes" || ! "$bytes" =~ ^[0-9]+$ ]]; then
+        echo "-"
+        return 1
+    fi
     local units=("B" "KiB" "MiB" "GiB" "TiB")
     local unit=0
     local value=$bytes
@@ -39,5 +44,9 @@ format_bytes() {
 # Usage: human_size=$(format_kb 1234567)
 format_kb() {
     local kb="$1"
+    if [[ -z "$kb" || ! "$kb" =~ ^[0-9]+$ ]]; then
+        echo "-"
+        return 1
+    fi
     format_bytes "$((kb * 1024))"
 }

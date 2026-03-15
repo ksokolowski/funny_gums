@@ -26,8 +26,7 @@ if amd_gpu_available; then
     echo "  ${GREEN}✓${RESET} amd_gpu_available detected AMD GPU"
 
     # If AMD GPU is available, test that functions don't error
-    amd_get_temp >/dev/null 2>&1
-    echo "  ${GREEN}✓${RESET} amd_get_temp executes without error"
+    assert_success amd_get_temp "amd_get_temp executes without error"
 else
     echo "  ${YELLOW}⚠${RESET} amd_gpu_available: AMD GPU not detected (skipping live tests)"
 fi

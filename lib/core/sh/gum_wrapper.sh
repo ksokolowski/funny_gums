@@ -11,7 +11,7 @@ _GUM_WRAPPER_LOADED=1
 # Check availability
 if ! command -v gum &>/dev/null; then
     echo "Error: 'gum' is not installed." >&2
-    exit 1
+    return 1
 fi
 
 # Global defaults (can be overridden by environment)

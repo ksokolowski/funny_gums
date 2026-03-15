@@ -201,11 +201,7 @@ _export_emoji_vars() {
 # Strip VS16 from a string (used for compatible terminals)
 # Usage: strip_vs16 "text with ⚙️"
 # Returns: text with VS16 bytes removed
-strip_vs16() {
-    local text="$1"
-    # VS16 in UTF-8 is \xef\xb8\x8f (3 bytes)
-    printf '%s' "${text//$_VS16/}"
-}
+# strip_vs16 is defined in text.sh — not duplicated here
 
 ################################################################################
 # AUTO-INITIALIZATION

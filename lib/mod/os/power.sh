@@ -228,16 +228,26 @@ power_get_battery_time() {
                 unit=$(echo "$time_to" | awk '{print $2}')
 
                 if [[ "$unit" == "hours" ]]; then
-                    local hours mins
-                    hours=$(echo "$value" | cut -d. -f1)
-                    local frac
-                    frac=$(echo "$value" | cut -d. -f2)
-                    mins=$(((frac * 60) / 10))
+                    # Normalize decimal separator (locale may use comma)
+                    value="${value//,/.}"
+                    local hours mins frac
+                    hours="${value%%.*}"
+                    frac="${value#*.}"
+                    # If no decimal point, frac equals the whole value
+                    [[ "$frac" == "$value" ]] && frac="0"
+                    # Normalize fractional part to 2 digits (e.g., "5" → 50, "15" → 15)
+                    frac="${frac}00"
+                    frac="${frac:0:2}"
+                    # Strip leading zeros to avoid octal interpretation
+                    frac=$((10#$frac))
+                    mins=$((frac * 60 / 100))
                     printf "%d:%02d\n" "$hours" "$mins"
                     return 0
                 elif [[ "$unit" == "minutes" ]]; then
+                    # Normalize decimal separator (locale may use comma)
+                    value="${value//,/.}"
                     local mins
-                    mins=$(echo "$value" | cut -d. -f1)
+                    mins="${value%%.*}"
                     printf "0:%02d\n" "$mins"
                     return 0
                 fi

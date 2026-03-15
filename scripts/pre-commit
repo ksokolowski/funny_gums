@@ -6,11 +6,12 @@ set -uo pipefail
 
 echo "⚡ Running pre-commit checks..."
 
-# Simple delegation to Make
-if ! make check >/dev/null; then
-    echo "❌ Checks failed!"
-    echo "   Run 'make check' to see the errors."
+# Simple delegation to Make — show output on failure
+output=$(make check 2>&1)
+if [[ $? -ne 0 ]]; then
+    echo "$output"
     echo ""
+    echo "❌ Checks failed!"
     exit 1
 fi
 

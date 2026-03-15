@@ -29,25 +29,15 @@ it_ui_choose_flags() {
     assert_function_exists "ui_choose"
     # We check that it at least attempts to run gum choose
     # and returns something other than command not found
-    ui_choose --help >/dev/null 2>&1
-    local rc=$?
-    if [[ $rc -eq 0 ]]; then
-        assert_success true "ui_choose forwards flags (checked via --help)"
-    else
-        assert_fails false "ui_choose failed to run with flags"
-    fi
+    # Verify ui_choose can be invoked (--help should return 0)
+    assert_success ui_choose --help "ui_choose forwards flags (checked via --help)"
 }
 
 # 4. Test ui_file with new header flag
 it_ui_file_header() {
     assert_function_exists "ui_file"
-    ui_file --help >/dev/null 2>&1
-    local rc=$?
-    if [[ $rc -eq 0 ]]; then
-        assert_success true "ui_file forwards flags (checked via --help)"
-    else
-        assert_fails false "ui_file failed to run with flags"
-    fi
+    # Verify ui_file can be invoked (--help should return 0)
+    assert_success ui_file --help "ui_file forwards flags (checked via --help)"
 }
 
 # 5. Test dashboard custom spinner
@@ -75,4 +65,4 @@ it_ui_choose_flags
 it_ui_file_header
 it_dashboard_spinner
 
-print_summary
+# Note: print_summary is called by run_tests.sh, not here

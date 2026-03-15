@@ -50,8 +50,4 @@ result=$(hdparm_get_transfer_mode "")
 assert_eq "" "$result" "hdparm_get_transfer_mode with empty arg returns empty"
 
 # Test is_sleeping with empty arg returns failure
-if hdparm_is_sleeping ""; then
-    echo "  ${RED}✗${RESET} hdparm_is_sleeping should fail with empty arg"
-else
-    echo "  ${GREEN}✓${RESET} hdparm_is_sleeping fails gracefully with empty arg"
-fi
+assert_fails hdparm_is_sleeping "" "hdparm_is_sleeping fails gracefully with empty arg"

@@ -30,7 +30,7 @@ assert_function_exists "supports_zwj"
 # Test detect_terminal_capability sets TERMINAL_CAPABILITY
 detect_terminal_capability
 assert_not_empty "$TERMINAL_CAPABILITY" "TERMINAL_CAPABILITY should be set after detect"
-assert_contains "$TERMINAL_CAPABILITY" "full compatible legacy" "TERMINAL_CAPABILITY should be 'full', 'compatible', or 'legacy'"
+assert_contains "$TERMINAL_CAPABILITY" "full compatible legacy" "TERMINAL_CAPABILITY should be one of 'full', 'compatible', or 'legacy'"
 
 # Test backward compat TERMINAL_MODE is also set
 assert_not_empty "$TERMINAL_MODE" "TERMINAL_MODE should be set for backward compat"

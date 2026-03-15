@@ -11,6 +11,7 @@ INXI_CACHE=""
 # Run inxi and cache output
 # Usage: inxi_cache_data
 inxi_cache_data() {
+    command -v inxi &>/dev/null || return 1
     INXI_CACHE=$(inxi -Fxz -c0)
 }
 

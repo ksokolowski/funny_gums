@@ -73,7 +73,7 @@ lspci_get_devices() {
 
     local cmd_output
     if [[ -n "$filter" ]]; then
-        cmd_output=$(lspci -Dnn 2>/dev/null | grep -E "$filter")
+        cmd_output=$(lspci -Dnn 2>/dev/null | grep -F "$filter")
     else
         cmd_output=$(lspci -Dnn 2>/dev/null)
     fi

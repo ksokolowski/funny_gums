@@ -70,18 +70,18 @@ dashboard_enable_step() {
 dashboard_enabled_count() {
     local count=0
     for enabled in "${DASHBOARD_ENABLED[@]}"; do
-        $enabled && ((count++))
+        [[ "$enabled" == "true" ]] && ((count++))
     done
     echo "$count"
 }
 
 # Draw the dashboard
 dashboard_draw() {
-    $DASHBOARD_QUIET && return
+    [[ "$DASHBOARD_QUIET" == "true" ]] && return
 
     local enabled_count=0
     for enabled in "${DASHBOARD_ENABLED[@]}"; do
-        $enabled && ((enabled_count++))
+        [[ "$enabled" == "true" ]] && ((enabled_count++))
     done
 
     # Clear previous dashboard
@@ -95,7 +95,7 @@ dashboard_draw() {
     content+="${CYAN}🔧 ${DASHBOARD_TITLE}${RESET}\n\n"
 
     for i in "${!DASHBOARD_STEPS[@]}"; do
-        if ! ${DASHBOARD_ENABLED[$i]}; then
+        if [[ "${DASHBOARD_ENABLED[$i]}" != "true" ]]; then
             # Skipped: dim text with skip icon
             content+="${DIM}⏩ ${DASHBOARD_STEPS[i]}${RESET}\n"
         elif ((DASHBOARD_RUNNING == i)); then
@@ -141,7 +141,7 @@ dashboard_draw() {
 
 # Update spinner in place (no full redraw)
 dashboard_update_spinner() {
-    $DASHBOARD_QUIET && return
+    [[ "$DASHBOARD_QUIET" == "true" ]] && return
     ((DASHBOARD_RUNNING < 0)) && return
 
     local idx=$DASHBOARD_RUNNING
@@ -167,7 +167,7 @@ dashboard_step_done() {
     local idx=$1
     local success=${2:-true}
 
-    if $success; then
+    if [[ "$success" == "true" ]]; then
         DASHBOARD_STATUS[idx]="✅"
     else
         DASHBOARD_STATUS[idx]="❌"
@@ -189,5 +189,5 @@ dashboard_step_skip() {
 
 # Check if any step failed
 dashboard_has_failure() {
-    $DASHBOARD_HAS_FAILURE
+    [[ "$DASHBOARD_HAS_FAILURE" == "true" ]]
 }

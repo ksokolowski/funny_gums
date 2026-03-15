@@ -159,16 +159,20 @@ if [[ -n "$all_temps" ]]; then
     ((TESTS_PASSED++))
 
     # Check specific format (chip|sensor|temp)
+    ((TESTS_RUN++))
     if [[ "$all_temps" == *"spd5118|temp1|+50.2"* ]]; then
         echo "    ${GREEN}✓${RESET} Found expected spd5118 entry"
+        ((TESTS_PASSED++))
     else
         echo "    ${RED}✗${RESET} Missing spd5118 entry or wrong format"
         ((TESTS_FAILED++))
         FAILED_TESTS+=("sensors_parsing.sh: sensors_get_all_temps missing spd5118")
     fi
 
+    ((TESTS_RUN++))
     if [[ "$all_temps" == *"k10temp|Tctl|+46.6"* ]]; then
         echo "    ${GREEN}✓${RESET} Found expected k10temp entry"
+        ((TESTS_PASSED++))
     else
         echo "    ${RED}✗${RESET} Missing k10temp entry or wrong format"
         ((TESTS_FAILED++))

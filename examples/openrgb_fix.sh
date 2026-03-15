@@ -121,13 +121,6 @@ echo ""
 if ui_confirm "Do you want to select which steps to run?" --default=false; then
     echo ""
 
-    # Build selection list
-    choices=""
-    for i in "${!DASHBOARD_STEPS[@]}"; do
-        choices+="${DASHBOARD_STEPS[$i]}"$'\n'
-    done
-    choices=$(echo -n "$choices" | head -c -1)
-
     # Pre-select all steps
     preselected=$(
         IFS=,

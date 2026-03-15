@@ -19,7 +19,7 @@ _SENSORS_CACHE_TIME=0
 # Usage: sensors_update_cache
 sensors_update_cache() {
     sensors_available || return 1
-    _SENSORS_CACHE=$(sensors 2>/dev/null)
+    _SENSORS_CACHE=$(LC_ALL=C sensors 2>/dev/null)
     _SENSORS_CACHE_TIME=$(date +%s)
 }
 
@@ -97,7 +97,7 @@ sensors_get_temp_by_adapter() {
 
     local output
     # extraction: match adapter block, stop at next adapter (empty line usually) or end
-    output=$(echo "$(_sensors_get_cached)" | sed -n "/^${adapter}/,/^$/p")
+    output=$(echo "$(_sensors_get_cached)" | awk -v a="$adapter" '$0 ~ "^"a {p=1} p && /^$/ {exit} p')
 
     local temp=""
 
@@ -286,5 +286,15 @@ sensors_get_all_temps() {
 # Usage: fan_speeds=$(sensors_get_fan_speeds)
 sensors_get_fan_speeds() {
     sensors_available || return 1
-    echo "$(_sensors_get_cached)" | grep -i 'fan' | grep -oP '\d+ RPM' | grep -oP '\d+'
+    echo "$(_sensors_get_cached)" | awk '
+        /[Ff]an[0-9]*/ {
+            fan_name = $1
+            gsub(/:$/, "", fan_name)
+            if (match($0, /[0-9]+ RPM/)) {
+                rpm = substr($0, RSTART, RLENGTH)
+                gsub(/ RPM/, "", rpm)
+                print fan_name "|" rpm
+            }
+        }
+    '
 }

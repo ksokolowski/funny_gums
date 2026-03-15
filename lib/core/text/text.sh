@@ -16,6 +16,7 @@ _TEXT_SH_LOADED=1
 _TEXT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$_TEXT_DIR/../term/terminal.sh"
 source "$_TEXT_DIR/emoji_data.sh"
+source "$_TEXT_DIR/emoji_width_hybrid.sh"
 
 ################################################################################
 # ANSI STRIPPING
@@ -123,11 +124,12 @@ strlen_no_ansi_ref() {
     printf -v "$2" '%d' "$len"
 }
 
-# Get visual width without subshell (sets variable)
+# Get visual width and store in variable
+# Note: still uses a subshell internally via visual_width()
 # Usage: visual_width_ref "text" var_name [mode]
 visual_width_ref() {
     local width
-    width=$(visual_width "$1" "$3")
+    width=$(visual_width "$1" "${3:-}")
     printf -v "$2" '%s' "$width"
 }
 
@@ -192,17 +194,7 @@ _is_wide_char() {
 # Dynamic cache for computed widths
 declare -gA _VISUAL_WIDTH_CACHE=()
 
-# Check if codepoint is in emoji ranges (heuristic)
-_is_emoji_codepoint() {
-    local cp=$1
-    # Emoticons, Misc Symbols, Transport, Supplemental, etc.
-    ((cp >= 0x1F300 && cp <= 0x1F9FF)) && return 0
-    ((cp >= 0x1FA00 && cp <= 0x1FA6F)) && return 0
-    ((cp >= 0x2600 && cp <= 0x26FF)) && return 0
-    ((cp >= 0x2700 && cp <= 0x27BF)) && return 0
-    ((cp >= 0x1F1E0 && cp <= 0x1F1FF)) && return 0
-    return 1
-}
+# _is_emoji_codepoint is defined in emoji_width_hybrid.sh — not duplicated here
 
 # Calculate visual width of a string (display columns)
 # Handles ANSI codes, VS16/VS15, ZWJ, wide chars, and emoji

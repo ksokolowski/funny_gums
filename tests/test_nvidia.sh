@@ -25,11 +25,8 @@ if nvidia_available; then
     echo "  ${GREEN}✓${RESET} nvidia_available detected nvidia-smi"
 
     # If NVIDIA is available, test that functions don't error
-    nvidia_get_temp >/dev/null 2>&1
-    echo "  ${GREEN}✓${RESET} nvidia_get_temp executes without error"
-
-    nvidia_get_gpu_name >/dev/null 2>&1
-    echo "  ${GREEN}✓${RESET} nvidia_get_gpu_name executes without error"
+    assert_success nvidia_get_temp "nvidia_get_temp executes without error"
+    assert_success nvidia_get_gpu_name "nvidia_get_gpu_name executes without error"
 else
     echo "  ${YELLOW}⚠${RESET} nvidia_available: nvidia-smi not installed (skipping live tests)"
 fi

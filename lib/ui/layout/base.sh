@@ -41,7 +41,7 @@ ui_warn() {
 # Show info message (no border)
 # Usage: ui_info "Message"
 ui_info() {
-    gum_exec_style --foreground 6 "$@"
+    gum_exec_style --no-strip-ansi --foreground 6 "$@"
 }
 
 # Show generic styled text

@@ -32,7 +32,7 @@ dep_check() {
 # Arguments:
 #   $@ - List of commands to require
 # Returns:
-#   0 if all present, exits 1 if any missing
+#   0 if all present, returns 1 if any missing
 #######################################
 dep_require_all() {
     local missing=()
@@ -61,7 +61,7 @@ dep_require_all() {
             log_error "Missing dependencies: ${missing[*]}"
         fi
 
-        exit 1
+        return 1
     fi
 }
 
