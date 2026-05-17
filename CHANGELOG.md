@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.1] - 2026-05-17
 
 ### Added
 - **logging.sh**: `LOGGING_QUIET` contract. When set to `true`, all `log_*` functions write to `LOG_FILE` only — no `tee` to stdout. Lets TUI components own the terminal without log lines desynchronising cursor accounting. `dashboard_init` toggles it automatically; new `dashboard_cleanup` restores prior state and is recommended in the EXIT trap alongside `cursor_show` / `runner_cleanup`.
