@@ -146,8 +146,8 @@ source "$PROJECT_DIR/lib/core/text/emoji_registry.sh"
 assert_function_exists "emoji"
 assert_function_exists "emoji_variant"
 assert_function_exists "is_registered_emoji"
-assert_function_exists "strip_vs16"
 assert_function_exists "_export_emoji_vars"
+# strip_vs16 is defined in text.sh, not here — tested in the text.sh section below.
 
 # Test registry has entries
 result=$(is_registered_emoji "WARNING" && echo "yes" || echo "no")
@@ -191,11 +191,7 @@ TERMINAL_CAPABILITY="legacy"
 result=$(emoji "WARNING")
 assert_eq "$warning_legacy" "$result" "emoji() should return legacy variant when capability is legacy"
 
-# Test strip_vs16
-vs16_text=$'\xe2\x9a\xa0\xef\xb8\x8f' # ⚠️
-stripped=$(strip_vs16 "$vs16_text")
-expected=$'\xe2\x9a\xa0' # ⚠ (no VS16)
-assert_eq "$expected" "$stripped" "strip_vs16 should remove VS16 bytes"
+# strip_vs16 itself is tested in the text.sh section below (it lives there).
 
 # Test _export_emoji_vars sets EMOJI_ variables
 TERMINAL_CAPABILITY="full"
@@ -224,7 +220,7 @@ assert_function_exists "strip_vs16"
 assert_function_exists "terminal_safe_text"
 assert_function_exists "fix_vte_vs16"
 
-# Test strip_vs16 from text.sh (duplicate in emoji_registry.sh for convenience)
+# strip_vs16 (defined in text.sh — emoji_registry.sh intentionally doesn't duplicate it)
 vs16_emoji=$'\xe2\x9a\xa0\xef\xb8\x8f' # ⚠️
 result=$(strip_vs16 "$vs16_emoji")
 expected=$'\xe2\x9a\xa0' # ⚠

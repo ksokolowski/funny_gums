@@ -15,8 +15,10 @@ test_file_start "dashboard_parallel.sh"
 TMP_DASHBOARD=$(mktemp)
 head -n -2 "$PROJECT_DIR/examples/system_dashboard.sh" >"$TMP_DASHBOARD"
 
-# Inject dummy SCRIPT_PATH for deps resolution
-sed -i 's|SCRIPT_PATH="${BASH_SOURCE\[0\]}"|SCRIPT_PATH="'"$PROJECT_DIR/examples/system_dashboard.sh"'"|' "$TMP_DASHBOARD"
+# Force the bootstrap line to resolve against the real example path instead
+# of the temp file we just wrote, so `source "$SCRIPT_DIR/../funny_gums.sh"`
+# below finds the library.
+sed -i 's|_SELF="$(readlink -f "${BASH_SOURCE\[0\]}" 2>/dev/null .*)"|_SELF="'"$PROJECT_DIR/examples/system_dashboard.sh"'"|' "$TMP_DASHBOARD"
 
 # Source the dashboard logic
 # shellcheck source=/dev/null

@@ -47,3 +47,35 @@ else
     result="false"
 fi
 assert_eq "false" "$result" "dashboard_has_failure should return false initially"
+
+# Title icon — parameterised so callers can replace or suppress the hardcoded
+# wrench. Default preserves prior behaviour for back-compat.
+dashboard_init "Default Icon Test"
+assert_eq "🔧" "${DASHBOARD_TITLE_ICON-NOT_DEFINED}" "dashboard_init default icon is the wrench"
+
+dashboard_init "Custom Icon Test" "🚀"
+assert_eq "🚀" "${DASHBOARD_TITLE_ICON-NOT_DEFINED}" "dashboard_init accepts an explicit icon override"
+
+dashboard_init "No Icon Test" ""
+assert_eq "" "${DASHBOARD_TITLE_ICON-NOT_DEFINED}" "dashboard_init accepts empty string to suppress the icon"
+
+# Reset to default for any later code that depends on it
+dashboard_init "Test Dashboard"
+
+# Layout derivation. `steps_start` (row of first step inside the gum frame)
+# and the spinner column previously hardcoded 5 and 4 — both implicitly
+# agreed with --padding "1 2". Promote the padding values and derive the
+# rest, so a caller who bumps the padding doesn't desync the spinner glyph.
+DASHBOARD_PADDING_TOP=1
+DASHBOARD_PADDING_LEFT=2
+assert_eq "5" "$(_dashboard_steps_start)" "default padding → first step at row 5"
+assert_eq "4" "$(_dashboard_spinner_col)" "default padding → spinner glyph at col 4"
+
+DASHBOARD_PADDING_TOP=2
+DASHBOARD_PADDING_LEFT=3
+assert_eq "6" "$(_dashboard_steps_start)" "padding top=2 → first step at row 6"
+assert_eq "5" "$(_dashboard_spinner_col)" "padding left=3 → spinner glyph at col 5"
+
+# Restore defaults
+DASHBOARD_PADDING_TOP=1
+DASHBOARD_PADDING_LEFT=2

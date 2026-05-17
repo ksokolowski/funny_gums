@@ -23,10 +23,14 @@ _FUNNY_GUMS_LIB="$_FUNNY_GUMS_DIR/lib"
 
 # Source all modules in dependency order
 
-# Core modules (no dependencies)
+# Core modules (no internal dependencies)
 source "$_FUNNY_GUMS_LIB/core/term/colors.sh"
 source "$_FUNNY_GUMS_LIB/core/sh/deps.sh"
 source "$_FUNNY_GUMS_LIB/core/term/cursor.sh"
+
+# UI widgets that the dashboard depends on (sourced early so dep_require_all
+# below has nothing extra to load on failure). Not core, but a leaf-level
+# widget with no library dependencies of its own.
 source "$_FUNNY_GUMS_LIB/ui/widgets/spinner.sh"
 
 # Enforce core dependencies immediately

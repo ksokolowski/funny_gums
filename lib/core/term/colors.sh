@@ -60,6 +60,18 @@ NEON_BLUE=$'\e[38;5;33m'
 NEON_ORANGE=$'\e[38;5;214m'
 NEON_RED=$'\e[38;5;196m'
 
+# Basic ANSI Border Numbers (for gum style)
+# Standard 0–7 ANSI palette indices. Used by ui/layout/base.sh so theme tweaks
+# happen in one place instead of being scattered as bare numeric literals.
+ANSI_BLACK_NUM="0"
+ANSI_RED_NUM="1"
+ANSI_GREEN_NUM="2"
+ANSI_YELLOW_NUM="3"
+ANSI_BLUE_NUM="4"
+ANSI_MAGENTA_NUM="5"
+ANSI_CYAN_NUM="6"
+ANSI_WHITE_NUM="7"
+
 # Neon Border Colors (for gum style)
 # Keep parity with the NEON_<COLOR> ANSI variants above so callers can pass
 # either form to gum without hitting `set -u` aborts.

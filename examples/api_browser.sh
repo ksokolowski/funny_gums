@@ -9,7 +9,10 @@
 # Usage: ./api_browser.sh
 
 set -uo pipefail
-_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Resolve our location even when invoked through a symlink.
+_SELF="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || printf %s "${BASH_SOURCE[0]}")"
+_DIR="$(dirname "$_SELF")"
 
 # Source the main library
 source "$_DIR/../funny_gums.sh"

@@ -34,3 +34,16 @@ for color in PINK CYAN PURPLE YELLOW GREEN BLUE ORANGE RED; do
     assert_var_defined "NEON_${color}"
     assert_var_defined "NEON_${color}_NUM"
 done
+
+# Same parity for the basic ANSI palette (0-7). ui/layout/base.sh used to
+# pass bare numeric literals "1", "2", "3", "6" to gum's --border-foreground;
+# those are the standard 30+N / 90+N ANSI codes. Named constants make the
+# theme tunable from one place.
+assert_eq "0" "${ANSI_BLACK_NUM:-MISSING}" "ANSI_BLACK_NUM = 0"
+assert_eq "1" "${ANSI_RED_NUM:-MISSING}" "ANSI_RED_NUM = 1"
+assert_eq "2" "${ANSI_GREEN_NUM:-MISSING}" "ANSI_GREEN_NUM = 2"
+assert_eq "3" "${ANSI_YELLOW_NUM:-MISSING}" "ANSI_YELLOW_NUM = 3"
+assert_eq "4" "${ANSI_BLUE_NUM:-MISSING}" "ANSI_BLUE_NUM = 4"
+assert_eq "5" "${ANSI_MAGENTA_NUM:-MISSING}" "ANSI_MAGENTA_NUM = 5"
+assert_eq "6" "${ANSI_CYAN_NUM:-MISSING}" "ANSI_CYAN_NUM = 6"
+assert_eq "7" "${ANSI_WHITE_NUM:-MISSING}" "ANSI_WHITE_NUM = 7"

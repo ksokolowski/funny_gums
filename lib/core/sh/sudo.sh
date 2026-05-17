@@ -24,13 +24,17 @@ sudo_auth() {
     return 0
 }
 
-# Width for styled sudo prompt (can be set before calling)
+# Default width for the styled sudo prompt. SUDO_FRAME_WIDTH is kept as a
+# back-compat fallback for callers that used to pass width via this global;
+# new code should pass width as the explicit first argument to
+# sudo_auth_styled / sudo_setup_styled instead.
 SUDO_FRAME_WIDTH=""
 
-# Styled sudo authentication using gum
-# Shows a framed password prompt with gum input
-# Set SUDO_FRAME_WIDTH before calling to control width
-# Returns 0 on success, 1 on failure
+# Styled sudo authentication using gum.
+# Shows a framed password prompt with gum input.
+# Returns 0 on success, 1 on failure.
+# Usage: sudo_auth_styled [width]
+#   width: optional, defaults to $SUDO_FRAME_WIDTH or 60
 sudo_auth_styled() {
     # Check if already authenticated
     if sudo -n true 2>/dev/null; then
@@ -45,8 +49,7 @@ sudo_auth_styled() {
 
     local max_attempts=3
     local attempt=1
-    local width="${SUDO_FRAME_WIDTH:-60}"
-    local width_arg="--width $width"
+    local width="${1:-${SUDO_FRAME_WIDTH:-60}}"
 
     while ((attempt <= max_attempts)); do
         # Show styled prompt using standardized alert box
@@ -111,10 +114,12 @@ sudo_setup() {
     return 0
 }
 
-# Styled sudo setup: authenticate with gum UI and start keepalive
-# Usage: sudo_setup_styled [keepalive_interval]
+# Styled sudo setup: authenticate with gum UI and start keepalive.
+# Usage: sudo_setup_styled [keepalive_interval] [width]
+#   keepalive_interval: optional, defaults to 50 seconds
+#   width: optional, defaults to $SUDO_FRAME_WIDTH or 60 (passed to sudo_auth_styled)
 sudo_setup_styled() {
-    sudo_auth_styled || return 1
+    sudo_auth_styled "${2:-}" || return 1
     sudo_keepalive_start "${1:-50}"
     return 0
 }

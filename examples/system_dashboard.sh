@@ -22,47 +22,12 @@ TEMP_WARN=70     # Warning threshold for temps (°C)
 TEMP_CRIT=85     # Critical threshold for temps (°C)
 
 ################################################################################
-# COLOR THEME (semantic colors for consistent styling)
-################################################################################
-# Panel section headers
-CLR_HEADER=$'\e[1;38;5;39m'   # Bold cyan - section titles
-CLR_SUBHEADER=$'\e[38;5;147m' # Light purple - subsection titles
-
-# Labels and values
-CLR_LABEL=$'\e[38;5;245m'    # Gray - field labels
-CLR_VALUE=$'\e[38;5;255m'    # Bright white - normal values
-CLR_HIGHLIGHT=$'\e[38;5;51m' # Cyan - highlighted values
-CLR_ACCENT=$'\e[38;5;213m'   # Pink - accent values
-
-# Status indicators
-CLR_GOOD=$'\e[38;5;46m'  # Green - healthy/good status
-CLR_WARN=$'\e[38;5;220m' # Yellow/Orange - warning status
-CLR_CRIT=$'\e[38;5;196m' # Red - critical status
-CLR_INFO=$'\e[38;5;39m'  # Blue - informational
-
-# Hardware types
-CLR_CPU=$'\e[38;5;208m'   # Orange - CPU related
-CLR_GPU=$'\e[38;5;46m'    # Green - GPU related
-CLR_MEM=$'\e[38;5;141m'   # Purple - Memory related
-CLR_DISK=$'\e[38;5;39m'   # Blue - Storage related
-CLR_NET=$'\e[38;5;45m'    # Cyan - Network related
-CLR_POWER=$'\e[38;5;226m' # Yellow - Power related
-
-# Decorative
-CLR_BORDER=$'\e[38;5;240m' # Dark gray - borders/separators
-CLR_DIM=$'\e[38;5;242m'    # Dim gray - less important info
-CLR_ICON=$'\e[38;5;117m'   # Light blue - icons
-
-################################################################################
 # PATH RESOLUTION (supports symlinks)
 ################################################################################
-SCRIPT_PATH="${BASH_SOURCE[0]}"
-while [[ -L "$SCRIPT_PATH" ]]; do
-    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-    SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
-    [[ "$SCRIPT_PATH" != /* ]] && SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_PATH"
-done
-SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+# `readlink -f` is GNU coreutils / POSIX 2024; the fallback keeps
+# non-symlinked invocations working on systems without it.
+_SELF="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || printf %s "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$_SELF")"
 LIB_DIR="$SCRIPT_DIR/../lib"
 
 ################################################################################
@@ -73,6 +38,47 @@ source "$LIB_DIR/core/sh/gum_wrapper.sh"
 
 # Detect terminal mode for proper emoji width handling
 detect_terminal_mode
+
+################################################################################
+# COLOR THEME (semantic colors for consistent styling)
+################################################################################
+# Local CLR_* palette layered on top of the library's NEON_*. The library's
+# palette is intentionally small (8 accent shades); a 1500-line dashboard
+# needs more semantic distinctions (HEADER vs SUBHEADER, LABEL vs VALUE,
+# CPU vs GPU vs MEM …). The pattern here is the recommended way to extend
+# the lib for a specific script: name the colours by role, define once,
+# reuse everywhere. Where a slot matches a lib NEON value exactly we alias
+# it so theme tweaks land in one place — this block MUST come after
+# funny_gums.sh is sourced so the NEON_* values are defined.
+#
+# Panel section headers
+CLR_HEADER=$'\e[1;38;5;39m'   # Bold cyan - section titles (bold + 39)
+CLR_SUBHEADER=$'\e[38;5;147m' # Light purple - subsection titles
+
+# Labels and values
+CLR_LABEL=$'\e[38;5;245m'  # Gray - field labels
+CLR_VALUE=$'\e[38;5;255m'  # Bright white - normal values
+CLR_HIGHLIGHT="$NEON_CYAN" # = \e[38;5;51m — cyan-highlighted values
+CLR_ACCENT=$'\e[38;5;213m' # Pink - accent values
+
+# Status indicators
+CLR_GOOD=$'\e[38;5;46m'  # Green (46) - healthy/good status; lib's NEON_GREEN is 118 (brighter)
+CLR_WARN=$'\e[38;5;220m' # Yellow/Orange (220) - warning status; lib's NEON_YELLOW is 226
+CLR_CRIT="$NEON_RED"     # = \e[38;5;196m — critical status
+CLR_INFO=$'\e[38;5;39m'  # Blue - informational
+
+# Hardware types
+CLR_CPU=$'\e[38;5;208m'  # Orange - CPU related
+CLR_GPU=$'\e[38;5;46m'   # Green - GPU related
+CLR_MEM=$'\e[38;5;141m'  # Purple - Memory related
+CLR_DISK=$'\e[38;5;39m'  # Blue - Storage related
+CLR_NET=$'\e[38;5;45m'   # Cyan - Network related
+CLR_POWER="$NEON_YELLOW" # = \e[38;5;226m — Power related
+
+# Decorative
+CLR_BORDER=$'\e[38;5;240m' # Dark gray - borders/separators
+CLR_DIM=$'\e[38;5;242m'    # Dim gray - less important info
+CLR_ICON=$'\e[38;5;117m'   # Light blue - icons
 
 ################################################################################
 # TEMPORARY DIRECTORY (parallel data fetching — prefer RAM disk)

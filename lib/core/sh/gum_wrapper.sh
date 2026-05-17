@@ -54,11 +54,8 @@ gum_confirm() {
 # Requires: source lib/core/text/text.sh (for visual_width functions)
 ################################################################################
 
-# Execute gum style with visual width compensation
-# Automatically adjusts --width to account for VS16/ZWJ/wide characters
-# Usage: gum_exec_style_visual "content" target_width [other_args...]
-# Execute gum style with visual width compensation
-# Automatically adjusts --width to account for VS16/ZWJ/wide characters
+# Execute gum style with visual width compensation.
+# Automatically adjusts --width to account for VS16/ZWJ/wide characters.
 # Usage: gum_exec_style_visual "content" target_width [other_args...]
 gum_exec_style_visual() {
     local content="$1"

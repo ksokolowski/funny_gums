@@ -76,13 +76,21 @@ runner_exec() {
     return $rc
 }
 
-# Run multiple commands sequentially
+# Run multiple commands sequentially.
+# Each argument is a single command string with its own arguments (e.g.
+# "sudo apt update", "make test"); `bash -c` parses each into argv.
+#
+# SECURITY: `bash -c "$cmd"` is exactly as powerful as `eval` — anything in
+# `$cmd` is interpreted by the shell. This is fine when `cmd` strings come
+# from the script's own literal array (the standard usage in the bundled
+# examples). It is NOT safe to pass user input here. If you need a structured
+# command, call `runner_exec "$idx" cmd arg1 arg2 …` directly and bypass this
+# convenience wrapper.
+#
 # Usage: runner_exec_all "cmd1" "cmd2" "cmd3"
-# Each command is run for its corresponding step index
 runner_exec_all() {
     local idx=0
     for cmd in "$@"; do
-        # Use bash -c to execute the command string safely without eval
         runner_exec "$idx" bash -c "$cmd"
         ((idx++))
     done

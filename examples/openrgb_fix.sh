@@ -5,15 +5,11 @@ set -u
 ############################
 # SCRIPT CONFIGURATION
 ############################
-# Resolve symlinks to get actual script directory
-SCRIPT_PATH="${BASH_SOURCE[0]}"
-while [[ -L "$SCRIPT_PATH" ]]; do
-    SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-    SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
-    [[ "$SCRIPT_PATH" != /* ]] && SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_PATH"
-done
-SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-LIB_DIR="$SCRIPT_DIR/../lib"
+# Resolve our location even when invoked through a symlink. `readlink -f` is
+# GNU coreutils / POSIX 2024; the fallback keeps non-symlinked invocations
+# working on systems without it (e.g. stock BSD).
+_SELF="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || printf %s "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$_SELF")"
 
 # Source shared functions
 source "$SCRIPT_DIR/../funny_gums.sh"
@@ -151,9 +147,7 @@ fi
 ############################
 # SUDO AUTHENTICATION
 ############################
-SUDO_FRAME_WIDTH="$FRAME_WIDTH"
-# shellcheck disable=SC2119
-if ! sudo_setup_styled; then
+if ! sudo_setup_styled 50 "$FRAME_WIDTH"; then
     ui_error --padding "1 5" "Failed to authenticate sudo."
     exit 1
 fi

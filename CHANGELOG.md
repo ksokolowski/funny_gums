@@ -11,6 +11,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **logging.sh**: `LOGGING_QUIET` contract. When set to `true`, all `log_*` functions write to `LOG_FILE` only — no `tee` to stdout. Lets TUI components own the terminal without log lines desynchronising cursor accounting. `dashboard_init` toggles it automatically; new `dashboard_cleanup` restores prior state and is recommended in the EXIT trap alongside `cursor_show` / `runner_cleanup`.
 - **tests/test_strict_mode.sh**: Smoke test that loads the full library under `set -uo pipefail` and exercises a representative slice of the public API (every `NEON_*_NUM` and `EMOJI_*` the bundled examples touch, plus dashboard state machine and pure helpers). Catches the class of unbound-variable regression that `NEON_RED_NUM` slipped through.
 - **tests/test_deps.sh**: First unit tests for `deps.sh`, including the standalone-bootstrap path.
+- **colors.sh**: `ANSI_<COLOR>_NUM` constants (BLACK..WHITE = 0..7) mirroring the existing `NEON_*_NUM` pattern. `ui/layout/base.sh` now uses the named constants instead of bare numeric literals.
+- **dashboard.sh**: `DASHBOARD_TITLE_ICON` global + optional second argument to `dashboard_init` for replacing or suppressing the hardcoded 🔧 prefix. Default behaviour unchanged.
+- **dashboard.sh**: `DASHBOARD_PADDING_TOP` / `DASHBOARD_PADDING_LEFT` plus internal `_dashboard_steps_start` / `_dashboard_spinner_col` helpers. The frame padding fed to gum, the first-step row offset, and the spinner glyph column are now derived from one set of inputs; bumping the padding can no longer silently move the spinner off-glyph.
+- **sudo.sh**: `sudo_auth_styled [width]` / `sudo_setup_styled [keepalive] [width]` now accept width as an explicit argument. `SUDO_FRAME_WIDTH` is kept as a back-compat fallback.
+
+### Fixed
+- **colors.sh**: Added missing `NEON_RED_NUM`, `NEON_YELLOW_NUM`, `NEON_BLUE_NUM`, `NEON_ORANGE_NUM` 256-color index siblings. `examples/openrgb_fix.sh` aborted under `set -u` on the failure path because `NEON_RED_NUM` was undefined.
+- **runner.sh + dashboard.sh**: The `tee`-to-stdout in `log_error` advanced the cursor below the dashboard between steps, desynchronising `dashboard_draw`'s `cursor_up`/`clear_to_end` arithmetic and leaving an orphan `╭──╮` top border on the next redraw whenever a step failed. Now solved generally via the `LOGGING_QUIET` contract (see Added).
+- **deps.sh**: Standalone-bootstrap branch checked `$_DEPS_DIR/colors.sh` for existence, but `colors.sh` lives in `../term/`. The conditional `source` therefore never ran when `deps.sh` was loaded on its own. Path fixed.
+- **tests/test_text.sh**: Removed three misplaced `strip_vs16` assertions from the `emoji_registry.sh` test section — `strip_vs16` is defined in `text.sh`, so the assertions only passed inside `make check` (where earlier test files happened to source `text.sh` first) and failed in isolation. Already-covered by the `text.sh` section.
+- **funny_gums.sh** + **CLAUDE.md**: The loader sourced `lib/ui/widgets/spinner.sh` under the "Core modules (no dependencies)" block but the architecture doc claimed spinner is at Level 1. Reconciled: spinner is a leaf widget loaded early so the dashboard can depend on it.
+
+### Changed
+- **text.sh**: `strip_ansi`, `strlen_no_ansi`, `strlen_no_ansi_ref` consolidated onto a single `_ansi_strip_to_var` state machine. Previously each function inlined its own ESC-CSI scanner; diverging fixes was a matter of when. `strip_ansi` now also takes the no-ESC fast-path that the two `strlen` variants already had.
+- **runner.sh**: `runner_exec_all` comment no longer claims the `bash -c "$cmd"` form is "safely without eval" — it isn't. Documented the real safety property (only safe with script-author literal commands, never with user input).
+- **gum_wrapper.sh**: Removed duplicated doc-comment block above `gum_exec_style_visual`.
+- **sudo.sh**: Removed dead `width_arg` local variable that was assigned but never read.
+- **examples/**: All eight bundled examples now use a unified two-line `readlink -f` bootstrap instead of the verbose 7-line manual symlink-walking preamble (or the 2-line non-symlink-safe variant). `LIB_DIR` is no longer defined in scripts that don't actually use it.
+- **examples/system_dashboard.sh**: CLR_* palette moved below the `source` so it can alias the lib's NEON_* constants for the slots that match (CLR_HIGHLIGHT, CLR_CRIT, CLR_POWER); local block stays because it's appropriately richer than the lib's 8-shade accent palette. Documented as the recommended pattern for layering a script-local theme on top of the library.
 
 ### Fixed
 - **colors.sh**: Added missing `NEON_RED_NUM`, `NEON_YELLOW_NUM`, `NEON_BLUE_NUM`, `NEON_ORANGE_NUM` 256-color index siblings. `examples/openrgb_fix.sh` aborted under `set -u` on the failure path because `NEON_RED_NUM` was undefined.

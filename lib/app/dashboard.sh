@@ -22,24 +22,51 @@ declare -a DASHBOARD_ENABLED=()     # Step enabled flags
 declare -A DASHBOARD_LINE_OFFSET=() # Line offsets for spinner updates
 DASHBOARD_LINES=0
 DASHBOARD_TITLE=""
+DASHBOARD_TITLE_ICON="🔧" # Prefixed before the title; pass "" to suppress.
 DASHBOARD_COMPLETED=0
 DASHBOARD_RUNNING=-1
 DASHBOARD_HAS_FAILURE=false
 DASHBOARD_PROGRESS_WIDTH=30
 DASHBOARD_QUIET=false
 DASHBOARD_SPINNER="DOTS"
+# Frame padding (top/bottom = ROWS, left/right = COLS) passed to gum --padding.
+# steps_start (line offset of first step row inside the frame) and the spinner
+# glyph column are derived from these — change them here and the redraw
+# arithmetic follows automatically.
+DASHBOARD_PADDING_TOP=1
+DASHBOARD_PADDING_LEFT=2
 # Track whether dashboard_init was the one that set LOGGING_QUIET, so
 # dashboard_cleanup only resets it if we own the toggle (avoids stomping
 # on a caller that set the flag themselves around their own TUI).
 _DASHBOARD_OWNS_LOGGING_QUIET=false
+
+# 1-indexed row of the first step inside the gum-styled frame, derived from
+# padding. Layout above the steps: 1 top-border + DASHBOARD_PADDING_TOP
+# padding-rows + 1 title-row + 1 blank-separator (from "\n\n" after title)
+# = PT+3 rows above, so the first step lands on row PT+4.
+_dashboard_steps_start() {
+    echo $((4 + DASHBOARD_PADDING_TOP))
+}
+
+# Column of the spinner glyph (first content cell of a step row). Layout:
+# 1 left-border cell + DASHBOARD_PADDING_LEFT padding cells + the glyph at
+# the next column → column 2 + DASHBOARD_PADDING_LEFT.
+_dashboard_spinner_col() {
+    echo $((2 + DASHBOARD_PADDING_LEFT))
+}
 DASHBOARD_BORDER_COLOR="6"
 DASHBOARD_PROGRESS_COLOR="${CYAN}"
 DASHBOARD_WIDTH="" # Frame width (empty = auto)
 
-# Initialize dashboard with title
-# Usage: dashboard_init "My Dashboard Title"
+# Initialize dashboard with title (and optional icon prefix).
+# Usage: dashboard_init "My Dashboard Title"           # uses default 🔧 icon
+#        dashboard_init "My Title" "🚀"                # custom icon
+#        dashboard_init "My Title" ""                  # no icon prefix
 dashboard_init() {
     DASHBOARD_TITLE="${1:-Dashboard}"
+    # Use the 2-arg form ${var-default} (no colon) so passing an explicit
+    # empty string overrides; only an unset $2 falls back to the wrench.
+    DASHBOARD_TITLE_ICON="${2-🔧}"
     DASHBOARD_STEPS=()
     DASHBOARD_STATUS=()
     DASHBOARD_ENABLED=()
@@ -114,7 +141,11 @@ dashboard_draw() {
 
     # Build content
     local content=""
-    content+="${CYAN}🔧 ${DASHBOARD_TITLE}${RESET}\n\n"
+    if [[ -n "$DASHBOARD_TITLE_ICON" ]]; then
+        content+="${CYAN}${DASHBOARD_TITLE_ICON} ${DASHBOARD_TITLE}${RESET}\n\n"
+    else
+        content+="${CYAN}${DASHBOARD_TITLE}${RESET}\n\n"
+    fi
 
     for i in "${!DASHBOARD_STEPS[@]}"; do
         if [[ "${DASHBOARD_ENABLED[$i]}" != "true" ]]; then
@@ -146,13 +177,14 @@ dashboard_draw() {
     # Note: VS16 stripping for VTE terminals is handled globally in emojis.sh
 
     # shellcheck disable=SC2086
-    output=$(echo -e "$content" | gum_exec_style --no-strip-ansi --border rounded --border-foreground "$DASHBOARD_BORDER_COLOR" --padding "1 2" --align left $width_arg)
+    output=$(echo -e "$content" | gum_exec_style --no-strip-ansi --border rounded --border-foreground "$DASHBOARD_BORDER_COLOR" --padding "$DASHBOARD_PADDING_TOP $DASHBOARD_PADDING_LEFT" --align left $width_arg)
     printf '%s\n' "$output"
 
     DASHBOARD_LINES=$(printf '%s\n' "$output" | wc -l)
 
-    # Calculate line offsets
-    local steps_start=5
+    # Calculate line offsets (steps_start derived from current padding)
+    local steps_start
+    steps_start=$(_dashboard_steps_start)
     for i in "${!DASHBOARD_STEPS[@]}"; do
         DASHBOARD_LINE_OFFSET[$i]=$((DASHBOARD_LINES + 1 - steps_start - i))
     done
@@ -170,9 +202,12 @@ dashboard_update_spinner() {
     local spinner_char
     spinner_frame_ref spinner_char
     local line_offset="${DASHBOARD_LINE_OFFSET[$idx]}"
+    local col
+    col=$(_dashboard_spinner_col)
 
-    # Restore, move up, print, restore
-    printf '\e8\e[%dA\e[4G%s\e8' "$line_offset" "$spinner_char"
+    # Restore, move up `line_offset` rows, place cursor at the derived column,
+    # print, restore.
+    printf '\e8\e[%dA\e[%dG%s\e8' "$line_offset" "$col" "$spinner_char"
 }
 
 # Mark step as running
