@@ -61,10 +61,16 @@ NEON_ORANGE=$'\e[38;5;214m'
 NEON_RED=$'\e[38;5;196m'
 
 # Neon Border Colors (for gum style)
+# Keep parity with the NEON_<COLOR> ANSI variants above so callers can pass
+# either form to gum without hitting `set -u` aborts.
 NEON_PINK_NUM="201"
 NEON_CYAN_NUM="51"
 NEON_PURPLE_NUM="135"
+NEON_YELLOW_NUM="226"
 NEON_GREEN_NUM="118"
+NEON_BLUE_NUM="33"
+NEON_ORANGE_NUM="214"
+NEON_RED_NUM="196"
 
 # Helper function to colorize text
 colorize() {

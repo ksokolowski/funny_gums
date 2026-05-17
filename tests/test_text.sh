@@ -254,6 +254,23 @@ assert_eq "Red" "$plain" "strip_ansi should remove color codes"
 plain=$(strip_ansi $'\e[1;32mBold Green\e[0m')
 assert_eq "Bold Green" "$plain" "strip_ansi should remove bold color codes"
 
+# Edge cases pinned ahead of the shared-scanner refactor: behaviour must be
+# preserved across strip_ansi / strlen_no_ansi / strlen_no_ansi_ref.
+assert_eq "" "$(strip_ansi "")" "strip_ansi on empty string returns empty"
+assert_eq "plain text" "$(strip_ansi "plain text")" "strip_ansi passes through no-ANSI text"
+assert_eq "ab" "$(strip_ansi $'a\eb')" "strip_ansi drops a bare ESC byte"
+assert_eq "AB" "$(strip_ansi $'\e[31mA\e[0m\e[1;32mB\e[0m')" "strip_ansi handles back-to-back sequences"
+
+assert_eq "0" "$(strlen_no_ansi "")" "strlen_no_ansi on empty string returns 0"
+assert_eq "5" "$(strlen_no_ansi "Hello")" "strlen_no_ansi fast-path: no ESC"
+assert_eq "3" "$(strlen_no_ansi $'\e[31mRed\e[0m')" "strlen_no_ansi counts visible chars only"
+
+# _ref variant must agree with the echo variant character-for-character.
+strlen_no_ansi_ref $'\e[31mRed\e[0m' ref_out
+assert_eq "3" "$ref_out" "strlen_no_ansi_ref matches strlen_no_ansi"
+strlen_no_ansi_ref "" empty_out
+assert_eq "0" "$empty_out" "strlen_no_ansi_ref handles empty input"
+
 # Test visual_width - basic ASCII
 assert_eq "5" "$(visual_width "Hello")" "ASCII string 'Hello' should have width 5"
 assert_eq "0" "$(visual_width "")" "Empty string should have width 0"

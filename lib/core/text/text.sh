@@ -21,26 +21,41 @@ source "$_TEXT_DIR/emoji_width_hybrid.sh"
 ################################################################################
 # ANSI STRIPPING
 ################################################################################
+#
+# One scanner, three wrappers. Earlier the strip / strlen / strlen_ref
+# functions each inlined their own ESC-CSI state machine — diverging fixes
+# was a question of when, not if. Now the parsing lives in
+# _ansi_strip_to_var and the wrappers are thin.
+#
+# Recognised sequences:
+#   ESC '[' …<terminator>   — CSI (colour, cursor, etc.); terminator is a
+#                              letter [a-zA-Z]
+#   ESC <anything else>     — bare ESC: dropped, next byte preserved
+#
+# Anything else passes through verbatim. OSC (ESC ']' … ST), DCS, and 8-bit
+# CSI (0x9B) are NOT handled — gum doesn't emit them in current use, but if
+# that changes the fix lands here once.
 
-# Strip ANSI escape sequences from text
-# Usage: strip_ansi "colored text"
-# Returns: text without ANSI codes
-# Strip ANSI escape sequences from text (pure bash)
-# Usage: strip_ansi "colored text"
-# Returns: text without ANSI codes
-strip_ansi() {
+# Internal: walk $1, write ANSI-stripped text into the variable named $2.
+# Fast-path: a string with no ESC byte is returned verbatim.
+_ansi_strip_to_var() {
     local text="$1"
-    local result=""
-    local i=0
-    local len=${#text}
+    local input_len=${#text}
 
-    while ((i < len)); do
-        local char="${text:i:1}"
+    if [[ "$text" != *$'\e'* ]]; then
+        printf -v "$2" '%s' "$text"
+        return
+    fi
+
+    local result="" char next_c
+    local i=0
+    while ((i < input_len)); do
+        char="${text:i:1}"
         if [[ "$char" == $'\e' ]]; then
             if [[ "${text:i+1:1}" == "[" ]]; then
                 ((i += 2))
-                while ((i < len)); do
-                    local next_c="${text:i:1}"
+                while ((i < input_len)); do
+                    next_c="${text:i:1}"
                     ((i++))
                     [[ "$next_c" =~ [a-zA-Z] ]] && break
                 done
@@ -52,76 +67,32 @@ strip_ansi() {
         result+="$char"
         ((i++))
     done
-    echo "$result"
+    printf -v "$2" '%s' "$result"
 }
 
-# Calculate length of string ignoring ANSI codes (pure bash)
+# Strip ANSI escape sequences from text.
+# Usage: strip_ansi "colored text"
+strip_ansi() {
+    local out
+    _ansi_strip_to_var "$1" out
+    echo "$out"
+}
+
+# Length of string ignoring ANSI codes.
+# Usage: strlen_no_ansi "text"
 strlen_no_ansi() {
-    local text="$1"
-    local len=0
-    local i=0
-    local input_len=${#text}
-
-    # Fast path
-    if [[ "$text" != *$'\e'* ]]; then
-        echo "$input_len"
-        return
-    fi
-
-    while ((i < input_len)); do
-        local char="${text:i:1}"
-        if [[ "$char" == $'\e' ]]; then
-            if [[ "${text:i+1:1}" == "[" ]]; then
-                ((i += 2))
-                while ((i < input_len)); do
-                    local next_c="${text:i:1}"
-                    ((i++))
-                    [[ "$next_c" =~ [a-zA-Z] ]] && break
-                done
-                continue
-            fi
-            ((i++))
-            continue
-        fi
-        ((len++))
-        ((i++))
-    done
-    echo "$len"
+    local out
+    _ansi_strip_to_var "$1" out
+    echo "${#out}"
 }
 
-# Calculate length of string ignoring ANSI codes (sets variable)
+# Length of string ignoring ANSI codes, written into a named variable
+# (avoids a subshell — preferred in tight loops).
 # Usage: strlen_no_ansi_ref "text" var_name
 strlen_no_ansi_ref() {
-    local text="$1"
-    local len=0
-    local i=0
-    local input_len=${#text}
-
-    # Fast path
-    if [[ "$text" != *$'\e'* ]]; then
-        printf -v "$2" '%d' "$input_len"
-        return
-    fi
-
-    while ((i < input_len)); do
-        local char="${text:i:1}"
-        if [[ "$char" == $'\e' ]]; then
-            if [[ "${text:i+1:1}" == "[" ]]; then
-                ((i += 2))
-                while ((i < input_len)); do
-                    local next_c="${text:i:1}"
-                    ((i++))
-                    [[ "$next_c" =~ [a-zA-Z] ]] && break
-                done
-                continue
-            fi
-            ((i++))
-            continue
-        fi
-        ((len++))
-        ((i++))
-    done
-    printf -v "$2" '%d' "$len"
+    local out
+    _ansi_strip_to_var "$1" out
+    printf -v "$2" '%d' "${#out}"
 }
 
 # Get visual width and store in variable

@@ -60,13 +60,17 @@ runner_exec() {
     # Restore default signal handlers
     trap - INT TERM
 
-    # Update dashboard
+    # Update dashboard. Per-step status is communicated visually via the
+    # dashboard's ✅/❌ markers and the post-run summary block. The log_*
+    # calls below stay silent on stdout because dashboard_init sets
+    # LOGGING_QUIET=true (see lib/core/sh/logging.sh) — failure lines still
+    # land in LOG_FILE at ERROR level for post-mortem.
     if ((rc == 0)); then
         dashboard_step_done "$idx" true
         log_debug "Completed: ${DASHBOARD_STEPS[$idx]}"
     else
         dashboard_step_done "$idx" false
-        log_error "Failed: ${DASHBOARD_STEPS[$idx]}"
+        log_error "Failed: ${DASHBOARD_STEPS[$idx]} (exit $rc)"
     fi
 
     return $rc

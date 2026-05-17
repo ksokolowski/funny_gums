@@ -13,6 +13,15 @@ source "$_LOGGING_DIR/gum_wrapper.sh"
 : "${LOG_FILE:=/tmp/gum_script.log}"
 : "${VERBOSE:=false}"
 
+# LOGGING_QUIET contract:
+#   When a TUI component owns the terminal (a dashboard mid-redraw, a custom
+#   full-screen UI), set LOGGING_QUIET=true and the log_* family writes only
+#   to LOG_FILE — no `tee` to stdout, so the cursor accounting in dashboard_draw
+#   (and similar) stays consistent. dashboard_init sets this for you;
+#   dashboard_cleanup clears it. Callers that build their own TUI on the
+#   library should toggle it manually.
+: "${LOGGING_QUIET:=false}"
+
 # Initialize log file
 log_init() {
     local file="${1:-$LOG_FILE}"
@@ -20,38 +29,47 @@ log_init() {
     : >"$LOG_FILE"
 }
 
-# Log info level
-log_info() {
-    gum_exec log --level info "$@" 2>&1 | tee -a "$LOG_FILE"
+# Internal: emit one gum log line. Honours LOGGING_QUIET — when true the
+# message goes to LOG_FILE only; when false it `tee`s to stdout as well.
+# All public log_* functions route through here so the rule applies uniformly.
+_log_emit() {
+    if [[ "${LOGGING_QUIET:-false}" == "true" ]]; then
+        gum_exec log "$@" >>"$LOG_FILE" 2>&1
+        return $?
+    fi
+    gum_exec log "$@" 2>&1 | tee -a "$LOG_FILE"
     return "${PIPESTATUS[0]}"
 }
 
-# Log info to file only (no console output)
+# Log info level
+log_info() {
+    _log_emit --level info "$@"
+}
+
+# Log info to file only (no console output regardless of LOGGING_QUIET)
 log_silent() {
     gum_exec log --level info "$@" >>"$LOG_FILE" 2>&1
 }
 
 # Log warning level
 log_warn() {
-    gum_exec log --level warn "$@" 2>&1 | tee -a "$LOG_FILE"
-    return "${PIPESTATUS[0]}"
+    _log_emit --level warn "$@"
 }
 
 # Log error level
 log_error() {
-    gum_exec log --level error "$@" 2>&1 | tee -a "$LOG_FILE"
-    return "${PIPESTATUS[0]}"
+    _log_emit --level error "$@"
 }
 
 # Log debug level (only if VERBOSE=true)
 log_debug() {
-    [[ "$VERBOSE" == "true" ]] && gum_exec log --level debug "$@" 2>&1 | tee -a "$LOG_FILE" && return "${PIPESTATUS[0]}"
+    [[ "$VERBOSE" == "true" ]] || return 0
+    _log_emit --level debug "$@"
 }
 
 # Log with timestamp
 log_time() {
-    gum_exec log --time rfc3339 --level info "$@" 2>&1 | tee -a "$LOG_FILE"
-    return "${PIPESTATUS[0]}"
+    _log_emit --time rfc3339 --level info "$@"
 }
 
 # Structured log with key-value pairs
@@ -61,8 +79,7 @@ log_structured() {
     local level="$1"
     local msg="$2"
     shift 2
-    gum_exec log --structured --level "$level" "$msg" "$@" 2>&1 | tee -a "$LOG_FILE"
-    return "${PIPESTATUS[0]}"
+    _log_emit --structured --level "$level" "$msg" "$@"
 }
 
 # Log with custom prefix
@@ -71,15 +88,15 @@ log_prefix() {
     local prefix="$1"
     local level="$2"
     shift 2
-    gum_exec log --prefix "$prefix" --level "$level" "$@" 2>&1 | tee -a "$LOG_FILE"
-    return "${PIPESTATUS[0]}"
+    _log_emit --prefix "$prefix" --level "$level" "$@"
 }
 
-# Log fatal (error level with "FATAL" styling - exits script)
+# Log fatal (error level with "FATAL" styling - exits script).
+# Honours LOGGING_QUIET like the others; if a TUI is mid-redraw and you want
+# the fatal message visible, emit a `ui_error` yourself before exiting.
 # Usage: log_fatal "Critical error occurred"
 log_fatal() {
-    gum_exec log --level fatal "$@" 2>&1 | tee -a "$LOG_FILE"
-    # Always exits regardless of gum exit code
+    _log_emit --level fatal "$@"
     exit 1
 }
 

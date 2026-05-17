@@ -28,6 +28,10 @@ DASHBOARD_HAS_FAILURE=false
 DASHBOARD_PROGRESS_WIDTH=30
 DASHBOARD_QUIET=false
 DASHBOARD_SPINNER="DOTS"
+# Track whether dashboard_init was the one that set LOGGING_QUIET, so
+# dashboard_cleanup only resets it if we own the toggle (avoids stomping
+# on a caller that set the flag themselves around their own TUI).
+_DASHBOARD_OWNS_LOGGING_QUIET=false
 DASHBOARD_BORDER_COLOR="6"
 DASHBOARD_PROGRESS_COLOR="${CYAN}"
 DASHBOARD_WIDTH="" # Frame width (empty = auto)
@@ -47,6 +51,24 @@ dashboard_init() {
     spinner_set "$DASHBOARD_SPINNER"
     DASHBOARD_BORDER_COLOR="${DASHBOARD_BORDER_COLOR:-6}"
     DASHBOARD_PROGRESS_COLOR="${DASHBOARD_PROGRESS_COLOR:-${CYAN}}"
+
+    # We own the screen now — silence log_* tee-to-stdout so per-step log
+    # lines don't desync the dashboard's cursor accounting.
+    # See LOGGING_QUIET in lib/core/sh/logging.sh.
+    if [[ "${LOGGING_QUIET:-false}" != "true" ]]; then
+        LOGGING_QUIET=true
+        _DASHBOARD_OWNS_LOGGING_QUIET=true
+    fi
+}
+
+# Release the terminal: restore logging behaviour to whatever it was before
+# dashboard_init. Safe to call even if dashboard_init wasn't (no-op then).
+# Recommended: add to your EXIT trap alongside cursor_show / runner_cleanup.
+dashboard_cleanup() {
+    if [[ "$_DASHBOARD_OWNS_LOGGING_QUIET" == "true" ]]; then
+        LOGGING_QUIET=false
+        _DASHBOARD_OWNS_LOGGING_QUIET=false
+    fi
 }
 
 # Add a step to the dashboard

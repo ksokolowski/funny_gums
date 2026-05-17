@@ -7,11 +7,13 @@
 [[ -n "${_DEPS_SH_LOADED:-}" ]] && return 0
 _DEPS_SH_LOADED=1
 
-# Source colors/logging if available (but handle standalone usage)
+# Source colors/logging if available (but handle standalone usage).
+# colors.sh lives in ../term/, not next to this file — earlier the existence
+# check used the wrong path and the standalone bootstrap silently never ran.
 _DEPS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [[ -z "${_COLORS_SH_LOADED:-}" ]] && [[ -f "$_DEPS_DIR/colors.sh" ]]; then
+if [[ -z "${_COLORS_SH_LOADED:-}" ]] && [[ -f "$_DEPS_DIR/../term/colors.sh" ]]; then
     source "$_DEPS_DIR/../term/colors.sh"
-    source "$_DEPS_DIR/logging.sh"
+    [[ -f "$_DEPS_DIR/logging.sh" ]] && source "$_DEPS_DIR/logging.sh"
 fi
 
 #######################################

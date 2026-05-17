@@ -26,5 +26,39 @@ assert_function_exists "log_fatal"
 log_init "$LOG_FILE"
 assert_success test -f "$LOG_FILE"
 
+# The LOGGING_QUIET contract: when a TUI component (dashboard, custom screen)
+# owns the terminal, it sets LOGGING_QUIET=true. All console-emitting log
+# functions must then write to LOG_FILE only — otherwise their `tee` to stdout
+# scrambles the cursor accounting and produces orphan UI rows.
+# (See the openrgb_fix.sh dashboard-redraw regression in 1.1.x for the
+# original symptom this contract prevents.)
+if command -v gum >/dev/null 2>&1; then
+    log_init "$LOG_FILE"
+
+    LOGGING_QUIET=true
+    leaked_info=$(log_info "smoke info" 2>/dev/null)
+    leaked_warn=$(log_warn "smoke warn" 2>/dev/null)
+    leaked_error=$(log_error "smoke error" 2>/dev/null)
+    VERBOSE=true
+    leaked_debug=$(log_debug "smoke debug" 2>/dev/null)
+    VERBOSE=false
+    leaked_struct=$(log_structured info "smoke" k v 2>/dev/null)
+    LOGGING_QUIET=false
+
+    assert_eq "" "$leaked_info" "log_info honours LOGGING_QUIET (no stdout leak)"
+    assert_eq "" "$leaked_warn" "log_warn honours LOGGING_QUIET (no stdout leak)"
+    assert_eq "" "$leaked_error" "log_error honours LOGGING_QUIET (no stdout leak)"
+    assert_eq "" "$leaked_debug" "log_debug honours LOGGING_QUIET (no stdout leak, even with VERBOSE=true)"
+    assert_eq "" "$leaked_struct" "log_structured honours LOGGING_QUIET (no stdout leak)"
+
+    # The file side must still receive content — quiet means "don't echo",
+    # not "don't log".
+    assert_success grep -q "smoke error" "$LOG_FILE"
+
+    # And LOGGING_QUIET=false restores the prior tee-to-stdout behaviour.
+    visible=$(log_info "audible" 2>/dev/null)
+    assert_contains "audible" "$visible" "log_info echoes to stdout when LOGGING_QUIET=false"
+fi
+
 # Cleanup
 rm -f "$LOG_FILE"

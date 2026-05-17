@@ -79,6 +79,7 @@ cleanup() {
     cursor_show
     runner_cleanup
     sudo_cleanup
+    dashboard_cleanup
 }
 trap cleanup EXIT
 
