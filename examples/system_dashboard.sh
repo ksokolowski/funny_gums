@@ -78,6 +78,9 @@ detect_terminal_mode
 # TEMPORARY DIRECTORY (parallel data fetching — prefer RAM disk)
 ################################################################################
 if [[ -d /dev/shm ]]; then
+    # Purge any stale dirs from previously SIGKILL'd runs before creating a fresh one
+    find /dev/shm -maxdepth 1 -name 'funny_gums_dashboard.*' -user "$(id -un)" \
+        -exec rm -rf {} + 2>/dev/null || true
     TMP_DIR=$(mktemp -d -p /dev/shm -t funny_gums_dashboard.XXXXXX)
 else
     TMP_DIR=$(mktemp -d -t funny_gums_dashboard.XXXXXX)
@@ -455,9 +458,9 @@ get_category_content() {
         ;;
     "Drives")
         echo "Item,Value"
-        inxi_get_section "Drives" | sed '1d' | sed 's/^[[:space:]]*//' | while read -r line; do
-            [[ -n "$line" ]] && echo "$line" | sed 's/: /,/' | head -1
-        done
+        while read -r line; do
+            [[ -n "$line" ]] && echo "${line/: /,}"
+        done < <(inxi_get_section "Drives" | tail -n +2)
         echo ""
         echo "Partitions:"
         inxi_parse_partition_csv
@@ -605,7 +608,9 @@ build_system_panel() {
     os=$(grep -E "^PRETTY_NAME=" /etc/os-release 2>/dev/null | cut -d'"' -f2 || echo "Linux")
     kernel=$(uname -r 2>/dev/null || echo "Unknown")
     desktop="${XDG_CURRENT_DESKTOP:-Unknown}"
-    uptime_str=$(uptime -p 2>/dev/null | sed 's/up //' || echo "Unknown")
+    local uptime_raw
+    uptime_raw=$(uptime -p 2>/dev/null) || uptime_raw="up Unknown"
+    uptime_str="${uptime_raw#up }"
 
     content+="  ${CLR_LABEL}Host:${RESET}      ${CLR_HIGHLIGHT}$host${RESET}\n"
     content+="  ${CLR_LABEL}OS:${RESET}        ${CLR_VALUE}$os${RESET}\n"
@@ -662,10 +667,28 @@ build_cpu_panel() {
 
     # Get CPU model from inxi cache
     local cpu_model cores threads
-    cpu_model=$(echo "$INXI_CACHE" | grep -A5 "^CPU:" | grep "model:" | sed 's/.*model: //' | cut -d' ' -f1-6)
-    [[ -z "$cpu_model" ]] && cpu_model=$(lscpu 2>/dev/null | grep "Model name" | sed 's/Model name:[[:space:]]*//')
-    cores=$(lscpu 2>/dev/null | grep "^Core(s) per socket:" | awk '{print $4}')
-    threads=$(lscpu 2>/dev/null | grep "^CPU(s):" | awk '{print $2}')
+    cpu_model=$(echo "$INXI_CACHE" | grep -A5 "^CPU:" | grep "model:" | sed 's/.*model: //; s/ bits:.*//' | head -1)
+    # Single lscpu call — parse cores, threads, and model fallback in one pass
+    local lscpu_out
+    lscpu_out=$(LC_ALL=C lscpu 2>/dev/null)
+    while IFS= read -r _line; do
+        case "$_line" in
+        "Model name:"*)
+            if [[ -z "$cpu_model" ]]; then
+                cpu_model="${_line#*:}"
+                cpu_model="${cpu_model#"${cpu_model%%[! ]*}"}"
+            fi
+            ;;
+        "Core(s) per socket:"*)
+            cores="${_line##*:}"
+            cores="${cores#"${cores%%[! ]*}"}"
+            ;;
+        "CPU(s):"*)
+            threads="${_line##*:}"
+            threads="${threads#"${threads%%[! ]*}"}"
+            ;;
+        esac
+    done <<<"$lscpu_out"
 
     content+="  ${CLR_LABEL}Model:${RESET}     ${CLR_CPU}$cpu_model${RESET}\n"
     [[ -n "$cores" ]] && content+="  ${CLR_LABEL}Cores:${RESET}     ${CLR_HIGHLIGHT}$cores${RESET} cores, ${CLR_HIGHLIGHT}$threads${RESET} threads\n"
@@ -767,11 +790,16 @@ build_memory_panel() {
         content+="  ${CLR_DIM}Swap: Not configured${RESET}\n\n"
     fi
 
-    # Buffers/cache info
-    local buffers cached available
-    buffers=$(awk '/^Buffers:/ {printf "%.1f MiB", $2/1024}' /proc/meminfo 2>/dev/null)
-    cached=$(awk '/^Cached:/ {printf "%.1f MiB", $2/1024}' /proc/meminfo 2>/dev/null)
-    available=$(awk '/^MemAvailable:/ {printf "%.1f GiB", $2/1024/1024}' /proc/meminfo 2>/dev/null)
+    # Buffers/cache info — single pass over /proc/meminfo
+    local buffers cached available _buf_n _cac_n _ava_n
+    IFS='|' read -r _buf_n _cac_n _ava_n < <(
+        awk '/^Buffers:/{b=$2} /^Cached:/{c=$2} /^MemAvailable:/{a=$2}
+             END{printf "%.1f MiB|%.1f MiB|%.1f GiB\n", b/1024, c/1024, a/1024/1024}' \
+            /proc/meminfo 2>/dev/null
+    )
+    buffers="${_buf_n}"
+    cached="${_cac_n}"
+    available="${_ava_n}"
     content+="${CLR_SUBHEADER}Cache & Buffers${RESET}\n"
     content+="  ${CLR_LABEL}Available:${RESET} ${CLR_GOOD}$available${RESET}\n"
     content+="  ${CLR_LABEL}Buffers:${RESET}   ${CLR_VALUE}$buffers${RESET}\n"
@@ -1434,35 +1462,33 @@ build_footer() {
     local help_text="↑↓/jk Navigate │ 1-9,0 Jump │ A: Auto-refresh │ R: Refresh │ L: Log │ Q: Quit"
     # We use a border here implicitly via gum_exec_style defaults (normal border)
     # The height is content(1) + border(2) = 3 lines
-    gum_exec_style --foreground 245 --align center "$help_text"
+    gum_exec_style --width $((TERM_COLS - 4)) --foreground 245 --align center "$help_text"
 }
 
 ################################################################################
 # LAYOUT COMPOSER
 ################################################################################
 compose_layout() {
-    clear
+    # Refresh terminal dimensions to handle resize events
+    TERM_COLS=$(tput cols)
+    TERM_ROWS=$(tput lines)
+    PANEL_WIDTH=$((TERM_COLS - NAV_PANEL_WIDTH - 8))
 
-    # Header
-    build_header
-    echo ""
-
-    # Main content area - side by side
-    local nav_panel main_panel
+    # Build all panels while old content is still visible — eliminates flash
+    local header nav_panel main_panel joined sensor_bar footer
+    header=$(build_header)
     nav_panel=$(build_nav_panel)
     main_panel=$(build_main_panel)
+    joined=$(gum join --horizontal "$nav_panel" " " "$main_panel")
+    sensor_bar=$(build_sensor_bar)
+    footer=$(build_footer)
 
-    # Join nav and content horizontally
-    gum join --horizontal "$nav_panel" " " "$main_panel"
-
-    echo ""
-
-    # Sensor bar
-    build_sensor_bar
-    echo ""
-
-    # Footer
-    build_footer
+    # Atomic clear + paint: blank screen time is now near-zero
+    clear
+    printf '%s\n\n' "$header"
+    printf '%s\n\n' "$joined"
+    printf '%s\n' "$sensor_bar"
+    printf '%s\n' "$footer"
 }
 
 ################################################################################
@@ -1502,8 +1528,14 @@ main_loop() {
     local key last_refresh_time current_time
     last_refresh_time=$(date +%s)
 
+    # Disable terminal echo for the entire loop so keypress escape sequences
+    # don't appear on screen while compose_layout is rendering between reads
+    local _saved_stty
+    _saved_stty=$(stty -g 2>/dev/null) || _saved_stty=""
+    stty -echo 2>/dev/null || true
+
     cursor_hide
-    trap 'cursor_show; exit 0' EXIT INT TERM
+    trap 'cursor_show; [[ -n "${_saved_stty:-}" ]] && stty "$_saved_stty" 2>/dev/null || true; exit 0' EXIT INT TERM
 
     compose_layout
 

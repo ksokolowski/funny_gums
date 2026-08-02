@@ -2,6 +2,11 @@
 # run_tests.sh - Test runner for Funny Gums library
 # Usage: ./tests/run_tests.sh [test_file...]
 set -uo pipefail
+
+# Ensure UTF-8 locale for multibyte string support in bash (affects ${#str} and
+# substring operations). Use C.UTF-8 as a safe fallback when available.
+export LC_ALL=${LC_ALL:-C.UTF-8}
+export LANG=${LANG:-C.UTF-8}
 # Note: We don't use -e because test assertions may "fail" intentionally
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

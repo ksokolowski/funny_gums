@@ -97,7 +97,14 @@ get_cpu_freq_live() {
     local freq
 
     # Try /proc/cpuinfo
-    freq=$(awk '/^cpu MHz/ {print int($4); exit}' /proc/cpuinfo 2>/dev/null)
+    local line
+    while read -r line; do
+        if [[ "$line" == "cpu MHz"* ]]; then
+            freq="${line##*: }"
+            freq="${freq%.*}"
+            break
+        fi
+    done </proc/cpuinfo
     [[ -n "$freq" ]] && {
         echo "$freq"
         return
@@ -118,5 +125,7 @@ get_cpu_freq_live() {
 # Get load average (1 min)
 # Usage: load=$(get_load_avg_live)
 get_load_avg_live() {
-    awk '{print $1}' /proc/loadavg 2>/dev/null
+    local loadavg
+    read -r loadavg _ </proc/loadavg
+    echo "$loadavg"
 }

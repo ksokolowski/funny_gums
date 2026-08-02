@@ -15,19 +15,19 @@ source "$_SYSTEM_STORAGE_DIR/../hw/sensors.sh"
 # Usage: get_disk_usage_live
 # Returns: Multiple lines of "mountpoint used_bytes total_bytes percent"
 get_disk_usage_live() {
-    df -B1 --output=target,used,size,pcent 2>/dev/null | tail -n +2 |
-        grep -E "^/" | while read -r mount used total percent; do
+    while read -r mount used total percent; do
         # Remove % sign from percent
         percent="${percent%\%}"
         echo "$mount $used $total $percent"
-    done
+    done < <(df -B1 --output=target,used,size,pcent 2>/dev/null | tail -n +2 | grep -E "^/")
 }
 
 # Get root partition usage specifically
 # Usage: read -r used_bytes total_bytes percent <<< "$(get_root_disk_usage_live)"
 get_root_disk_usage_live() {
-    df -B1 --output=used,size,pcent / 2>/dev/null | tail -1 |
-        awk '{gsub(/%/,"",$3); print $1, $2, $3}'
+    local used size pcent
+    read -r used size pcent < <(df -B1 --output=used,size,pcent / 2>/dev/null | tail -1)
+    echo "${used} ${size} ${pcent%\%}"
 }
 
 # Get list of physical drives (excludes loop, zram, etc.)
@@ -59,14 +59,14 @@ get_physical_drives() {
 get_drive_partitions() {
     local drive="$1"
 
-    lsblk -r -b -o NAME,SIZE,FSTYPE,MOUNTPOINT -n "/dev/$drive" 2>/dev/null |
-        tail -n +2 | while read -r name size fstype mountpoint; do
+    while read -r name size fstype mountpoint; do
         [[ -z "$name" ]] && continue
 
         # Get used space if mounted
         local used=0
         if [[ -n "$mountpoint" ]] && [[ "$mountpoint" != "[SWAP]" ]]; then
-            used=$(df -B1 "$mountpoint" 2>/dev/null | tail -1 | awk '{print $3}')
+            local _fs _sz
+            read -r _fs _sz used _ < <(df -B1 "$mountpoint" 2>/dev/null | tail -1)
         fi
         [[ -z "$used" ]] && used=0
 
@@ -75,7 +75,7 @@ get_drive_partitions() {
         [[ -z "$mountpoint" ]] && mountpoint="-"
 
         echo "$name|$size|$fstype|$mountpoint|$used"
-    done
+    done < <(lsblk -r -b -o NAME,SIZE,FSTYPE,MOUNTPOINT -n "/dev/$drive" 2>/dev/null | tail -n +2)
 }
 
 # Resolve drive to PCI ID if possible

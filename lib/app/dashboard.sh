@@ -84,12 +84,6 @@ dashboard_draw() {
         [[ "$enabled" == "true" ]] && ((enabled_count++))
     done
 
-    # Clear previous dashboard
-    if ((DASHBOARD_LINES > 0)); then
-        cursor_up "$DASHBOARD_LINES"
-        clear_to_end
-    fi
-
     # Build content
     local content=""
     content+="${CYAN}🔧 ${DASHBOARD_TITLE}${RESET}\n\n"
@@ -117,14 +111,19 @@ dashboard_draw() {
     local percent=$((DASHBOARD_COMPLETED * 100 / pct_denom))
     content+="\n${DASHBOARD_PROGRESS_COLOR}⏳ Progress [${bar}] ${percent}%${RESET}"
 
-    # Display in gum frame
+    # Render via gum while old content is still visible — eliminates flash
+    # Note: VS16 stripping for VTE terminals is handled globally in emojis.sh
     local output width_arg=""
     [[ -n "$DASHBOARD_WIDTH" ]] && width_arg="--width $DASHBOARD_WIDTH"
 
-    # Note: VS16 stripping for VTE terminals is handled globally in emojis.sh
-
     # shellcheck disable=SC2086
     output=$(echo -e "$content" | gum_exec_style --no-strip-ansi --border rounded --border-foreground "$DASHBOARD_BORDER_COLOR" --padding "1 2" --align left $width_arg)
+
+    # Atomic update: clear previous, paint new
+    if ((DASHBOARD_LINES > 0)); then
+        cursor_up "$DASHBOARD_LINES"
+        clear_to_end
+    fi
     printf '%s\n' "$output"
 
     DASHBOARD_LINES=$(printf '%s\n' "$output" | wc -l)

@@ -22,7 +22,7 @@ hdparm_get_model() {
     # Add /dev/ prefix if not present
     [[ "$device" != /dev/* ]] && device="/dev/$device"
 
-    sudo hdparm -I "$device" 2>/dev/null | grep -E "Model Number:" | sed 's/.*Model Number: *//' | sed 's/ *$//'
+    sudo hdparm -I "$device" 2>/dev/null | sed -n '/Model Number:/{s/.*Model Number: *//; s/[[:space:]]*$//; p}'
 }
 
 # Get drive serial number
@@ -35,7 +35,7 @@ hdparm_get_serial() {
 
     [[ "$device" != /dev/* ]] && device="/dev/$device"
 
-    sudo hdparm -I "$device" 2>/dev/null | grep -E "Serial Number:" | sed 's/.*Serial Number: *//' | sed 's/ *$//'
+    sudo hdparm -I "$device" 2>/dev/null | sed -n '/Serial Number:/{s/.*Serial Number: *//; s/[[:space:]]*$//; p}'
 }
 
 # Get drive firmware version
@@ -48,7 +48,7 @@ hdparm_get_firmware() {
 
     [[ "$device" != /dev/* ]] && device="/dev/$device"
 
-    sudo hdparm -I "$device" 2>/dev/null | grep -E "Firmware Revision:" | sed 's/.*Firmware Revision: *//' | sed 's/ *$//'
+    sudo hdparm -I "$device" 2>/dev/null | sed -n '/Firmware Revision:/{s/.*Firmware Revision: *//; s/[[:space:]]*$//; p}'
 }
 
 # Get drive geometry
@@ -128,10 +128,26 @@ hdparm_get_drive_info() {
 
     [[ -z "$output" ]] && return 1
 
-    local model serial firmware
-    model=$(echo "$output" | grep -E "Model Number:" | sed 's/.*Model Number: *//' | sed 's/ *$//')
-    serial=$(echo "$output" | grep -E "Serial Number:" | sed 's/.*Serial Number: *//' | sed 's/ *$//')
-    firmware=$(echo "$output" | grep -E "Firmware Revision:" | sed 's/.*Firmware Revision: *//' | sed 's/ *$//')
+    local model="" serial="" firmware="" _line
+    while IFS= read -r _line; do
+        case "$_line" in
+        *"Model Number:"*)
+            model="${_line#*Model Number:}"
+            model="${model#"${model%%[! ]*}"}"
+            model="${model%"${model##*[! ]}"}"
+            ;;
+        *"Serial Number:"*)
+            serial="${_line#*Serial Number:}"
+            serial="${serial#"${serial%%[! ]*}"}"
+            serial="${serial%"${serial##*[! ]}"}"
+            ;;
+        *"Firmware Revision:"*)
+            firmware="${_line#*Firmware Revision:}"
+            firmware="${firmware#"${firmware%%[! ]*}"}"
+            firmware="${firmware%"${firmware##*[! ]}"}"
+            ;;
+        esac
+    done <<<"$output"
 
     # Use "-" for missing fields
     [[ -z "$model" ]] && model="-"
@@ -151,5 +167,5 @@ hdparm_get_transfer_mode() {
 
     [[ "$device" != /dev/* ]] && device="/dev/$device"
 
-    sudo hdparm -I "$device" 2>/dev/null | grep -E "^\s*\*" | grep -E "UDMA|DMA|PIO" | tail -1 | sed 's/.*\*//' | sed 's/^ *//'
+    sudo hdparm -I "$device" 2>/dev/null | sed -n '/^[[:space:]]*\*/{/UDMA\|DMA\|PIO/p}' | tail -1 | sed 's/.*\*//; s/^[[:space:]]*//'
 }
