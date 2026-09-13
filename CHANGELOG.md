@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.2] - 2026-09-13
 
 ### Fixed
 - **runner.sh**: `runner_exec` now saves and restores the caller's pre-existing INT/TERM signal dispositions instead of wiping them with `trap -` after each step. Fixes a silent bug where a caller's own cleanup handler would be permanently lost after the first step.
@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **examples/README.md**: Corrected stale `lib/ext/*` module paths to their current locations.
+- **CI**: `actions/checkout@v4` → `@v7` (Node 24 runtime, safer `pull_request_target` defaults).
 
 ## [1.1.1] - 2026-05-17
 
@@ -39,14 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **sudo.sh**: Removed dead `width_arg` local variable that was assigned but never read.
 - **examples/**: All eight bundled examples now use a unified two-line `readlink -f` bootstrap instead of the verbose 7-line manual symlink-walking preamble (or the 2-line non-symlink-safe variant). `LIB_DIR` is no longer defined in scripts that don't actually use it.
 - **examples/system_dashboard.sh**: CLR_* palette moved below the `source` so it can alias the lib's NEON_* constants for the slots that match (CLR_HIGHLIGHT, CLR_CRIT, CLR_POWER); local block stays because it's appropriately richer than the lib's 8-shade accent palette. Documented as the recommended pattern for layering a script-local theme on top of the library.
-
-### Fixed
-- **colors.sh**: Added missing `NEON_RED_NUM`, `NEON_YELLOW_NUM`, `NEON_BLUE_NUM`, `NEON_ORANGE_NUM` 256-color index siblings. `examples/openrgb_fix.sh` aborted under `set -u` on the failure path because `NEON_RED_NUM` was undefined.
-- **runner.sh + dashboard.sh**: The `tee`-to-stdout in `log_error` advanced the cursor below the dashboard between steps, desynchronising `dashboard_draw`'s `cursor_up`/`clear_to_end` arithmetic and leaving an orphan `╭──╮` top border on the next redraw whenever a step failed. Now solved generally via the `LOGGING_QUIET` contract (see Added).
-- **deps.sh**: Standalone-bootstrap branch checked `$_DEPS_DIR/colors.sh` for existence, but `colors.sh` lives in `../term/`. The conditional `source` therefore never ran when `deps.sh` was loaded on its own. Path fixed.
-
-### Changed
-- **text.sh**: `strip_ansi`, `strlen_no_ansi`, `strlen_no_ansi_ref` consolidated onto a single `_ansi_strip_to_var` state machine. Previously each function inlined its own ESC-CSI scanner; diverging fixes was a matter of when. `strip_ansi` now also takes the no-ESC fast-path that the two `strlen` variants already had.
 
 ## [1.1.0] - 2026-03-15
 
