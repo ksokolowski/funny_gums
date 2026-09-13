@@ -5,10 +5,11 @@
 [[ -n "${_SYSTEM_GPU_LOADED:-}" ]] && return 0
 _SYSTEM_GPU_LOADED=1
 
-# Source NVIDIA and AMD modules for GPU queries
+# Source NVIDIA, AMD and Astral modules for GPU queries
 _SYSTEM_GPU_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$_SYSTEM_GPU_DIR/nvidia.sh"
 source "$_SYSTEM_GPU_DIR/amd.sh"
+source "$_SYSTEM_GPU_DIR/astral.sh"
 
 # Get GPU temperature (NVIDIA or AMD)
 # Usage: gpu_temp=$(get_gpu_temp_live)

@@ -79,3 +79,11 @@ nvidia_get_driver_version() {
     nvidia_available || return 1
     nvidia-smi --query-gpu=driver_version --format=csv,noheader 2>/dev/null | head -1
 }
+
+# All primary metrics in one nvidia-smi call (one process spawn instead of ten).
+# Usage: read -r temp util mem_used mem_total power fan core_clock mem_clock name driver <<<"$(nvidia_get_metrics)"
+nvidia_get_metrics() {
+    nvidia_available || return 1
+    nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,memory.total,power.draw,fan.speed,clocks.current.graphics,clocks.current.memory,name,driver_version \
+        --format=csv,noheader,nounits 2>/dev/null | head -1
+}

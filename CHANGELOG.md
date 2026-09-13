@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **lib/mod/hw/astral.sh**: New `lib/mod/hw/` module reading per-pin 12VHPWR sensors from the [astral-hwmon](https://github.com/ksokolowski/astral-hwmon) kernel driver (`currN_input` current in mA, `inN_input` voltage in mV). Provides discovery (`astral_find_hwmon`), per-pin readers, aggregates (total/max/balance/connector power) and status classifiers mirroring the driver's `astral-guard` thresholds (9.2 A warn / 9.5 A crit per pin, min pin ratio, voltage range). Discovered via the existing `SYSFS_HWMON_DIR` override convention; degrades cleanly when the driver is absent. Loaded from `lib/mod/hw/gpu.sh` alongside nvidia/amd. Covered by `tests/test_astral.sh`.
+- **lib/mod/hw/nvidia.sh**: `nvidia_get_metrics` fetches temp/util/vram/power/fan/clocks/name/driver in a single `nvidia-smi --query-gpu` call instead of per-field processes. Covered by extended `tests/test_nvidia.sh`.
+- **examples/nvidia_dashboard.sh**: New single-screen dashboard for NVIDIA cards, with dedicated 12VHPWR connector panel showing per-pin current/voltage bars, totals, pin balance and connector power from the astral-hwmon driver. Full in-place redraw every second (same composed-layout technique as the system dashboard), `a`/`r`/`q` keys, degrades to a GPU-only view when the astral driver is not loaded. Covered by `tests/test_nvidia_dashboard.sh`.
+
 ### Fixed
 - **examples/system_dashboard.sh**: Composed-layout sensor bar now tracks its real terminal row (`SENSOR_BAR_ROW`, measured from the emitted lines) instead of assuming a hardcoded `TERM_ROWS - 4` offset. Auto-refresh previously painted a duplicate sensor bar over the page body whenever the bar's actual row drifted from that assumption. Regression coverage added in `tests/test_dashboard_parallel.sh`.
 
