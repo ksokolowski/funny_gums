@@ -19,6 +19,7 @@ GPU_PANEL_WIDTH=$((TERM_COLS - ASTRAL_PANEL_WIDTH - 9))
 export TERM_COLS TERM_ROWS
 
 # Mock nvidia-smi output (10 comma-space separated fields)
+nvidia_available() { return 0; }
 nvidia_get_metrics() {
     echo "44, 5, 2834, 32607, 52.66, 0, 1440, 810, NVIDIA GeForce RTX 5090, 570.16.14"
 }
