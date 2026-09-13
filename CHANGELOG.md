@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **examples/system_dashboard.sh**: Composed-layout sensor bar now tracks its real terminal row (`SENSOR_BAR_ROW`, measured from the emitted lines) instead of assuming a hardcoded `TERM_ROWS - 4` offset. Auto-refresh previously painted a duplicate sensor bar over the page body whenever the bar's actual row drifted from that assumption. Regression coverage added in `tests/test_dashboard_parallel.sh`.
+
 ## [1.1.2] - 2026-09-13
 
 ### Fixed

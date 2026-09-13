@@ -111,6 +111,45 @@ else
     FAILED_TESTS+=("dashboard_parallel.sh: _SENSORS_CACHE should be populated")
 fi
 
+# 5. Regression: sensor bar row tracking
+# Auto-refresh must redraw the sensor bar where compose_layout rendered it,
+# not at a hardcoded TERM_ROWS-4 offset. Verify the tracked row holds the
+# bar's actual content.
+TMP_LAYOUT=$(mktemp)
+CURRENT_CATEGORY=9
+compose_layout >"$TMP_LAYOUT"
+
+assert_not_empty "$SENSOR_BAR_ROW" "compose_layout should expose the sensor bar row"
+((TESTS_RUN++))
+if [[ "$SENSOR_BAR_ROW" -ge 1 && "$SENSOR_BAR_ROW" -le "$TERM_ROWS" ]]; then
+    echo "  ${GREEN}✓${RESET} SENSOR_BAR_ROW=$SENSOR_BAR_ROW is in valid range [1, $TERM_ROWS]"
+    ((TESTS_PASSED++))
+else
+    echo "  ${RED}✗${RESET} SENSOR_BAR_ROW=$SENSOR_BAR_ROW is outside [1, $TERM_ROWS]"
+    ((TESTS_FAILED++))
+    FAILED_TESTS+=("dashboard_parallel.sh: SENSOR_BAR_ROW must be within terminal bounds")
+fi
+
+TRACKED_LINE="$(sed -n "${SENSOR_BAR_ROW}p" "$TMP_LAYOUT")"
+assert_contains "Updated:" "$TRACKED_LINE" "Row $SENSOR_BAR_ROW should hold the sensor bar"
+
+# The old hardcoded redraw row points at the bar only if the footer happens to
+# be docked at the bottom; when it isn't, that row must NOT be a bar either.
+HARDCODED_LINE="$(sed -n "$((TERM_ROWS - 4))p" "$TMP_LAYOUT")"
+if [[ $SENSOR_BAR_ROW -ne $((TERM_ROWS - 4)) ]]; then
+    ((TESTS_RUN++))
+    if [[ "$HARDCODED_LINE" != *"Updated:"* ]]; then
+        echo "  ${GREEN}✓${RESET} Bar not at blind TERM_ROWS-4 offset (tracked at $SENSOR_BAR_ROW)"
+        ((TESTS_PASSED++))
+    else
+        echo "  ${RED}✗${RESET} Sensor bar unexpectedly found at blind TERM_ROWS-4 offset"
+        ((TESTS_FAILED++))
+        FAILED_TESTS+=("dashboard_parallel.sh: blind TERM_ROWS-4 offset should not hold a bar")
+    fi
+fi
+
+rm "$TMP_LAYOUT"
+
 # Clean up: unset mock-only functions (those that don't exist in the library),
 # and re-source modules whose functions we overrode to restore originals.
 unset -f sensors # mock of the `sensors` command, not a library function

@@ -100,6 +100,7 @@ INXI_CACHE=""         # Cached inxi output
 TERM_COLS=0           # Terminal columns
 TERM_ROWS=0           # Terminal rows
 LAST_SENSOR_UPDATE="" # Timestamp of last sensor update
+SENSOR_BAR_ROW=0      # Terminal row where build_sensor_bar was last drawn
 
 # Live metrics cache (updated on refresh)
 LIVE_CPU_PERCENT=0
@@ -1446,26 +1447,51 @@ build_footer() {
 ################################################################################
 # LAYOUT COMPOSER
 ################################################################################
+
+# Count the terminal rows a captured block occupies once re-printed as
+# `printf '%s\n' "$block"`. Command substitution strips the trailing newline
+# that gum emits, so an unterminated block is wc -l + 1 rows.
+_count_layout_lines() {
+    local s="$1"
+    [[ -z "$s" ]] && {
+        echo 0
+        return
+    }
+    echo $(($(printf '%s' "$s" | wc -l) + 1))
+}
+
 compose_layout() {
     clear
 
+    local layout_row=0
+
     # Header
-    build_header
-    echo ""
+    local header
+    header=$(build_header)
+    printf '%s\n' "$header"
+    ((layout_row += $(_count_layout_lines "$header")))
+    printf '\n'
+    ((layout_row++))
 
     # Main content area - side by side
-    local nav_panel main_panel
+    local nav_panel main_panel joined
     nav_panel=$(build_nav_panel)
     main_panel=$(build_main_panel)
+    joined=$(gum join --horizontal "$nav_panel" " " "$main_panel")
+    printf '%s\n' "$joined"
+    ((layout_row += $(_count_layout_lines "$joined")))
+    printf '\n'
+    ((layout_row++))
 
-    # Join nav and content horizontally
-    gum join --horizontal "$nav_panel" " " "$main_panel"
-
-    echo ""
-
-    # Sensor bar
+    # Sensor bar — record its real row so auto-refresh can redraw it in place.
+    # Measured from the emitted lines rather than the old TERM_ROWS-4 hardcode,
+    # which assumed the footer is always docked at the bottom. The bar's row
+    # shifts with panel/box heights, so that offset coincided with the true row
+    # only by luck; otherwise the refresh painted a duplicate bar over the page.
+    SENSOR_BAR_ROW=$((layout_row + 1))
     build_sensor_bar
-    echo ""
+    printf '\n'
+    ((layout_row += 2))
 
     # Footer
     build_footer
@@ -1618,14 +1644,14 @@ main_loop() {
                 current_time=$(date +%s)
                 if [[ $((current_time - last_refresh_time)) -ge $REFRESH_INTERVAL ]]; then
                     refresh_live_metrics
-                    # Update sensor bar in place
+                    # Update sensor bar in place — at the row compose_layout
+                    # actually rendered it (measured, not assumed).
                     cursor_save
-                    # Footer occupies 3 lines: (top border, text, bottom border)
-                    # Sensor bar is immediately above footer (top border)
-                    # So offset is: TERM_ROWS - footer_height(3) - sensor_padding(1)
-                    cursor_goto $((TERM_ROWS - 4)) 1
-                    clear_line
-                    build_sensor_bar
+                    if ((SENSOR_BAR_ROW > 0)); then
+                        cursor_goto "$SENSOR_BAR_ROW" 1
+                        clear_line
+                        build_sensor_bar
+                    fi
                     cursor_restore
                     last_refresh_time=$current_time
                 fi
