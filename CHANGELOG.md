@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-09-13
+
 ### Added
 - **lib/mod/hw/astral.sh**: New `lib/mod/hw/` module reading per-pin 12VHPWR sensors from the [astral-hwmon](https://github.com/ksokolowski/astral-hwmon) kernel driver (`currN_input` current in mA, `inN_input` voltage in mV). Provides discovery (`astral_find_hwmon`), per-pin readers, aggregates (total/max/balance/connector power) and status classifiers mirroring the driver's `astral-guard` thresholds (9.2 A warn / 9.5 A crit per pin, min pin ratio, voltage range). Discovered via the existing `SYSFS_HWMON_DIR` override convention; degrades cleanly when the driver is absent. Loaded from `lib/mod/hw/gpu.sh` alongside nvidia/amd. Covered by `tests/test_astral.sh`.
 - **lib/mod/hw/nvidia.sh**: `nvidia_get_metrics` fetches temp/util/vram/power/fan/clocks/name/driver in a single `nvidia-smi --query-gpu` call instead of per-field processes. Covered by extended `tests/test_nvidia.sh`.
