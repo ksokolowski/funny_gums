@@ -38,6 +38,15 @@ runner_exec() {
     # Mark step as running
     dashboard_step_start "$idx"
 
+    # Save the caller's current signal dispositions so they can be restored
+    # when the step finishes. A plain `trap -` would permanently wipe any
+    # pre-existing INT/TERM handler the caller installed (e.g. their own
+    # cleanup trap) after the very first step. `trap -p` emits bash-written,
+    # always-shell-quoted `trap -- '...' SIG` lines (nothing for signals with
+    # no disposition), so eval-ing them back restores the exact prior state.
+    local prev_traps
+    prev_traps=$(trap -p INT TERM)
+
     # Ensure cleanup on interrupt
     trap 'runner_cleanup' INT TERM
 
@@ -57,8 +66,12 @@ runner_exec() {
     local rc=$?
     RUNNER_CMD_PID=""
 
-    # Restore default signal handlers
+    # Restore the caller's signal handlers (see note above). Reset both signals
+    # to their defaults first, then re-apply anything the caller had set — an
+    # eval of an empty string is a no-op, and this correctly handles the
+    # partial case (e.g. only INT had a handler, not TERM).
     trap - INT TERM
+    eval "$prev_traps"
 
     # Update dashboard. Per-step status is communicated visually via the
     # dashboard's ✅/❌ markers and the post-run summary block. The log_*

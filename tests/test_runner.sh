@@ -30,3 +30,27 @@ fi
 
 # Cleanup
 rm -f "$LOG_FILE"
+
+# Regression: runner_exec must preserve the caller's INT/TERM signal handlers.
+# It installs 'runner_cleanup' for the duration of a step, then restores the
+# prior dispositions. Without this a pre-existing trap (e.g. a caller's own
+# cleanup handler) is permanently wiped after the first step.
+if command -v gum >/dev/null 2>&1; then
+    DASHBOARD_QUIET=true
+    dashboard_init "trap-test"
+    dashboard_add_step "trap preservation step"
+
+    # No prior handler: must not leave a trap behind.
+    trap - INT TERM
+    runner_exec 0 true
+    assert_eq "" "$(trap -p INT TERM)" "runner_exec must not leave a trap behind when none was set"
+
+    # Pre-existing handler: must restore it, not wipe it.
+    runner_trap_marker() { :; }
+    trap 'runner_trap_marker' INT TERM
+    before=$(trap -p INT TERM)
+    runner_exec 0 true
+    assert_eq "$before" "$(trap -p INT TERM)" "runner_exec must restore pre-existing INT/TERM traps"
+    trap - INT TERM
+    unset -f runner_trap_marker
+fi

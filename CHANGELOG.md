@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **runner.sh**: `runner_exec` now saves and restores the caller's pre-existing INT/TERM signal dispositions instead of wiping them with `trap -` after each step. Fixes a silent bug where a caller's own cleanup handler would be permanently lost after the first step.
+- **format.sh**: `ui_version_check` now gracefully passes when gum is a dev build that doesn't report a parseable semver version (e.g. "version unknown (built from source)") instead of failing hard.
+
+### Changed
+- **examples/README.md**: Corrected stale `lib/ext/*` module paths to their current locations.
+
 ## [1.1.1] - 2026-05-17
 
 ### Added
@@ -108,5 +117,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Color-coded thresholds for system metrics
 - Auto-refresh dashboard with keyboard navigation
 
+[1.1.1]: https://github.com/ksokolowski/funny_gums/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/ksokolowski/funny_gums/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ksokolowski/funny_gums/releases/tag/v1.0.0

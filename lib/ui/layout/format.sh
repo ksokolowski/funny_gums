@@ -53,6 +53,16 @@ ui_format_template() {
 
 # Version check
 # Usage: ui_version_check ">= 0.17.0"
+# Returns 0 (pass) when the installed gum doesn't report a parseable semver
+# version (e.g. a dev build that prints "version unknown (built from source)").
+# No comparison is possible in that case, and failing hard would only break
+# dev setups where gum is guaranteed current anyway.
 ui_version_check() {
+    local current
+    current=$(gum --version 2>/dev/null | awk '{print $3}')
+    if [[ ! "$current" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+        return 0
+    fi
+
     gum_exec version-check "$@"
 }

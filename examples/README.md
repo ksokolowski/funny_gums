@@ -9,5 +9,5 @@ This directory contains example scripts demonstrating how to use the **Funny Gum
 - **git_commit.sh**: An interactive git commit wizard using `ui_input` and `ui_confirm`.
 - **markdown_preview.sh**: Shows how to render Markdown using `gum format`.
 - **system_dashboard.sh**: A full-screen dashboard showing CPU, memory, and disk usage.
-- **api_browser.sh**: Demonstrates the HTTP extension (`lib/ext/http.sh`) fetching JSON and displaying in a table.
-- **smart_viewer.sh**: Demonstrates `fzf` integration (`lib/ext/fzf.sh`) and smart file viewing (`lib/ext/viewer.sh`).
+- **api_browser.sh**: Demonstrates the HTTP extension (`lib/core/sh/http.sh`) fetching JSON and displaying in a table.
+- **smart_viewer.sh**: Demonstrates `fzf` integration (`lib/ui/interaction/fzf.sh`) and smart file viewing (`lib/ui/widgets/viewer.sh`).
